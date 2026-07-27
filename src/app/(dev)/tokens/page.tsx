@@ -2,123 +2,441 @@
 
 import { useState } from "react";
 
-import { PrimaryCTA, PrimaryBtn, SecondaryCTA } from "@/src/components/ui/Buttons";
-import { Card, GlassCard, SoftWashCard } from "@/src/components/ui/Cards";
+import { PrimaryCTA, PrimaryBtn, SecondaryCTA, TertiaryCTA } from "@/src/components/ui/Buttons";
 import {
+  Card,
+  CardWithGlow,
+  EditorialCard,
+  GlassCard,
+  SoftWashCard,
+} from "@/src/components/ui/Cards";
+import {
+  ChipAccent,
   ChipContext,
   ChipMono,
+  ChipPrimary,
   ChipRegBorder,
   ChipStatus,
   ChipTech,
   ChipThinBorder,
 } from "@/src/components/ui/Chips";
+import { SectionLabel } from "@/src/components/projects/SectionLabel";
+import { StackBadge } from "@/src/components/projects/StackBadge";
 
 type ThemeMode = "light" | "dark";
 
-type ColorToken = {
+type PaletteToken = {
   label: string;
   variable: string;
+  value: string;
   purpose: string;
 };
 
-const foundationTokens: ColorToken[] = [
+type DynamicColorToken = {
+  label: string;
+  variable: string;
+  lightValue: string;
+  darkValue: string;
+  lightPurpose: string;
+  darkPurpose: string;
+};
+
+const lightPaletteTokens: PaletteToken[] = [
+  {
+    label: "Blush Paper",
+    variable: "--color-blush-paper",
+    value: "#FFF7FA",
+    purpose: "Primary light-mode page background",
+  },
+  {
+    label: "Warm Cream",
+    variable: "--color-warm-cream",
+    value: "#FFFDF8",
+    purpose: "Cards, panels, and warm neutral surfaces",
+  },
+  {
+    label: "Pure White",
+    variable: "--color-pure-white",
+    value: "#FFFFFF",
+    purpose: "Elevated surfaces and crisp highlights",
+  },
+  {
+    label: "Text Charcoal",
+    variable: "--color-text-charcoal",
+    value: "#241C22",
+    purpose: "Body copy and high-contrast interface text",
+  },
+  {
+    label: "Deep Plum",
+    variable: "--color-deep-plum",
+    value: "#351827",
+    purpose: "Headings and dark brand anchors",
+  },
+  {
+    label: "Signature Aura Pink",
+    variable: "--color-signature-aura-pink",
+    value: "#FF699E",
+    purpose: "Buttons, active states, icons, borders, and brand emphasis",
+  },
+  {
+    label: "Accessible Rose",
+    variable: "--color-accessible-rose",
+    value: "#C42B70",
+    purpose: "Small pink text, links, labels, and focus cues",
+  },
+  {
+    label: "Aura Center",
+    variable: "--color-aura-center",
+    value: "#FF91B8",
+    purpose: "Strong aura glow and feature highlights",
+  },
+  {
+    label: "Aura Bloom",
+    variable: "--color-aura-bloom",
+    value: "#FFA0C1",
+    purpose: "Gradient transitions and decorative blooms",
+  },
+  {
+    label: "Aura Blush",
+    variable: "--color-aura-blush",
+    value: "#FFAEC8",
+    purpose: "Illustration fills and soft visual accents",
+  },
+  {
+    label: "Aura Petal",
+    variable: "--color-aura-petal",
+    value: "#FFB8CE",
+    purpose: "Soft borders, panels, and gradient layers",
+  },
+  {
+    label: "Aura Veil",
+    variable: "--color-aura-veil",
+    value: "#FFC5D4",
+    purpose: "Low-emphasis pink surfaces",
+  },
+  {
+    label: "Aura Mist",
+    variable: "--color-aura-mist",
+    value: "#FFDBE2",
+    purpose: "Section backgrounds and delicate card tinting",
+  },
+  {
+    label: "Aura Cloud",
+    variable: "--color-aura-cloud",
+    value: "#FFECEA",
+    purpose: "Near-neutral pink highlights and backdrops",
+  },
+  {
+    label: "Digital Aqua",
+    variable: "--color-digital-aqua",
+    value: "#24C7C9",
+    purpose: "Data nodes and technical visual signals",
+  },
+  {
+    label: "Aqua Ink",
+    variable: "--color-aqua-ink",
+    value: "#14777D",
+    purpose: "Accessible aqua text and technical labels",
+  },
+  {
+    label: "Data Periwinkle",
+    variable: "--color-data-periwinkle",
+    value: "#7C83FD",
+    purpose: "Informatics accents and diagrams",
+  },
+  {
+    label: "Periwinkle Ink",
+    variable: "--color-periwinkle-ink",
+    value: "#4E5BC7",
+    purpose: "Accessible periwinkle interface details",
+  },
+  {
+    label: "Scholar Lilac",
+    variable: "--color-scholar-lilac",
+    value: "#A78BFA",
+    purpose: "Academic accents and soft gradients",
+  },
+  {
+    label: "Lilac Ink",
+    variable: "--color-lilac-ink",
+    value: "#6D3BC2",
+    purpose: "Accessible lilac text and scholarly labels",
+  },
+  {
+    label: "Clinical Mint",
+    variable: "--color-clinical-mint",
+    value: "#4FD1A5",
+    purpose: "Healthcare-system accents and calm supporting details",
+  },
+  {
+    label: "Mint Ink",
+    variable: "--color-mint-ink",
+    value: "#167455",
+    purpose: "Accessible mint text and compact labels",
+  },
+  {
+    label: "Insight Gold",
+    variable: "--color-insight-gold",
+    value: "#F6C453",
+    purpose: "Sparse scholarship and achievement highlights",
+  },
+  {
+    label: "Gold Ink",
+    variable: "--color-gold-ink",
+    value: "#8A5A00",
+    purpose: "Accessible gold text and academic markers",
+  },
+];
+
+const darkPaletteTokens: PaletteToken[] = [
+  {
+    label: "Night Plum",
+    variable: "--color-night-plum",
+    value: "#160D1A",
+    purpose: "Primary dark-mode page background",
+  },
+  {
+    label: "Deep Aubergine",
+    variable: "--color-deep-aubergine",
+    value: "#211125",
+    purpose: "Primary dark cards and grounded panels",
+  },
+  {
+    label: "Night Surface",
+    variable: "--color-night-surface",
+    value: "#2B172D",
+    purpose: "Secondary surfaces, chips, and navigation fields",
+  },
+  {
+    label: "Elevated Plum",
+    variable: "--color-elevated-plum",
+    value: "#321A35",
+    purpose: "Hover surfaces and elevated dark panels",
+  },
+  {
+    label: "Blush White",
+    variable: "--color-blush-white",
+    value: "#FFF7FA",
+    purpose: "Primary dark-mode headings and body text",
+  },
+  {
+    label: "Muted Orchid Gray",
+    variable: "--color-muted-orchid-gray",
+    value: "#D9C8D2",
+    purpose: "Secondary copy and metadata on dark surfaces",
+  },
+  {
+    label: "Signature Aura Pink",
+    variable: "--color-signature-aura-pink",
+    value: "#FF699E",
+    purpose: "Calls to action, active states, and brand emphasis",
+  },
+  {
+    label: "Aura Center",
+    variable: "--color-aura-center",
+    value: "#FF91B8",
+    purpose: "Pink glow, focus accents, and dark-mode highlights",
+  },
+  {
+    label: "Luminous Aqua",
+    variable: "--color-luminous-aqua",
+    value: "#5EE1E6",
+    purpose: "Dark-mode data nodes and technical indicators",
+  },
+  {
+    label: "Luminous Periwinkle",
+    variable: "--color-luminous-periwinkle",
+    value: "#9EA8FF",
+    purpose: "Dark-mode informatics accents and diagrams",
+  },
+  {
+    label: "Luminous Lilac",
+    variable: "--color-luminous-lilac",
+    value: "#C4A7FF",
+    purpose: "Dark-mode academic accents",
+  },
+  {
+    label: "Luminous Mint",
+    variable: "--color-luminous-mint",
+    value: "#7BE0BD",
+    purpose: "Dark-mode healthcare accents",
+  },
+  {
+    label: "Luminous Gold",
+    variable: "--color-luminous-gold",
+    value: "#FFD166",
+    purpose: "Dark-mode scholarship and achievement highlights",
+  },
+];
+
+const interfaceTokens: DynamicColorToken[] = [
   {
     label: "Background",
     variable: "--color-background",
-    purpose: "Primary page background",
+    lightValue: "#FFF7FA",
+    darkValue: "#160D1A",
+    lightPurpose: "Blush Paper page background",
+    darkPurpose: "Night Plum page background",
   },
   {
     label: "Foreground",
     variable: "--color-foreground",
-    purpose: "Primary readable text",
+    lightValue: "#241C22",
+    darkValue: "#FFF7FA",
+    lightPurpose: "Text Charcoal primary text",
+    darkPurpose: "Blush White primary text",
   },
   {
     label: "Surface",
     variable: "--color-surface",
-    purpose: "Cards, forms, and controls",
+    lightValue: "#FFFDF8",
+    darkValue: "#211125",
+    lightPurpose: "Warm Cream cards and controls",
+    darkPurpose: "Deep Aubergine cards and controls",
   },
   {
     label: "Soft Surface",
     variable: "--color-surface-soft",
-    purpose: "Supporting areas and active states",
+    lightValue: "#FFECEA",
+    darkValue: "#2B172D",
+    lightPurpose: "Aura Cloud supporting areas",
+    darkPurpose: "Night Surface supporting areas",
   },
   {
-    label: "Data Surface",
-    variable: "--color-surface-blue",
-    purpose: "Systems, data, and technical emphasis",
+    label: "Aqua Surface",
+    variable: "--color-surface-aqua",
+    lightValue: "#EFFCFC",
+    darkValue: "#10292D",
+    lightPurpose: "Subtle technical and data emphasis",
+    darkPurpose: "Dark technical and data emphasis",
+  },
+  {
+    label: "Elevated Surface",
+    variable: "--color-surface-elevated",
+    lightValue: "#FFFFFF",
+    darkValue: "#321A35",
+    lightPurpose: "Pure White elevated surface",
+    darkPurpose: "Elevated Plum surface",
   },
   {
     label: "Card",
     variable: "--color-card",
-    purpose: "Translucent card backgrounds",
+    lightValue: "rgba(255, 253, 248, 0.82)",
+    darkValue: "rgba(255, 247, 250, 0.045)",
+    lightPurpose: "Translucent Warm Cream card",
+    darkPurpose: "Translucent Blush White card",
   },
   {
     label: "Glass",
     variable: "--color-glass",
-    purpose: "Glass panels and direction cards",
+    lightValue: "rgba(255, 253, 248, 0.68)",
+    darkValue: "rgba(255, 247, 250, 0.06)",
+    lightPurpose: "Light glass panel",
+    darkPurpose: "Dark glass panel",
   },
   {
     label: "Border",
     variable: "--color-border",
-    purpose: "Default separation",
+    lightValue: "rgba(196, 43, 112, 0.14)",
+    darkValue: "rgba(255, 247, 250, 0.12)",
+    lightPurpose: "Accessible Rose separation",
+    darkPurpose: "Subtle Blush White separation",
   },
   {
     label: "Strong Border",
     variable: "--color-border-strong",
-    purpose: "Interactive emphasis",
+    lightValue: "rgba(196, 43, 112, 0.24)",
+    darkValue: "rgba(255, 247, 250, 0.20)",
+    lightPurpose: "Interactive light-mode emphasis",
+    darkPurpose: "Interactive dark-mode emphasis",
+  },
+  {
+    label: "Glass Border",
+    variable: "--color-glass-border",
+    lightValue: "rgba(255, 105, 158, 0.18)",
+    darkValue: "rgba(255, 145, 184, 0.16)",
+    lightPurpose: "Signature Aura Pink glass outline",
+    darkPurpose: "Aura Center glass outline",
   },
   {
     label: "Muted Text",
     variable: "--color-muted",
-    purpose: "Secondary body copy",
+    lightValue: "#6B4E57",
+    darkValue: "#D9C8D2",
+    lightPurpose: "Secondary light-mode body copy",
+    darkPurpose: "Muted Orchid Gray secondary copy",
   },
   {
     label: "Subtle Text",
     variable: "--color-subtle",
-    purpose: "Metadata and supporting details",
+    lightValue: "rgba(107, 78, 87, 0.78)",
+    darkValue: "rgba(217, 200, 210, 0.78)",
+    lightPurpose: "Light metadata and supporting details",
+    darkPurpose: "Dark metadata and supporting details",
   },
-];
-
-const brandTokens: ColorToken[] = [
   {
-    label: "Primary Plum",
+    label: "Primary",
     variable: "--color-primary",
-    purpose: "Headings and high-emphasis text",
+    lightValue: "#351827",
+    darkValue: "#FFF7FA",
+    lightPurpose: "Deep Plum headings",
+    darkPurpose: "Blush White headings",
   },
   {
-    label: "Signature Rose",
-    variable: "--color-accent",
-    purpose: "Primary brand accent",
-  },
-  {
-    label: "Soft Pink",
-    variable: "--color-accent-soft",
-    purpose: "Gentle pink emphasis",
-  },
-  {
-    label: "Rose Wash",
-    variable: "--color-accent-muted",
-    purpose: "Soft supporting surfaces",
-  },
-  {
-    label: "Data Teal",
+    label: "Secondary",
     variable: "--color-secondary",
-    purpose: "Systems, data, and technology",
+    lightValue: "#14777D",
+    darkValue: "#5EE1E6",
+    lightPurpose: "Aqua Ink technical text",
+    darkPurpose: "Luminous Aqua technical text",
   },
   {
-    label: "Lavender Mist",
-    variable: "--color-mist",
-    purpose: "Editorial depth and ambient color",
+    label: "Accent",
+    variable: "--color-accent",
+    lightValue: "#C42B70",
+    darkValue: "#FF91B8",
+    lightPurpose: "Accessible Rose labels and links",
+    darkPurpose: "Aura Center labels and links",
+  },
+  {
+    label: "Accent Soft",
+    variable: "--color-accent-soft",
+    lightValue: "#FFAEC8",
+    darkValue: "#FFB8CE",
+    lightPurpose: "Aura Blush supporting emphasis",
+    darkPurpose: "Aura Petal supporting emphasis",
+  },
+  {
+    label: "Accent Muted",
+    variable: "--color-accent-muted",
+    lightValue: "#FFECEA",
+    darkValue: "rgba(255, 145, 184, 0.12)",
+    lightPurpose: "Aura Cloud supporting surface",
+    darkPurpose: "Translucent Aura Center surface",
   },
   {
     label: "Link",
     variable: "--color-link",
-    purpose: "Text links and tertiary actions",
+    lightValue: "#C42B70",
+    darkValue: "#FF91B8",
+    lightPurpose: "Accessible Rose text link",
+    darkPurpose: "Aura Center text link",
   },
   {
     label: "Primary CTA",
     variable: "--color-cta",
-    purpose: "Primary buttons and actions",
+    lightValue: "#FF699E",
+    darkValue: "#FF699E",
+    lightPurpose: "Signature Aura Pink primary action",
+    darkPurpose: "Signature Aura Pink primary action",
+  },
+  {
+    label: "CTA Foreground",
+    variable: "--color-cta-foreground",
+    lightValue: "#FFF7FA",
+    darkValue: "#FFF7FA",
+    lightPurpose: "Light CTA text",
+    darkPurpose: "Light CTA text",
   },
 ];
 
@@ -138,6 +456,8 @@ export default function TokenPage() {
   const [mode, setMode] = useState<ThemeMode>("light");
   const isDark = mode === "dark";
 
+  const activePaletteTokens = isDark ? darkPaletteTokens : lightPaletteTokens;
+
   return (
     <main
       className={`${
@@ -156,12 +476,12 @@ export default function TokenPage() {
 
             <div className="space-y-4">
               <h1 className="font-heading text-primary text-4xl leading-[0.98] font-extrabold tracking-[-0.035em] text-balance md:text-6xl">
-                Pink academic warmth with professional clarity
+                Warm pink scholarship with informatics clarity
               </h1>
 
               <p className="text-muted max-w-3xl text-base leading-relaxed md:text-lg">
-                A light-first visual system combining structured typography, soft pink surfaces,
-                deep plum text, rose accents, data-informed teal, and selective editorial detail.
+                A light-first visual system combining structured typography, warm aura pinks,
+                accessible text colors, healthcare-data signals, and restrained academic detail.
               </p>
             </div>
 
@@ -251,7 +571,7 @@ export default function TokenPage() {
         <DesignSection
           eyebrow="Identity Hierarchy"
           title="Present foundation, immediate transition, and long-term direction"
-          description="Recruiter-facing pages should establish proven experience first, clearly identify the current healthcare transition, and present the advocacy and informatics goal as long-term direction."
+          description="Recruiter-facing pages should establish proven experience first, clearly identify the current healthcare transition, and present the advocacy and informatics goal as the long-term direction."
         >
           <div className="grid gap-5 lg:grid-cols-3">
             <HierarchyCard
@@ -280,13 +600,26 @@ export default function TokenPage() {
         </DesignSection>
 
         <DesignSection
-          eyebrow="Color"
-          title="Soft academic pink with professional contrast"
-          description="The working palette uses plum for authority, rose for identity, teal for systems and data, and lavender for selective editorial atmosphere."
+          eyebrow="Dynamic Color System"
+          title={
+            isDark ? "Pink Informatics Night" : "Soft academic pink with healthcare-data signals"
+          }
+          description={
+            isDark
+              ? "The active dark palette uses deep plum surfaces with luminous pink, aqua, periwinkle, lilac, mint, and gold signals."
+              : "The active light palette uses warm aura pinks, deep plum and charcoal text, and selective healthcare-data accents."
+          }
         >
-          <TokenGroup title="Foundation and Surfaces" tokens={foundationTokens} />
+          <TokenGroup
+            title={`${isDark ? "Dark" : "Light"} Brand Palette`}
+            tokens={activePaletteTokens}
+          />
 
-          <TokenGroup title="Brand and Interaction" tokens={brandTokens} />
+          <DynamicTokenGroup
+            title="Theme-Aware Interface Tokens"
+            tokens={interfaceTokens}
+            mode={mode}
+          />
         </DesignSection>
 
         <DesignSection
@@ -308,8 +641,8 @@ export default function TokenPage() {
               </h3>
 
               <p className="text-muted mt-3 text-sm leading-relaxed">
-                Layered pink, lavender, and teal light with the data-grid treatment reserved for
-                high-level brand framing.
+                Layered Aura Center, Scholar Lilac, and Digital Aqua light with the data-grid
+                treatment reserved for high-level brand framing.
               </p>
             </div>
 
@@ -343,81 +676,104 @@ export default function TokenPage() {
 
         <DesignSection
           eyebrow="Cards"
-          title="The three card treatments used across the site"
-          description="Card selection should follow the content's purpose. Professional evidence stays clean, summaries may use glass, and editorial content may use the soft wash."
+          title="Every reusable card treatment"
+          description="Each existing card component has a distinct purpose. New layouts should reuse these components before introducing another card treatment."
         >
-          <div className="grid gap-5 lg:grid-cols-3">
+          <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
             <Card>
-              <Eyebrow>Standard Card</Eyebrow>
-
-              <h3 className="font-heading text-primary mt-4 text-2xl font-semibold">
-                Professional evidence
-              </h3>
-
-              <p className="text-muted mt-3 text-sm leading-relaxed">
-                Used for projects, experience summaries, working principles, and content that should
-                be easy to scan.
-              </p>
+              <CardContent
+                label="Card"
+                title="Professional evidence"
+                description="Default treatment for projects, experience summaries, principles, and highly scannable content."
+              />
             </Card>
 
+            <CardWithGlow>
+              <CardContent
+                label="Card With Glow"
+                title="High-emphasis evidence"
+                description="Used when an important professional item needs stronger separation without changing the core card structure."
+              />
+            </CardWithGlow>
+
             <GlassCard>
-              <Eyebrow>Glass Card</Eyebrow>
-
-              <h3 className="font-heading text-primary mt-4 text-2xl font-semibold">
-                Current direction
-              </h3>
-
-              <p className="text-muted mt-3 text-sm leading-relaxed">
-                Used for professional snapshots, focus areas, academic direction, and compact
-                supporting information.
-              </p>
+              <CardContent
+                label="Glass Card"
+                title="Direction and summary"
+                description="Used for professional snapshots, focus areas, academic direction, and compact supporting information."
+              />
             </GlassCard>
 
+            <EditorialCard>
+              <CardContent
+                label="Editorial Card"
+                title="Long-form context"
+                description="Used for structured narrative content that needs a clean editorial surface without an atmospheric wash."
+              />
+            </EditorialCard>
+
             <SoftWashCard>
-              <Eyebrow>Soft-Wash Card</Eyebrow>
-
-              <h3 className="font-heading text-primary mt-4 text-2xl font-semibold">
-                Editorial and advocacy
-              </h3>
-
-              <p className="text-muted mt-3 text-sm leading-relaxed">
-                Used selectively for the Diary, equity-focused content, and reflective narrative
-                sections.
-              </p>
+              <CardContent
+                label="Soft-Wash Card"
+                title="Editorial and advocacy"
+                description="Used selectively for the Diary, equity-focused content, and reflective narrative sections."
+              />
             </SoftWashCard>
           </div>
         </DesignSection>
 
         <DesignSection
           eyebrow="Chips"
-          title="Readable skills and compact metadata"
+          title="Every reusable chip treatment"
           description="Readable chips communicate skills and focus areas. Monospaced chips identify technologies, context, and project status."
         >
-          <div className="border-default bg-surface space-y-7 rounded-3xl border p-6">
-            <div>
-              <p className="text-subtle mb-3 text-sm font-semibold">Skills and focus areas</p>
+          <div className="border-default bg-surface space-y-8 rounded-3xl border p-6">
+            <ChipExample
+              label="Readable chips"
+              description="Used for competencies, professional focus areas, and language that should be read naturally."
+            >
+              <ChipThinBorder>Documentation</ChipThinBorder>
+              <ChipRegBorder>Healthcare Data</ChipRegBorder>
+              <ChipPrimary>Health Information</ChipPrimary>
+              <ChipAccent>Quality Assurance</ChipAccent>
+            </ChipExample>
 
-              <div className="flex flex-wrap gap-2">
-                <ChipThinBorder>Documentation</ChipThinBorder>
-                <ChipThinBorder>Quality Assurance</ChipThinBorder>
-                <ChipRegBorder>Healthcare Data</ChipRegBorder>
-                <ChipRegBorder>Workflow Analysis</ChipRegBorder>
-              </div>
-            </div>
+            <ChipExample
+              label="Metadata chips"
+              description="Used for technologies, project context, evidence type, and build status."
+            >
+              <ChipTech>PostgreSQL</ChipTech>
+              <ChipMono>Educational Project</ChipMono>
+              <ChipContext>Professional Work</ChipContext>
+              <ChipStatus>Built</ChipStatus>
+              <ChipStatus>Planned</ChipStatus>
+            </ChipExample>
+          </div>
+        </DesignSection>
 
-            <div>
-              <p className="text-subtle mb-3 text-sm font-semibold">
-                Technologies, context, and status
-              </p>
+        <DesignSection
+          eyebrow="Project Primitives"
+          title="Reusable project labels and technology badges"
+          description="These compact components keep project categories and technology labels consistent across standard and featured project cards."
+        >
+          <div className="border-default bg-surface shadow-card rounded-3xl border p-6 md:p-8">
+            <SectionLabel>Health Information + Data Systems</SectionLabel>
 
-              <div className="flex flex-wrap gap-2">
-                <ChipTech>PostgreSQL</ChipTech>
-                <ChipTech>TypeScript</ChipTech>
-                <ChipMono>Educational Project</ChipMono>
-                <ChipContext>Professional Work</ChipContext>
-                <ChipStatus>Built</ChipStatus>
-                <ChipStatus>Planned</ChipStatus>
-              </div>
+            <h3 className="font-heading text-primary text-2xl font-semibold">
+              Health Record Data Quality Lab
+            </h3>
+
+            <p className="text-muted mt-3 max-w-2xl text-sm leading-relaxed">
+              A planned educational project using synthetic health-record data to explore missing
+              information, inconsistent formatting, potential duplicate records, validation rules,
+              and data-quality reporting.
+            </p>
+
+            <div className="mt-6 flex flex-wrap gap-2">
+              <StackBadge label="SQL" />
+              <StackBadge label="PostgreSQL" />
+              <StackBadge label="Python" />
+              <StackBadge label="Synthetic Data" />
             </div>
           </div>
         </DesignSection>
@@ -438,17 +794,78 @@ export default function TokenPage() {
 
         <DesignSection
           eyebrow="Actions"
-          title="A simple recruiter action hierarchy"
-          description="Primary actions support professional evaluation. Secondary actions offer more context. Inline links guide visitors without creating another competing button."
+          title="Every reusable action treatment"
+          description="Primary actions support professional evaluation. Secondary and tertiary actions provide context. Inline actions guide visitors without adding another prominent button."
         >
-          <div className="border-default bg-surface flex flex-wrap items-center gap-4 rounded-3xl border p-6">
-            <PrimaryCTA link="/experience" label="View Experience" />
+          <div className="border-default bg-surface space-y-8 rounded-3xl border p-6">
+            <ActionExample
+              label="Primary and disabled actions"
+              description="Use one primary CTA within a local action group. Disabled treatment communicates genuinely unavailable work."
+            >
+              <PrimaryCTA link="/experience" label="View Experience" />
 
-            <SecondaryCTA link="/resume/arielaisrael-resume.pdf" label="View Resume" />
+              <PrimaryCTA link="/projects" label="Coming Soon" status="disabled" />
+            </ActionExample>
 
-            <PrimaryBtn link="/projects" label="View Projects" />
+            <ActionExample
+              label="Secondary and tertiary actions"
+              description="Secondary actions provide professional context. Tertiary actions support technical or healthcare-data routes."
+            >
+              <SecondaryCTA link="/resume/arielaisrael-resume.pdf" label="View Resume" />
 
-            <PrimaryBtn link="/field-notes" label="Read Field Notes" />
+              <TertiaryCTA link="/projects" label="Explore Projects" />
+            </ActionExample>
+
+            <ActionExample
+              label="Inline action"
+              description="Use for compact card actions and low-emphasis navigation."
+            >
+              <PrimaryBtn link="/field-notes" label="Read Field Notes" />
+            </ActionExample>
+          </div>
+        </DesignSection>
+
+        <DesignSection
+          eyebrow="Interaction States"
+          title="Active, inactive, and linked states"
+          description="Interaction colors communicate state without changing the established shape or spacing of the component."
+        >
+          <div className="border-default bg-surface flex flex-wrap items-end gap-8 rounded-3xl border p-6">
+            <div>
+              <p className="text-subtle mb-3 text-sm font-semibold">Navigation pill</p>
+
+              <div className="border-default bg-surface/70 shadow-card flex rounded-full border p-1">
+                <span className="bg-chip-bg text-accent rounded-full px-4 py-2 font-mono text-[0.68rem] font-semibold tracking-[0.2em] uppercase">
+                  Active
+                </span>
+
+                <span className="text-subtle px-4 py-2 font-mono text-[0.68rem] font-semibold tracking-[0.2em] uppercase">
+                  Inactive
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <p className="text-subtle mb-3 text-sm font-semibold">Text link</p>
+
+              <a
+                href="#experimental-components"
+                className="ring-brand text-link rounded-sm font-semibold transition hover:underline hover:underline-offset-4"
+              >
+                Explore experimental components
+              </a>
+            </div>
+
+            <div>
+              <p className="text-subtle mb-3 text-sm font-semibold">Focusable control</p>
+
+              <button
+                type="button"
+                className="ring-brand border-default bg-surface text-foreground rounded-full border px-4 py-2 text-sm font-semibold"
+              >
+                Keyboard focus preview
+              </button>
+            </div>
           </div>
         </DesignSection>
 
@@ -501,10 +918,10 @@ export default function TokenPage() {
               description="The Informatics Diary, advocacy sections, and selective future-facing project content."
             >
               <ul className="text-muted space-y-3 text-sm leading-relaxed md:text-base">
-                <li>Use soft-wash surfaces and more atmospheric spacing.</li>
+                <li>Use soft-wash surfaces and atmospheric spacing.</li>
                 <li>Allow one intentional visual motif or editorial composition per page.</li>
                 <li>Use emojis only when they support voice or meaning.</li>
-                <li>Keep all decoration away from paragraphs and interactive controls.</li>
+                <li>Keep decoration away from paragraphs and interactive controls.</li>
               </ul>
             </Specimen>
           </div>
@@ -545,6 +962,31 @@ export default function TokenPage() {
             </Specimen>
           </div>
         </DesignSection>
+
+        <section id="experimental-components" className="scroll-mt-10 space-y-7">
+          <div className="max-w-3xl">
+            <Eyebrow>Experimental Components</Eyebrow>
+
+            <h2 className="font-heading text-primary mt-3 text-3xl leading-[1.08] font-bold tracking-tight text-balance md:text-5xl">
+              Focused patterns worth testing
+            </h2>
+
+            <p className="text-muted mt-4 text-base leading-relaxed md:text-lg">
+              These additions should only move into the main portfolio when they improve
+              comprehension, professional evaluation, or access to meaningful work.
+            </p>
+          </div>
+
+          <div className="grid gap-5 xl:grid-cols-2">
+            <RecruiterSnapshot />
+
+            <ProfessionalEvidenceBanner />
+
+            <LearningProjectPreview />
+
+            <FieldNotePreview />
+          </div>
+        </section>
       </div>
     </main>
   );
@@ -673,7 +1115,7 @@ function HierarchyCard({
     <article
       className={`rounded-3xl border p-6 ${
         highlighted
-          ? "border-tech-chip-border bg-surface-blue shadow-card"
+          ? "border-tech-chip-border bg-surface-aqua shadow-card"
           : editorial
             ? "border-default soft-wash shadow-card"
             : "border-default bg-surface shadow-card"
@@ -692,7 +1134,7 @@ function HierarchyCard({
   );
 }
 
-function TokenGroup({ title, tokens }: { title: string; tokens: ColorToken[] }) {
+function TokenGroup({ title, tokens }: { title: string; tokens: PaletteToken[] }) {
   return (
     <div className="mt-10 space-y-4">
       <h3 className="font-heading text-primary text-xl leading-[1.12] font-semibold tracking-[-0.015em]">
@@ -701,16 +1143,40 @@ function TokenGroup({ title, tokens }: { title: string; tokens: ColorToken[] }) 
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
         {tokens.map((token) => (
-          <ColorSwatch key={token.variable} token={token} />
+          <PaletteSwatch key={token.variable} token={token} />
         ))}
       </div>
     </div>
   );
 }
 
-function ColorSwatch({ token }: { token: ColorToken }) {
+function DynamicTokenGroup({
+  title,
+  tokens,
+  mode,
+}: {
+  title: string;
+  tokens: DynamicColorToken[];
+  mode: ThemeMode;
+}) {
   return (
-    <div className="border-default bg-surface overflow-hidden rounded-2xl border">
+    <div className="mt-12 space-y-4">
+      <h3 className="font-heading text-primary text-xl leading-[1.12] font-semibold tracking-[-0.015em]">
+        {title}
+      </h3>
+
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+        {tokens.map((token) => (
+          <DynamicColorSwatch key={token.variable} token={token} mode={mode} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PaletteSwatch({ token }: { token: PaletteToken }) {
+  return (
+    <article className="border-default bg-surface overflow-hidden rounded-2xl border">
       <div
         className="border-default h-24 border-b"
         style={{ backgroundColor: `var(${token.variable})` }}
@@ -719,10 +1185,97 @@ function ColorSwatch({ token }: { token: ColorToken }) {
       <div className="p-4">
         <p className="text-foreground text-sm font-bold">{token.label}</p>
 
+        <p className="text-accent mt-2 font-mono text-xs font-semibold">{token.value}</p>
+
         <p className="text-subtle mt-1 font-mono text-[0.68rem]">{token.variable}</p>
 
         <p className="text-muted mt-3 text-xs leading-relaxed">{token.purpose}</p>
       </div>
+    </article>
+  );
+}
+
+function DynamicColorSwatch({ token, mode }: { token: DynamicColorToken; mode: ThemeMode }) {
+  const value = mode === "dark" ? token.darkValue : token.lightValue;
+
+  const purpose = mode === "dark" ? token.darkPurpose : token.lightPurpose;
+
+  return (
+    <article className="border-default bg-surface overflow-hidden rounded-2xl border">
+      <div
+        className="border-default h-24 border-b"
+        style={{ backgroundColor: `var(${token.variable})` }}
+      />
+
+      <div className="p-4">
+        <p className="text-foreground text-sm font-bold">{token.label}</p>
+
+        <p className="text-accent mt-2 font-mono text-xs font-semibold">{value}</p>
+
+        <p className="text-subtle mt-1 font-mono text-[0.68rem]">{token.variable}</p>
+
+        <p className="text-muted mt-3 text-xs leading-relaxed">{purpose}</p>
+      </div>
+    </article>
+  );
+}
+
+function CardContent({
+  label,
+  title,
+  description,
+}: {
+  label: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <>
+      <Eyebrow>{label}</Eyebrow>
+
+      <h3 className="font-heading text-primary mt-4 text-2xl font-semibold">{title}</h3>
+
+      <p className="text-muted mt-3 text-sm leading-relaxed">{description}</p>
+    </>
+  );
+}
+
+function ChipExample({
+  label,
+  description,
+  children,
+}: {
+  label: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <p className="text-foreground text-sm font-semibold">{label}</p>
+
+      <p className="text-subtle mt-1 text-sm leading-relaxed">{description}</p>
+
+      <div className="mt-4 flex flex-wrap gap-2">{children}</div>
+    </div>
+  );
+}
+
+function ActionExample({
+  label,
+  description,
+  children,
+}: {
+  label: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <p className="text-foreground text-sm font-semibold">{label}</p>
+
+      <p className="text-subtle mt-1 max-w-2xl text-sm leading-relaxed">{description}</p>
+
+      <div className="mt-4 flex flex-wrap items-center gap-4">{children}</div>
     </div>
   );
 }
@@ -743,6 +1296,159 @@ function ReferenceCard({
       <h3 className="font-heading text-primary mt-4 text-2xl font-semibold">{title}</h3>
 
       <p className="text-muted mt-3 text-sm leading-relaxed">{description}</p>
+    </article>
+  );
+}
+
+function RecruiterSnapshot() {
+  return (
+    <article className="border-default bg-surface shadow-card rounded-[2rem] border p-6 md:p-8">
+      <Eyebrow>Experiment 01</Eyebrow>
+
+      <h3 className="font-heading text-primary mt-4 text-3xl leading-tight font-bold tracking-tight">
+        Recruiter snapshot
+      </h3>
+
+      <p className="text-muted mt-3 text-sm leading-relaxed">
+        A compact professional hierarchy for pages where a visitor needs the full direction without
+        reading a longer biography.
+      </p>
+
+      <div className="border-default mt-7 divide-y border-y">
+        <SnapshotRow
+          label="Proven"
+          value="Production software, structured data, documentation, quality assurance, accessibility, and operational workflows."
+        />
+
+        <SnapshotRow
+          label="Seeking"
+          value="Hands-on experience in health information, medical records, documentation workflows, and healthcare data support."
+        />
+
+        <SnapshotRow label="Direction" value="Women's Health Equity Advocate & Informatician." />
+      </div>
+
+      <div className="mt-7 flex flex-wrap gap-3">
+        <PrimaryCTA link="/experience" label="View Experience" />
+
+        <SecondaryCTA link="/resume/arielaisrael-resume.pdf" label="View Resume" />
+      </div>
+    </article>
+  );
+}
+
+function SnapshotRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="grid gap-2 py-4 sm:grid-cols-[8rem_1fr] sm:gap-5">
+      <p className="text-accent font-mono text-xs font-semibold tracking-[0.16em] uppercase">
+        {label}
+      </p>
+
+      <p className="text-muted text-sm leading-relaxed">{value}</p>
+    </div>
+  );
+}
+
+function ProfessionalEvidenceBanner() {
+  return (
+    <article className="glass-panel shadow-glow rounded-[2rem] p-6 md:p-8">
+      <div className="flex flex-wrap gap-2">
+        <ChipContext>Professional Foundation</ChipContext>
+        <ChipStatus>Proven Experience</ChipStatus>
+      </div>
+
+      <h3 className="font-heading text-primary mt-5 text-3xl leading-tight font-bold tracking-tight">
+        Production systems and operational workflows
+      </h3>
+
+      <p className="text-muted mt-4 text-sm leading-relaxed">
+        Professional software experience demonstrating structured information, technical ownership,
+        documentation, testing, accessibility, troubleshooting, and systems designed around real
+        operational needs.
+      </p>
+
+      <div className="mt-6 flex flex-wrap gap-2">
+        <ChipThinBorder>Structured Data</ChipThinBorder>
+        <ChipThinBorder>Documentation</ChipThinBorder>
+        <ChipRegBorder>Workflow Analysis</ChipRegBorder>
+        <ChipRegBorder>Accessibility</ChipRegBorder>
+      </div>
+
+      <div className="mt-7">
+        <PrimaryBtn link="/experience" label="Review Professional Experience" />
+      </div>
+    </article>
+  );
+}
+
+function LearningProjectPreview() {
+  return (
+    <article className="border-tech-chip-border bg-surface-aqua shadow-card rounded-[2rem] border p-6 md:p-8">
+      <div className="flex flex-wrap gap-2">
+        <ChipMono>Educational Lab</ChipMono>
+        <ChipStatus>Planned</ChipStatus>
+      </div>
+
+      <h3 className="font-heading text-primary mt-5 text-3xl leading-tight font-bold tracking-tight">
+        Health Record Data Quality Lab
+      </h3>
+
+      <p className="text-muted mt-4 text-sm leading-relaxed">
+        A synthetic-data learning project exploring missing information, inconsistent formatting,
+        potential duplicate records, validation rules, and data-quality reporting.
+      </p>
+
+      <div className="mt-6 flex flex-wrap gap-2">
+        <ChipTech>SQL</ChipTech>
+        <ChipTech>PostgreSQL</ChipTech>
+        <ChipTech>Python</ChipTech>
+        <ChipRegBorder>Data Quality</ChipRegBorder>
+        <ChipRegBorder>Synthetic Data</ChipRegBorder>
+      </div>
+
+      <div className="border-default mt-7 border-t pt-6">
+        <p className="text-subtle font-mono text-xs font-semibold tracking-[0.16em] uppercase">
+          Why this treatment may help
+        </p>
+
+        <p className="text-muted mt-3 text-sm leading-relaxed">
+          It separates a developing educational lab from completed professional work while still
+          showing its relevance to the health-information transition.
+        </p>
+      </div>
+
+      <div className="mt-7">
+        <SecondaryCTA link="/projects" label="View Project Roadmap" />
+      </div>
+    </article>
+  );
+}
+
+function FieldNotePreview() {
+  return (
+    <article className="soft-wash border-default shadow-card rounded-[2rem] border p-6 md:p-8">
+      <div className="flex flex-wrap gap-2">
+        <ChipContext>The Informatics Diary</ChipContext>
+        <ChipStatus>Field Note</ChipStatus>
+      </div>
+
+      <p className="text-subtle mt-6 font-mono text-xs font-semibold tracking-[0.16em] uppercase">
+        Academic Becoming
+      </p>
+
+      <h3 className="font-heading text-primary mt-3 text-3xl leading-tight font-bold tracking-tight">
+        Learning how health information moves through real systems
+      </h3>
+
+      <p className="text-muted mt-4 text-sm leading-relaxed">
+        A preview treatment for concise field notes connecting coursework, developing healthcare
+        knowledge, technical foundations, and questions that may later become deeper essays or
+        projects.
+      </p>
+
+      <div className="border-default mt-7 border-t pt-6">
+        <PrimaryBtn link="/field-notes" label="Read Field Notes" />
+      </div>
     </article>
   );
 }
