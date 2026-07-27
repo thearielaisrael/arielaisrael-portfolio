@@ -45,7 +45,7 @@ const PrimaryNav = ({ menuItems, socialIcons }: PrimaryNavProps) => {
                   <motion.span
                     layoutId="primary-navigation-active-pill"
                     aria-hidden="true"
-                    className="bg-surface-soft absolute inset-0 -z-10 rounded-full"
+                    className="bg-chip-bg absolute inset-0 -z-10 rounded-full"
                     transition={
                       reduceMotion
                         ? { duration: 0 }
