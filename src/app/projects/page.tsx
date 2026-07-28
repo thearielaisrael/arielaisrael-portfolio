@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   title: "Projects",
 
   description:
-    "Professional and educational projects by Ariela Israel. across software development, structured data, operational systems, health information, digital health, and women's health equity.",
+    "Professional and educational projects by Ariela Israel across software development, structured data, operational systems, health information, digital health, and women's health equity.",
 
   alternates: {
     canonical: "/projects",

@@ -87,7 +87,7 @@ export default function ContactPage() {
 
                   <Link
                     href="/experience"
-                    className="ring-brand bg-cta text-cta-foreground shadow-card mt-8 inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-bold tracking-wide transition hover:-translate-y-0.5 hover:brightness-105"
+                    className="ring-brand bg-cta text-cta-foreground shadow-card hover:shadow-pop mt-8 inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-bold tracking-wide transition hover:-translate-y-0.5 hover:brightness-95"
                   >
                     View Experience
                   </Link>
@@ -242,7 +242,7 @@ export default function ContactPage() {
                       className={`${
                         state.submitting
                           ? "bg-cta text-cta-foreground opacity-disabled cursor-not-allowed"
-                          : "ring-brand bg-cta text-cta-foreground shadow-card hover:-translate-y-0.5 hover:brightness-105"
+                          : "ring-brand bg-cta text-cta-foreground shadow-card hover:shadow-pop hover:-translate-y-0.5 hover:brightness-95"
                       } inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-bold tracking-wide transition md:text-base`}
                     >
                       {state.submitting ? "Sending…" : "Send Message"}

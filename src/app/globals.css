@@ -1,10 +1,16 @@
 @import "tailwindcss";
 
 /* ============================================================
-   Ariela Israel Global Design Tokens
-   Light-first with optional dark mode
-   Direction: warm pink, feminine, academic, data-informed,
-   patient-centered
+   Ariela Israel Dual-Expression Design System
+
+   Pink Academia
+   Warm, clear, scholarly, healthcare-centered, and advocacy-led
+
+   Pink Informatics Night
+   Luminous, technical, immersive, data-informed, and research-led
+
+   Shared direction
+   Feminine, precise, patient-centered, academic, and technical
 ============================================================ */
 
 @theme {
@@ -65,109 +71,99 @@
   --color-deep-plum: #351827;
 
   /* ----------------------------------------------------------
-     Light mode interface mappings
+     Pink Academia interface mappings
   ---------------------------------------------------------- */
   --color-background: var(--color-blush-paper);
   --color-foreground: var(--color-text-charcoal);
 
   --color-surface: var(--color-warm-cream);
-  --color-surface-soft: var(--color-aura-cloud);
+  --color-surface-soft: var(--color-aura-mist);
   --color-surface-aqua: #effcfc;
   --color-surface-elevated: var(--color-pure-white);
 
-  --color-card: rgba(255, 253, 248, 0.82);
-  --color-glass: rgba(255, 253, 248, 0.68);
+  --color-card: rgba(255, 253, 248, 0.92);
+  --color-glass: rgba(255, 253, 248, 0.78);
 
-  --color-border: rgba(196, 43, 112, 0.14);
-  --color-border-strong: rgba(196, 43, 112, 0.24);
-  --color-glass-border: rgba(255, 105, 158, 0.18);
+  --color-border: rgba(196, 43, 112, 0.2);
+  --color-border-strong: rgba(196, 43, 112, 0.34);
+  --color-glass-border: rgba(255, 105, 158, 0.3);
 
   --color-muted: #6b4e57;
-  --color-subtle: rgba(107, 78, 87, 0.78);
+  --color-subtle: rgba(107, 78, 87, 0.82);
 
   /* ----------------------------------------------------------
-     Light mode brand mappings
+     Pink Academia brand mappings
   ---------------------------------------------------------- */
   --color-primary: var(--color-deep-plum);
   --color-secondary: var(--color-aqua-ink);
 
   --color-accent: var(--color-accessible-rose);
   --color-accent-soft: var(--color-aura-blush);
-  --color-accent-muted: var(--color-aura-cloud);
+  --color-accent-muted: var(--color-aura-mist);
 
   --color-link: var(--color-accessible-rose);
-  --color-cta: var(--color-signature-aura-pink);
+
+  /*
+   Accessible Rose is used for controls requiring light text.
+   Signature Aura Pink remains the primary visual brand color.
+  */
+  --color-cta: var(--color-accessible-rose);
   --color-cta-foreground: var(--color-blush-paper);
 
   /* ----------------------------------------------------------
-     Chips and tags
+     Pink Academia chips and tags
   ---------------------------------------------------------- */
-  --color-chip-bg: rgba(255, 105, 158, 0.1);
+  --color-chip-bg: rgba(255, 105, 158, 0.16);
   --color-chip-text: var(--color-deep-plum);
-  --color-chip-border: rgba(255, 105, 158, 0.26);
+  --color-chip-border: rgba(255, 105, 158, 0.38);
 
-  --color-tech-chip-bg: rgba(36, 199, 201, 0.12);
+  --color-tech-chip-bg: rgba(36, 199, 201, 0.14);
   --color-tech-chip-text: var(--color-text-charcoal);
-  --color-tech-chip-border: rgba(36, 199, 201, 0.28);
+  --color-tech-chip-border: rgba(36, 199, 201, 0.34);
 
   /* ----------------------------------------------------------
-     Shadows and depth
+     Pink Academia shadows and luminous depth
   ---------------------------------------------------------- */
-  --shadow-card: 0 18px 50px rgba(53, 24, 39, 0.08);
-  --shadow-pop: 0 24px 70px rgba(53, 24, 39, 0.13);
+  --shadow-card: 0 18px 50px rgba(196, 43, 112, 0.12), 0 4px 18px rgba(53, 24, 39, 0.06);
+
+  --shadow-pop: 0 24px 70px rgba(196, 43, 112, 0.18), 0 8px 24px rgba(53, 24, 39, 0.08);
+
   --shadow-glow:
-    0 0 0 1px rgba(255, 105, 158, 0.06),
-    0 18px 60px rgba(255, 105, 158, 0.16);
+    0 0 0 1px rgba(255, 105, 158, 0.1), 0 18px 60px rgba(255, 105, 158, 0.24),
+    0 0 42px rgba(167, 139, 250, 0.1);
 
   /* ----------------------------------------------------------
-     Focus rings
+     Pink Academia focus rings
   ---------------------------------------------------------- */
-  --ring-brand: 0 0 0 3px rgba(255, 105, 158, 0.3);
-  --ring-secondary: 0 0 0 3px rgba(36, 199, 201, 0.3);
+  --ring-brand: 0 0 0 3px rgba(196, 43, 112, 0.34);
+  --ring-secondary: 0 0 0 3px rgba(36, 199, 201, 0.34);
 
   /* ----------------------------------------------------------
-     Gradients
+     Pink Academia gradients
   ---------------------------------------------------------- */
   --gradient-hero:
-    radial-gradient(
-      900px 520px at 12% 12%,
-      rgba(255, 145, 184, 0.6),
-      transparent 62%
-    ),
-    radial-gradient(
-      760px 460px at 86% 22%,
-      rgba(167, 139, 250, 0.5),
-      transparent 58%
-    ),
-    radial-gradient(
-      700px 420px at 60% 90%,
-      rgba(36, 199, 201, 0.13),
-      transparent 60%
-    ),
-    linear-gradient(
-      to bottom,
-      rgba(255, 253, 248, 0.74),
-      rgba(255, 247, 250, 1)
-    );
+    radial-gradient(900px 520px at 12% 12%, rgba(255, 105, 158, 0.48), transparent 62%),
+    radial-gradient(760px 460px at 86% 22%, rgba(167, 139, 250, 0.4), transparent 58%),
+    radial-gradient(700px 420px at 60% 90%, rgba(36, 199, 201, 0.16), transparent 60%),
+    linear-gradient(to bottom, rgba(255, 253, 248, 0.68), rgba(255, 247, 250, 1));
 
   --gradient-accent: linear-gradient(
     90deg,
     rgba(255, 105, 158, 0),
-    rgba(255, 105, 158, 0.78),
-    rgba(36, 199, 201, 0.62),
+    rgba(255, 105, 158, 0.88),
+    rgba(36, 199, 201, 0.7),
+    rgba(167, 139, 250, 0.64),
     rgba(255, 105, 158, 0)
   );
 
   --gradient-soft-wash:
     linear-gradient(
       135deg,
-      rgba(255, 184, 206, 0.42),
-      rgba(167, 139, 250, 0.32),
-      rgba(36, 199, 201, 0.08)
+      rgba(255, 145, 184, 0.34),
+      rgba(167, 139, 250, 0.28),
+      rgba(36, 199, 201, 0.12)
     ),
-    rgba(255, 253, 248, 0.78);
-
-  --opacity-disabled: 0.42;
+    rgba(255, 253, 248, 0.88);
 }
 
 /* ============================================================
@@ -228,7 +224,7 @@
   --color-accent-muted: rgba(255, 145, 184, 0.12);
 
   --color-link: var(--color-aura-center);
-  --color-cta: var(--color-signature-aura-pink);
+  --color-cta: var(--color-accessible-rose);
   --color-cta-foreground: var(--color-blush-white);
 
   /* ----------------------------------------------------------
@@ -243,50 +239,36 @@
   --color-tech-chip-border: rgba(94, 225, 230, 0.28);
 
   /* ----------------------------------------------------------
-     Dark shadows and focus
+     Pink Informatics Night shadows and luminous depth
   ---------------------------------------------------------- */
-  --shadow-card: 0 18px 50px rgba(0, 0, 0, 0.28);
-  --shadow-pop: 0 24px 70px rgba(0, 0, 0, 0.38);
-  --shadow-glow:
-    0 0 0 1px rgba(255, 247, 250, 0.04),
-    0 18px 60px rgba(255, 105, 158, 0.16);
+  --shadow-card: 0 18px 50px rgba(0, 0, 0, 0.3), 0 0 24px rgba(255, 105, 158, 0.06);
 
-  --ring-brand: 0 0 0 3px rgba(255, 105, 158, 0.36);
-  --ring-secondary: 0 0 0 3px rgba(94, 225, 230, 0.32);
+  --shadow-pop: 0 24px 70px rgba(0, 0, 0, 0.42), 0 0 38px rgba(255, 105, 158, 0.12);
+
+  --shadow-glow:
+    0 0 0 1px rgba(255, 145, 184, 0.12), 0 18px 60px rgba(255, 105, 158, 0.24),
+    0 0 48px rgba(196, 167, 255, 0.12), 0 0 72px rgba(94, 225, 230, 0.06);
+
+  --ring-brand: 0 0 0 3px rgba(255, 145, 184, 0.42);
+  --ring-secondary: 0 0 0 3px rgba(94, 225, 230, 0.38);
 
   /* ----------------------------------------------------------
-     Dark gradients
+     Pink Informatics Night gradients
   ---------------------------------------------------------- */
   --gradient-hero:
-    radial-gradient(
-      900px 520px at 12% 12%,
-      rgba(255, 105, 158, 0.18),
-      transparent 62%
-    ),
-    radial-gradient(
-      760px 460px at 86% 22%,
-      rgba(196, 167, 255, 0.12),
-      transparent 58%
-    ),
-    radial-gradient(
-      700px 420px at 60% 90%,
-      rgba(94, 225, 230, 0.12),
-      transparent 60%
-    ),
-    linear-gradient(
-      to bottom,
-      rgba(255, 247, 250, 0.02),
-      rgba(22, 13, 26, 1)
-    );
+    radial-gradient(900px 520px at 12% 12%, rgba(255, 105, 158, 0.24), transparent 62%),
+    radial-gradient(760px 460px at 86% 22%, rgba(196, 167, 255, 0.18), transparent 58%),
+    radial-gradient(700px 420px at 60% 90%, rgba(94, 225, 230, 0.16), transparent 60%),
+    linear-gradient(to bottom, rgba(255, 247, 250, 0.025), rgba(22, 13, 26, 1));
 
   --gradient-soft-wash:
     linear-gradient(
       135deg,
-      rgba(255, 105, 158, 0.12),
-      rgba(196, 167, 255, 0.1),
-      rgba(94, 225, 230, 0.08)
+      rgba(255, 105, 158, 0.16),
+      rgba(196, 167, 255, 0.14),
+      rgba(94, 225, 230, 0.1)
     ),
-    rgba(255, 247, 250, 0.03);
+    rgba(255, 247, 250, 0.04);
 }
 
 /* ============================================================
@@ -531,31 +513,15 @@
   /* Data/grid background */
   .data-grid {
     background-image:
-      linear-gradient(
-        to right,
-        rgba(36, 199, 201, 0.12) 1px,
-        transparent 1px
-      ),
-      linear-gradient(
-        to bottom,
-        rgba(36, 199, 201, 0.12) 1px,
-        transparent 1px
-      );
+      linear-gradient(to right, rgba(36, 199, 201, 0.12) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(36, 199, 201, 0.12) 1px, transparent 1px);
     background-size: 32px 32px;
   }
 
   .dark .data-grid {
     background-image:
-      linear-gradient(
-        to right,
-        rgba(94, 225, 230, 0.1) 1px,
-        transparent 1px
-      ),
-      linear-gradient(
-        to bottom,
-        rgba(94, 225, 230, 0.1) 1px,
-        transparent 1px
-      );
+      linear-gradient(to right, rgba(94, 225, 230, 0.1) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(94, 225, 230, 0.1) 1px, transparent 1px);
   }
 
   .data-grid-fade {
@@ -565,40 +531,16 @@
   /* Ambient background FX */
   .fx-gradient {
     background:
-      radial-gradient(
-        60% 100% at 10% 10%,
-        var(--color-signature-aura-pink),
-        transparent 100%
-      ),
-      radial-gradient(
-        70% 100% at 90% 20%,
-        var(--color-digital-aqua),
-        transparent 100%
-      ),
-      radial-gradient(
-        50% 100% at 50% 90%,
-        var(--color-scholar-lilac),
-        transparent 100%
-      );
+      radial-gradient(60% 100% at 10% 10%, var(--color-signature-aura-pink), transparent 100%),
+      radial-gradient(70% 100% at 90% 20%, var(--color-digital-aqua), transparent 100%),
+      radial-gradient(50% 100% at 50% 90%, var(--color-scholar-lilac), transparent 100%);
   }
 
   .dark .fx-gradient {
     background:
-      radial-gradient(
-        60% 100% at 10% 10%,
-        var(--color-signature-aura-pink),
-        transparent 80%
-      ),
-      radial-gradient(
-        70% 100% at 90% 20%,
-        var(--color-luminous-aqua),
-        transparent 80%
-      ),
-      radial-gradient(
-        50% 100% at 50% 90%,
-        var(--color-luminous-lilac),
-        transparent 80%
-      );
+      radial-gradient(60% 100% at 10% 10%, var(--color-signature-aura-pink), transparent 80%),
+      radial-gradient(70% 100% at 90% 20%, var(--color-luminous-aqua), transparent 80%),
+      radial-gradient(50% 100% at 50% 90%, var(--color-luminous-lilac), transparent 80%);
   }
 
   .fx-blur {
@@ -607,6 +549,10 @@
   }
 
   .fx-blend-screen {
+    mix-blend-mode: normal;
+  }
+
+  .dark .fx-blend-screen {
     mix-blend-mode: screen;
   }
 }

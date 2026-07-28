@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { PrimaryCTA, PrimaryBtn, SecondaryCTA, TertiaryCTA } from "@/src/components/ui/Buttons";
 import {
@@ -41,6 +41,33 @@ type DynamicColorToken = {
   darkPurpose: string;
 };
 
+function useGlobalTheme(): ThemeMode {
+  const [mode, setMode] = useState<ThemeMode>("light");
+
+  useEffect(() => {
+    const documentRoot = document.documentElement;
+
+    const updateMode = () => {
+      setMode(documentRoot.classList.contains("dark") ? "dark" : "light");
+    };
+
+    updateMode();
+
+    const themeObserver = new MutationObserver(updateMode);
+
+    themeObserver.observe(documentRoot, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => {
+      themeObserver.disconnect();
+    };
+  }, []);
+
+  return mode;
+}
+
 const lightPaletteTokens: PaletteToken[] = [
   {
     label: "Blush Paper",
@@ -76,13 +103,13 @@ const lightPaletteTokens: PaletteToken[] = [
     label: "Signature Aura Pink",
     variable: "--color-signature-aura-pink",
     value: "#FF699E",
-    purpose: "Buttons, active states, icons, borders, and brand emphasis",
+    purpose: "Glows, icons, decorative emphasis, and recognizable brand highlights",
   },
   {
     label: "Accessible Rose",
     variable: "--color-accessible-rose",
     value: "#C42B70",
-    purpose: "Small pink text, links, labels, and focus cues",
+    purpose: "Functional buttons, active states, links, labels, and focus cues",
   },
   {
     label: "Aura Center",
@@ -229,13 +256,13 @@ const darkPaletteTokens: PaletteToken[] = [
     label: "Signature Aura Pink",
     variable: "--color-signature-aura-pink",
     value: "#FF699E",
-    purpose: "Calls to action, active states, and brand emphasis",
+    purpose: "Luminous glows, icons, decorative emphasis, and signature highlights",
   },
   {
-    label: "Aura Center",
-    variable: "--color-aura-center",
-    value: "#FF91B8",
-    purpose: "Pink glow, focus accents, and dark-mode highlights",
+    label: "Accessible Rose",
+    variable: "--color-accessible-rose",
+    value: "#C42B70",
+    purpose: "Functional controls and active states requiring light text",
   },
   {
     label: "Luminous Aqua",
@@ -425,18 +452,18 @@ const interfaceTokens: DynamicColorToken[] = [
   {
     label: "Primary CTA",
     variable: "--color-cta",
-    lightValue: "#FF699E",
-    darkValue: "#FF699E",
-    lightPurpose: "Signature Aura Pink primary action",
-    darkPurpose: "Signature Aura Pink primary action",
+    lightValue: "#C42B70",
+    darkValue: "#C42B70",
+    lightPurpose: "Accessible Rose control with light text",
+    darkPurpose: "Accessible Rose control with light text",
   },
   {
     label: "CTA Foreground",
     variable: "--color-cta-foreground",
     lightValue: "#FFF7FA",
     darkValue: "#FFF7FA",
-    lightPurpose: "Light CTA text",
-    darkPurpose: "Light CTA text",
+    lightPurpose: "Blush White CTA text",
+    darkPurpose: "Blush White CTA text",
   },
 ];
 
@@ -453,35 +480,33 @@ const professionalStrengths = [
 ];
 
 export default function TokenPage() {
-  const [mode, setMode] = useState<ThemeMode>("light");
+  const mode = useGlobalTheme();
   const isDark = mode === "dark";
 
   const activePaletteTokens = isDark ? darkPaletteTokens : lightPaletteTokens;
 
   return (
-    <main
-      className={`${
-        isDark ? "dark" : ""
-      } bg-background text-foreground min-h-screen overflow-x-hidden`}
-    >
+    <main className="bg-background text-foreground min-h-screen overflow-x-hidden">
       <section className="hero-ambient border-default relative isolate overflow-hidden border-b">
         <div
           aria-hidden="true"
           className="data-grid data-grid-fade pointer-events-none absolute inset-y-0 left-0 -z-10 w-2/3 opacity-60"
         />
 
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-6 py-16 md:px-10 md:py-24 lg:flex-row lg:items-end lg:justify-between">
+        <div className="mx-auto w-full max-w-7xl px-6 py-16 md:px-10 md:py-24">
           <div className="max-w-4xl space-y-6">
             <Eyebrow>Ariela Israel Design System</Eyebrow>
 
             <div className="space-y-4">
               <h1 className="font-heading text-primary text-4xl leading-[0.98] font-extrabold tracking-[-0.035em] text-balance md:text-6xl">
-                Warm pink scholarship with informatics clarity
+                One identity, two visual expressions
               </h1>
 
               <p className="text-muted max-w-3xl text-base leading-relaxed md:text-lg">
-                A light-first visual system combining structured typography, warm aura pinks,
-                accessible text colors, healthcare-data signals, and restrained academic detail.
+                Pink Academia and Pink Informatics Night express different dimensions of the same
+                academic-professional identity. They share one voice, one typography system, one
+                pink foundation, and one direction toward women&apos;s health equity and
+                informatics.
               </p>
             </div>
 
@@ -492,8 +517,6 @@ export default function TokenPage() {
               <ChipRegBorder>Women&apos;s Health Equity</ChipRegBorder>
             </div>
           </div>
-
-          <ThemeControl mode={mode} onChange={setMode} />
         </div>
       </section>
 
@@ -600,14 +623,82 @@ export default function TokenPage() {
         </DesignSection>
 
         <DesignSection
+          eyebrow="Brand Expressions"
+          title="One identity with two coordinated visual languages"
+          description="The active expression follows the purpose of the content. Pink Academia supports clarity, advocacy, education, and professional communication. Pink Informatics Night supports technical exploration, data, systems, research, and immersive digital work."
+        >
+          <div className="grid gap-5 lg:grid-cols-2">
+            <ExpressionCard
+              label="Light Expression"
+              title="Pink Academia"
+              tone="Warm, clear, scholarly"
+              description="A feminine academic environment for healthcare, advocacy, education, professional communication, and reflective learning."
+              uses={[
+                "Healthcare and women’s health equity",
+                "Patient education and health literacy",
+                "Academic notes and course reflections",
+                "Recruiter-facing and professional materials",
+                "Long-form writing and research summaries",
+              ]}
+              visualLanguage={[
+                "Blush Paper and Warm Cream",
+                "Deep Plum typography",
+                "Accessible Rose controls",
+                "Warm aura glows",
+                "Lilac, aqua, mint, and gold signals",
+              ]}
+            />
+
+            <ExpressionCard
+              label="Dark Expression"
+              title="Pink Informatics Night"
+              tone="Luminous, technical, immersive"
+              description="A feminine digital research environment for informatics, data, systems, technical projects, and investigative work."
+              uses={[
+                "Health informatics and healthcare data",
+                "Software and system workflows",
+                "SQL, Python, and Power BI learning",
+                "Research methods and project demonstrations",
+                "Technical livestreams and build sessions",
+              ]}
+              visualLanguage={[
+                "Night Plum and Deep Aubergine",
+                "Blush White typography",
+                "Luminous pink and aqua glows",
+                "Periwinkle, lilac, mint, and gold signals",
+                "Data grids, nodes, glass, and illuminated depth",
+              ]}
+              technical
+            />
+          </div>
+
+          <div className="border-default bg-card shadow-card rounded-3xl border p-6 backdrop-blur md:p-8">
+            <Eyebrow>Shared Brand Foundation</Eyebrow>
+
+            <p className="text-muted mt-4 max-w-4xl text-base leading-relaxed md:text-lg">
+              Both expressions use Plus Jakarta Sans, Nunito Sans, Geist Mono, the same warm pink
+              family, spacious layouts, rounded forms, data-node motifs, and the same professional
+              hierarchy. They should always feel like Ariela Israel, never like separate brands.
+            </p>
+
+            <div className="mt-6 flex flex-wrap gap-2">
+              <ChipThinBorder>Feminine</ChipThinBorder>
+              <ChipThinBorder>Academic</ChipThinBorder>
+              <ChipRegBorder>Data-Informed</ChipRegBorder>
+              <ChipRegBorder>Patient-Centered</ChipRegBorder>
+              <ChipThinBorder>Precise</ChipThinBorder>
+              <ChipRegBorder>Technically Grounded</ChipRegBorder>
+            </div>
+          </div>
+        </DesignSection>
+
+        <DesignSection
           eyebrow="Dynamic Color System"
-          title={
-            isDark ? "Pink Informatics Night" : "Soft academic pink with healthcare-data signals"
-          }
+          title={isDark ? "Pink Informatics Night" : "Pink Academia"}
           description={
             isDark
-              ? "The active dark palette uses deep plum surfaces with luminous pink, aqua, periwinkle, lilac, mint, and gold signals."
-              : "The active light palette uses warm aura pinks, deep plum and charcoal text, and selective healthcare-data accents."
+              ? "The dark expression uses Night Plum surfaces, luminous pink glows, and technical aqua, periwinkle, lilac, mint, and gold signals."
+              : "The light expression uses warm paper surfaces, concentrated pink emphasis, Deep Plum typography, and selective academic, healthcare, and data signals."
           }
         >
           <TokenGroup
@@ -989,50 +1080,6 @@ export default function TokenPage() {
         </section>
       </div>
     </main>
-  );
-}
-
-function ThemeControl({
-  mode,
-  onChange,
-}: {
-  mode: ThemeMode;
-  onChange: (mode: ThemeMode) => void;
-}) {
-  return (
-    <div className="border-default bg-card shadow-card shrink-0 rounded-3xl border p-4 backdrop-blur">
-      <p className="text-subtle mb-3 font-mono text-xs font-semibold tracking-[0.2em] uppercase">
-        Preview Theme
-      </p>
-
-      <div className="border-default bg-surface flex rounded-full border p-1">
-        <button
-          type="button"
-          aria-pressed={mode === "light"}
-          onClick={() => onChange("light")}
-          className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-            mode === "light"
-              ? "bg-cta text-cta-foreground shadow-card"
-              : "text-muted hover:text-foreground"
-          }`}
-        >
-          Light
-        </button>
-
-        <button
-          type="button"
-          aria-pressed={mode === "dark"}
-          onClick={() => onChange("dark")}
-          className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-            mode === "dark"
-              ? "bg-cta text-cta-foreground shadow-card"
-              : "text-muted hover:text-foreground"
-          }`}
-        >
-          Dark
-        </button>
-      </div>
-    </div>
   );
 }
 
@@ -1448,6 +1495,78 @@ function FieldNotePreview() {
 
       <div className="border-default mt-7 border-t pt-6">
         <PrimaryBtn link="/field-notes" label="Read Field Notes" />
+      </div>
+    </article>
+  );
+}
+
+function ExpressionCard({
+  label,
+  title,
+  tone,
+  description,
+  uses,
+  visualLanguage,
+  technical = false,
+}: {
+  label: string;
+  title: string;
+  tone: string;
+  description: string;
+  uses: string[];
+  visualLanguage: string[];
+  technical?: boolean;
+}) {
+  return (
+    <article
+      className={`rounded-[2rem] border p-6 md:p-8 ${
+        technical
+          ? "border-tech-chip-border bg-surface-aqua shadow-glow"
+          : "border-default soft-wash shadow-card"
+      }`}
+    >
+      <Eyebrow>{label}</Eyebrow>
+
+      <h3 className="font-heading text-primary mt-4 text-3xl leading-tight font-bold tracking-tight md:text-4xl">
+        {title}
+      </h3>
+
+      <p className="text-secondary mt-3 font-mono text-xs font-semibold tracking-[0.16em] uppercase">
+        {tone}
+      </p>
+
+      <p className="text-muted mt-5 text-sm leading-relaxed md:text-base">{description}</p>
+
+      <div className="border-default mt-7 border-t pt-6">
+        <p className="text-foreground text-sm font-bold">Best used for</p>
+
+        <ul className="text-muted mt-3 space-y-2 text-sm leading-relaxed">
+          {uses.map((item) => (
+            <li key={item} className="flex gap-3">
+              <span aria-hidden="true" className="text-accent">
+                ✦
+              </span>
+
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="border-default mt-6 border-t pt-6">
+        <p className="text-foreground text-sm font-bold">Visual language</p>
+
+        <ul className="text-muted mt-3 space-y-2 text-sm leading-relaxed">
+          {visualLanguage.map((item) => (
+            <li key={item} className="flex gap-3">
+              <span aria-hidden="true" className="text-secondary">
+                ◦
+              </span>
+
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
       </div>
     </article>
   );

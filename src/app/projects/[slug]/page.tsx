@@ -54,10 +54,10 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
 
   return (
     <main className="mx-auto w-full max-w-360 space-y-10 px-6 pb-24 md:px-10">
-      <section className="relative isolate overflow-hidden pt-20 md:pt-28">
+      <section className="relative isolate pt-20 md:pt-28">
         <div
           aria-hidden="true"
-          className="data-grid pointer-events-none absolute inset-0 -z-10 opacity-[0.12]"
+          className="data-grid pointer-events-none absolute inset-y-0 left-1/2 -z-10 w-screen -translate-x-1/2 opacity-[0.24] dark:opacity-[0.34]"
         />
 
         <p className="font-mono-brand text-accent text-xs font-semibold tracking-[0.24em] uppercase">
@@ -88,7 +88,7 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
         <div className="mt-8 flex flex-wrap gap-4">
           <Link
             href={caseStudy.backHref}
-            className="text-foreground hover:text-link text-sm font-bold transition"
+            className="ring-brand text-foreground hover:text-link rounded-md text-sm font-bold transition"
           >
             ← Back to Projects
           </Link>
@@ -99,7 +99,7 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`View the ${caseStudy.title} repository in a new tab`}
-              className="text-foreground hover:text-link text-sm font-bold transition"
+              className="ring-brand text-foreground hover:text-link rounded-md text-sm font-bold transition"
             >
               Repository ↗
             </a>
@@ -111,7 +111,7 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`Open the ${caseStudy.title} live demo in a new tab`}
-              className="text-foreground hover:text-link text-sm font-bold transition"
+              className="ring-brand text-foreground hover:text-link rounded-md text-sm font-bold transition"
             >
               Live Demo ↗
             </a>
@@ -192,7 +192,7 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
           body={caseStudy.system.body}
         />
 
-        <div className="border-default bg-card shadow-card mt-8 rounded-[2rem] border p-8 backdrop-blur">
+        <div className="border-tech-chip-border bg-surface-aqua shadow-glow mt-8 rounded-[2rem] border p-8 backdrop-blur">
           <div className="space-y-4 text-center">
             {caseStudy.system.architecture.map((step, index) => (
               <div key={step.label}>

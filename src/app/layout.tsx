@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Nunito_Sans, Plus_Jakarta_Sans } from "next/font/google";
 
 import "./globals.css";
@@ -37,6 +37,10 @@ export const metadata: Metadata = {
     "Software developer and Health Services Management student transitioning into health information, healthcare data, and informatics while building toward becoming a Women's Health Equity Advocate & Informatician.",
 
   applicationName: "Ariela Israel",
+
+  alternates: {
+    canonical: "/",
+  },
 
   authors: [
     {
@@ -102,6 +106,20 @@ export const metadata: Metadata = {
       "max-video-preview": -1,
     },
   },
+};
+
+export const viewport: Viewport = {
+  colorScheme: "light dark",
+  themeColor: [
+    {
+      media: "(prefers-color-scheme: light)",
+      color: "#FFF7FA",
+    },
+    {
+      media: "(prefers-color-scheme: dark)",
+      color: "#160D1A",
+    },
+  ],
 };
 
 export default function RootLayout({

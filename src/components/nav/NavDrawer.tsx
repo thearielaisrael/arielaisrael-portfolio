@@ -171,14 +171,16 @@ const NavDrawer = ({ menuItems, socialIcons, onClose }: NavDrawerProps) => {
                   <Link
                     href={item.href}
                     aria-current={current ? "page" : undefined}
-                    className={`group border-default shadow-card hover:shadow-pop flex items-center justify-between rounded-3xl border px-5 py-4 backdrop-blur transition hover:-translate-y-0.5 ${
-                      current ? "bg-surface-soft" : "bg-card hover:bg-surface-soft"
+                    className={`group shadow-card hover:shadow-pop flex items-center justify-between rounded-3xl border px-5 py-4 backdrop-blur transition hover:-translate-y-0.5 ${
+                      current
+                        ? "bg-cta shadow-glow border-transparent"
+                        : "border-default bg-card hover:border-strong hover:bg-surface-soft"
                     }`}
                     onClick={onClose}
                   >
                     <span
                       className={`font-heading tracking-light text-3xl leading-tight font-medium ${
-                        current ? "text-accent" : "text-primary"
+                        current ? "text-cta-foreground" : "text-primary"
                       }`}
                     >
                       {item.label}
@@ -186,14 +188,16 @@ const NavDrawer = ({ menuItems, socialIcons, onClose }: NavDrawerProps) => {
 
                     <span className="flex items-center gap-3">
                       {current ? (
-                        <span className="font-mono-brand text-accent text-[0.62rem] font-semibold tracking-[0.18em] uppercase">
+                        <span className="font-mono-brand text-cta-foreground text-[0.62rem] font-semibold tracking-[0.18em] uppercase opacity-80">
                           Current
                         </span>
                       ) : null}
 
                       <span
                         aria-hidden="true"
-                        className="text-accent transition group-hover:translate-x-1"
+                        className={`transition group-hover:translate-x-1 ${
+                          current ? "text-cta-foreground" : "text-accent"
+                        }`}
                       >
                         →
                       </span>
@@ -232,7 +236,7 @@ const NavDrawer = ({ menuItems, socialIcons, onClose }: NavDrawerProps) => {
                 href={resumeHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="ring-brand border-default bg-surface text-foreground hover:border-strong hover:bg-surface inline-flex items-center justify-center rounded-full border px-4 py-2 text-sm font-bold transition"
+                className="ring-brand border-default bg-surface text-foreground hover:border-strong hover:bg-surface-elevated inline-flex items-center justify-center rounded-full border px-4 py-2 text-sm font-bold transition"
               >
                 View Resume
               </a>

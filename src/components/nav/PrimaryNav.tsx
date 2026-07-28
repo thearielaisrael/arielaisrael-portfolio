@@ -38,14 +38,14 @@ const PrimaryNav = ({ menuItems, socialIcons }: PrimaryNavProps) => {
                 href={item.href}
                 aria-current={current ? "page" : undefined}
                 className={`font-mono-brand relative isolate rounded-full px-4 py-2 text-[0.68rem] font-semibold tracking-[0.2em] uppercase transition ${
-                  current ? "text-accent" : "text-subtle hover:text-accent"
+                  current ? "text-cta-foreground" : "text-subtle hover:text-accent"
                 }`}
               >
                 {current ? (
                   <motion.span
                     layoutId="primary-navigation-active-pill"
                     aria-hidden="true"
-                    className="bg-chip-bg absolute inset-0 -z-10 rounded-full"
+                    className="bg-cta absolute inset-0 -z-10 rounded-full"
                     transition={
                       reduceMotion
                         ? { duration: 0 }

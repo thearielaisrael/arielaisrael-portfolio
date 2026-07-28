@@ -18,8 +18,8 @@ const professionalStrengths = [
 
 export default function Hero() {
   return (
-    <section className="overflow-hidden lg:flex lg:min-h-[calc(100svh-5rem)] lg:items-center">
-      <BackgroundFX opacityClass="opacity-10" showParticles />
+    <section className="lg:flex lg:min-h-[calc(100svh-5rem)] lg:items-center">
+      <BackgroundFX opacityClass="opacity-[0.14] dark:opacity-[0.18]" showParticles />
 
       <div className="relative z-10 w-full py-12 md:py-14 lg:py-10">
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:items-center lg:gap-0">

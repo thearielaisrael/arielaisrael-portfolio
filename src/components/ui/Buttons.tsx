@@ -24,7 +24,7 @@ export const PrimaryCTA = ({ link, label, status = "default" }: ButtonProps) => 
   return (
     <Link
       href={link}
-      className={`${baseClasses} ring-brand bg-cta text-cta-foreground shadow-card hover:shadow-pop hover:-translate-y-0.5 hover:brightness-125`}
+      className={`${baseClasses} ring-brand bg-cta text-cta-foreground shadow-card hover:shadow-pop hover:-translate-y-0.5 hover:brightness-95`}
     >
       {label}
     </Link>
@@ -46,7 +46,7 @@ export const TertiaryCTA = ({ link, label }: ButtonProps) => {
   return (
     <Link
       href={link}
-      className={`${baseClasses} ring-secondary border-tech-chip-border bg-tech-chip-bg text-secondary hover:bg-surface-blue border hover:-translate-y-0.5`}
+      className={`${baseClasses} ring-secondary border-tech-chip-border bg-tech-chip-bg text-secondary hover:bg-surface-aqua border hover:-translate-y-0.5`}
     >
       {label}
     </Link>
@@ -60,6 +60,7 @@ export const PrimaryBtn = ({ link, label }: ButtonProps) => {
       className="group text-link hover:text-accent inline-flex items-center gap-1 text-sm font-bold transition"
     >
       <span className="underline-offset-4 group-hover:underline">{label}</span>
+
       <span aria-hidden="true" className="transition group-hover:translate-x-1">
         →
       </span>

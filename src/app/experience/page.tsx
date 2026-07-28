@@ -56,12 +56,10 @@ export default function ExperiencePage() {
           href={resumeHref}
           target="_blank"
           rel="noopener noreferrer"
-          className="bg-cta text-cta-foreground inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold tracking-wide transition duration-300 md:text-base"
+          className="ring-brand bg-cta text-cta-foreground shadow-card hover:shadow-pop inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold tracking-wide transition duration-300 hover:-translate-y-0.5 hover:brightness-95 md:text-base"
         >
           View Resume
-          <span aria-hidden="true" className="ml-2">
-            ↗
-          </span>
+          <span aria-hidden="true">↗</span>
         </a>
       </div>
 

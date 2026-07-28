@@ -7,8 +7,16 @@ import { ChipContext, ChipStatus } from "../ui/Chips";
 export const ProjectCard = ({ project }: { project: Project }) => {
   const hasLinks = Boolean(project.caseStudyHref || project.repoHref || project.demoHref);
 
+  const isHealthInformationProject = project.category === "Health Information + Data Systems";
+
   return (
-    <article className="border-default bg-card shadow-card hover:shadow-pop flex min-h-90 flex-col justify-between rounded-xl border p-5 backdrop-blur transition duration-300 hover:-translate-y-1">
+    <article
+      className={`flex min-h-90 flex-col justify-between rounded-xl border p-5 backdrop-blur transition duration-300 hover:-translate-y-1 ${
+        isHealthInformationProject
+          ? "border-tech-chip-border bg-surface-aqua shadow-glow hover:shadow-pop"
+          : "border-default bg-card shadow-card hover:shadow-pop"
+      }`}
+    >
       <div>
         <div className="flex flex-wrap gap-2">
           <ChipContext>{project.projectType}</ChipContext>

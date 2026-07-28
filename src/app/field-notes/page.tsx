@@ -65,10 +65,10 @@ export default function FieldNotesPage() {
         actions={
           <>
             <a
-              href="https://theinformaticsdiary.substack.com/"
+              href="https://theinformaticsdiary.substack.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="ring-brand bg-cta text-cta-foreground shadow-card inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-bold tracking-wide transition hover:-translate-y-0.5 hover:brightness-105 md:text-base"
+              className="ring-brand bg-cta text-cta-foreground shadow-card hover:shadow-pop inline-flex items-center justify-center rounded-full px-6 py-3 font-semibold transition hover:-translate-y-0.5 hover:brightness-95 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
             >
               Read on Substack ↗
             </a>

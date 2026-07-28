@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import Hero from "../../components/home/Hero";
 import { FeaturedProjectCard } from "../../components/projects/FeaturedProjectCard";
+import { PrimaryCTA, SecondaryCTA } from "../../components/ui/Buttons";
 import { projects } from "../../data/projectData";
 
 import type { Metadata } from "next";
@@ -82,22 +83,10 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="space-y-5 lg:text-right">
-            <div className="flex flex-wrap gap-3 lg:justify-end">
-              <Link
-                href="/field-notes"
-                className="ring-brand bg-cta text-cta-foreground shadow-card hover:shadow-pop inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold transition"
-              >
-                Read Field Notes
-              </Link>
+          <div className="flex flex-wrap gap-3 lg:justify-end">
+            <PrimaryCTA link="/field-notes" label="Read Field Notes" />
 
-              <Link
-                href="/projects"
-                className="ring-brand border-default bg-surface text-foreground hover:border-strong hover:bg-surface-soft inline-flex items-center justify-center rounded-full border px-5 py-2.5 text-sm font-semibold transition"
-              >
-                Explore Projects
-              </Link>
-            </div>
+            <SecondaryCTA link="/projects" label="Explore Projects" />
           </div>
         </div>
       </section>
