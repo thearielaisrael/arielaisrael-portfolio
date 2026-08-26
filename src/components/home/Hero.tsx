@@ -32,8 +32,8 @@ export default function Hero() {
             </h1>
 
             <p className="text-foreground mt-5 max-w-3xl text-xl leading-snug font-semibold md:text-2xl lg:text-[1.65rem]">
-              I’m Ariela Israel, a Health Services Management student building toward becoming a
-              Women’s Health Equity Advocate & Informaticist.
+              I&apos;m Ariela Israel, a Health Services Management student building toward becoming a
+              Women&apos;s Health Equity Advocate & Informaticist.
             </p>
 
             <div className="text-muted mt-6 max-w-3xl space-y-4 text-base leading-relaxed md:text-lg">
@@ -43,13 +43,13 @@ export default function Hero() {
               </p>
 
               <p>
-                I’m especially interested in racial disparities, delayed diagnosis, fragmented care,
+                I&apos;m especially interested in racial disparities, delayed diagnosis, fragmented care,
                 and the gaps that affect how racially underserved and underrepresented women&apos;s
                 whole-body health is understood.
               </p>
             </div>
 
-            <p className="font-heading text-accent mt-6 text-xl leading-[1.1] font-medium tracking-[0.08em] uppercase italic md:text-2xl">
+            <p className="font-heading text-signature-aura-pink mt-6 text-xl leading-[1.1] font-medium tracking-[0.08em] uppercase italic md:text-2xl">
               Pink, precise, and patient-centered.
             </p>
 
