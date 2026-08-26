@@ -18,9 +18,9 @@ export default function ContactPage() {
     <main className="mx-auto w-full max-w-360 px-6 pb-24 md:px-10">
       <PageHeader
         eyebrow="Contact"
-        heading="Let’s connect about health information, research, and women’s health equity"
-        description="I’m currently open to professional opportunities in health information, medical records, documentation and data workflows, healthcare operations, healthcare data support, and related roles."
-        supportingText="I also welcome thoughtful conversations across informatics, research, patient education, digital health, and the racial disparities affecting women’s whole-body healthcare."
+        heading="Let's connect about health information, research, and women's health equity"
+        description="I'm currently open to professional opportunities in health information, medical records, documentation and data workflows, healthcare operations, healthcare data support, and related roles."
+        supportingText="I also welcome thoughtful conversations across informatics, research, patient education, digital health, and the racial disparities affecting women's whole-body healthcare."
       />
 
       <section aria-labelledby="contact-form-heading" className="mt-16 md:mt-20">

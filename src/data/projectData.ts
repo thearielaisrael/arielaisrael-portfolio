@@ -1,10 +1,11 @@
 export type ProjectCategory =
-  | "Health Information + Data Systems"
+  | "Health Information + Informatics"
   | "Professional Systems + Software"
-  | "Women's Health Equity Data + Research"
-  | "Patient Education + Advocacy"
-  | "Care Navigation + Workflow Systems"
-  | "Patient-Centered Digital Health Tools";
+  | "Women's Health Equity + Research"
+  // | "Patient Education + Advocacy"
+  // | "Care Navigation + Workflow Systems"
+  // | "Patient-Centered Digital Health Tools"
+  ;
 
 export type ProjectCategoryCard = {
   title: ProjectCategory;
@@ -32,41 +33,41 @@ export type Project = {
 
 export const categories = [
   {
-    title: "Health Information + Data Systems",
+    title: "Health Information + Informatics",
     description:
-      "Educational projects exploring health-record data quality, documentation workflows, information organization, and healthcare data systems using synthetic information.",
-    href: "#health-information-data-systems",
+      "Educational projects exploring health-record data quality, longitudinal information, healthcare data systems, and informatics using synthetic information.",
+    href: "#health-information-informatics",
   },
   {
-    title: "Women's Health Equity Data + Research",
+    title: "Women's Health Equity + Research",
     description:
-      "Research and data concepts examining racial disparities, delayed diagnosis, care access, patient experience, and research gaps across whole-body women's health.",
-    href: "#womens-health-equity-data-research",
+      "Research and analytics projects examining diagnostic processes, care gaps, healthcare data, and racial inequities across women's health.",
+    href: "#womens-health-equity-research",
   },
-  {
-    title: "Patient Education + Advocacy",
-    description:
-      "Plain-language resources and advocacy tools designed to make complex health information easier to understand, discuss, and act on.",
-    href: "#patient-education-advocacy",
-  },
-  {
-    title: "Care Navigation + Workflow Systems",
-    description:
-      "Concepts exploring care coordination, referrals, follow-up, scheduling, resource use, and movement through healthcare systems.",
-    href: "#care-navigation-workflow-systems",
-  },
-  {
-    title: "Patient-Centered Digital Health Tools",
-    description:
-      "Digital concepts designed to help patients organize health information, recognize patterns, prepare for care, and communicate their needs more clearly.",
-    href: "#patient-centered-digital-health-tools",
-  },
+  // {
+  //   title: "Patient Education + Advocacy",
+  //   description:
+  //     "Plain-language resources and advocacy tools designed to make complex health information easier to understand, discuss, and act on.",
+  //   href: "#patient-education-advocacy",
+  // },
+  // {
+  //   title: "Care Navigation + Workflow Systems",
+  //   description:
+  //     "Concepts exploring care coordination, referrals, follow-up, scheduling, resource use, and movement through healthcare systems.",
+  //   href: "#care-navigation-workflow-systems",
+  // },
+  // {
+  //   title: "Patient-Centered Digital Health Tools",
+  //   description:
+  //     "Digital concepts designed to help patients organize health information, recognize patterns, prepare for care, and communicate their needs more clearly.",
+  //   href: "#patient-centered-digital-health-tools",
+  // },
 ] satisfies ProjectCategoryCard[];
 
 export const projects: Project[] = [
   /*
    * Completed professional work appears first so visitors encounter
-   * demonstrated systems and technology experience before planned work.
+   * demonstrated systems and technology experience before developing work.
    */
   {
     slug: "amp-ticket-add-on-flow",
@@ -106,34 +107,65 @@ export const projects: Project[] = [
   },
 
   /*
-   * Current healthcare-domain work is clearly identified as independent
-   * educational work using synthetic information.
+   * Healthcare-domain work is clearly identified as independent
+   * educational or research work using synthetic or public information.
    */
   {
     slug: "health-record-data-quality-lab",
     title: "Health Record Data Quality Lab",
     summary:
-      "A planned educational lab using synthetic health-record data to examine missing information, inconsistent formatting, potential duplicate records, validation rules, and data-quality reporting.",
-    category: "Health Information + Data Systems",
+      "A planned educational project using synthetic health-record data to examine duplicate records, missing and inconsistent information, validation rules, data cleaning, and approaches to documenting data-quality issues in healthcare information systems.",
+    category: "Health Information + Informatics",
     stack: ["SQL", "PostgreSQL", "Python", "Data Quality", "Synthetic Data"],
+    status: "Planned",
+    projectType: "Independent Concept",
+  },
+  {
+    slug: "longitudinal-health-record-explorer",
+    title: "Longitudinal Health Record Explorer",
+    summary:
+      "A planned informatics prototype exploring how symptoms, encounters, medications, laboratory results, referrals, and other health information can be organized longitudinally to support clearer review of patterns across a synthetic patient history.",
+    category: "Health Information + Informatics",
+    stack: ["Next.js", "TypeScript", "PostgreSQL", "Prisma", "Recharts"],
+    status: "Planned",
+    projectType: "Independent Concept",
+  },
+  {
+    slug: "early-detection-care-gap-dashboard",
+    title: "Early Detection Care Gap Dashboard",
+    summary:
+      "A planned healthcare-analytics project examining screening, abnormal findings, follow-up, referral completion, and other potential care gaps using synthetic or publicly available data, with attention to differences affecting racially underserved women.",
+    category: "Women's Health Equity + Research",
+    stack: ["SQL", "Python", "Pandas", "Power BI", "Quality Measures"],
+    status: "Planned",
+    projectType: "Independent Concept",
+  },
+  {
+    slug: "womens-health-equity-research",
+    title: "Women's Health Equity Research",
+    summary:
+      "An ongoing research initiative examining how health information, healthcare data, diagnostic processes, care gaps, and patient experiences can be studied to better understand racial inequities across women's healthcare.",
+    category: "Women's Health Equity + Research",
+    stack: [
+      "Literature Review",
+      "Research Methods",
+      "Public Health Data",
+      "Data Analysis",
+      "Evidence Synthesis",
+    ],
     status: "Planned",
     projectType: "Independent Concept",
   },
 
   /*
-   * Long-term research, advocacy, and informatics concepts remain clearly
-   * separated from completed professional and educational evidence.
+   * Deferred concepts.
+   *
+   * These remain preserved for possible future development but are
+   * intentionally hidden from the public portfolio while the healthcare
+   * portfolio becomes more focused.
    */
-  {
-    slug: "womens-health-equity-data-story",
-    title: "Women's Health Equity Data Story",
-    summary:
-      "A planned research and data-storytelling project examining racial disparities, delayed diagnosis, care-access barriers, and patient experiences across whole-body women's health using public data and plain-language interpretation.",
-    category: "Women's Health Equity Data + Research",
-    stack: ["Python", "Pandas", "Jupyter", "Power BI", "Public Health Data"],
-    status: "Planned",
-    projectType: "Independent Concept",
-  },
+
+  /*
   {
     slug: "patient-education-advocacy-library",
     title: "Patient Education & Advocacy Library",
@@ -144,36 +176,29 @@ export const projects: Project[] = [
     status: "Planned",
     projectType: "Independent Concept",
   },
-  {
-    slug: "careflow-symptom-timeline",
-    title: "CareFlow Symptom Timeline",
-    summary:
-      "A planned patient-centered concept for organizing symptoms, appointments, medications, laboratory results, referrals, notes, and health events over time to support clearer longitudinal health narratives.",
-    category: "Patient-Centered Digital Health Tools",
-    stack: ["Next.js", "TypeScript", "PostgreSQL", "Prisma", "Recharts"],
-    status: "Planned",
-    projectType: "Independent Concept",
-  },
-  {
-    slug: "early-detection-care-gap-dashboard",
-    title: "Early Detection Care Gap Dashboard",
-    summary:
-      "A planned healthcare-analytics concept examining screening gaps, follow-up delays, referral completion, and early-detection opportunities affecting racially underserved and underrepresented women using synthetic or publicly available data.",
-    category: "Women's Health Equity Data + Research",
-    stack: ["SQL", "Python", "Pandas", "Power BI", "Quality Measures"],
-    status: "Planned",
-    projectType: "Independent Concept",
-  },
+  */
+
+  /*
   {
     slug: "patient-dismissal-research-tracker",
     title: "Patient Dismissal Research Tracker",
     summary:
       "A planned research concept for organizing and visualizing evidence about patient dismissal, delayed diagnosis, unclear communication, undertreatment, and barriers to follow-up care affecting racially underserved and underrepresented women.",
-    category: "Women's Health Equity Data + Research",
-    stack: ["Next.js", "TypeScript", "PostgreSQL", "Prisma", "Survey Data", "Recharts"],
+    category: "Women's Health Equity + Research",
+    stack: [
+      "Next.js",
+      "TypeScript",
+      "PostgreSQL",
+      "Prisma",
+      "Survey Data",
+      "Recharts",
+    ],
     status: "Planned",
     projectType: "Independent Concept",
   },
+  */
+
+  /*
   {
     slug: "care-access-workflow-system",
     title: "Care Access Workflow System",
@@ -184,6 +209,7 @@ export const projects: Project[] = [
     status: "Planned",
     projectType: "Independent Concept",
   },
+  */
 ];
 
 export const featuredProjects = projects.filter(
