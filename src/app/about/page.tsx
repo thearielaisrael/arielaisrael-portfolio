@@ -10,16 +10,16 @@ export const metadata: Metadata = {
   title: "About",
 
   description:
-    "Learn about Ariela Israel's transition from software development into health information, healthcare data, and informatics, and her path toward becoming a Women's Health Equity Advocate & Informatician.",
+    "Learn about Ariela Israel's path through women's health equity, health information, research, and informatics as she builds toward becoming a Women's Health Equity Advocate & Informaticist.",
 
   alternates: {
     canonical: "/about",
   },
 
   openGraph: {
-    title: "About",
+    title: "About Ariela Israel",
     description:
-      "From software systems to health information, healthcare data, informatics, and women's health equity.",
+      "Health Services Management student studying women's health equity, health information, research, and informatics.",
     url: "/about",
   },
 };
@@ -28,14 +28,14 @@ export default function AboutPage() {
   return (
     <main className="mx-auto w-full max-w-360 px-6 pb-24 md:px-10">
       <PageHeader
-        eyebrow="About Me"
-        heading="From software systems to health information and informatics"
-        description="I'm a software developer and Health Services Management student bringing a systems-and-data foundation into healthcare."
-        supportingText="My immediate focus is gaining experience in health information, medical records, healthcare data, documentation workflows, and healthcare operations while building toward becoming a Women's Health Equity Advocate & Informatician."
+        eyebrow="About Ariela"
+        heading="Building a path through women's health equity, information, and informatics"
+        description="I'm a Health Services Management student building toward becoming a Women's Health Equity Advocate & Informaticist."
+        supportingText="My developing interests connect women's whole-body health, racial disparities, delayed diagnosis, health information, healthcare data, research, biomedical informatics, and precision medicine."
         actions={
           <>
             <PrimaryCTA link="/experience" label="View Experience" />
-            <SecondaryCTA link="/projects" label="View Projects" />
+            <SecondaryCTA link="/projects" label="Explore Projects" />
           </>
         }
       />
@@ -44,47 +44,53 @@ export default function AboutPage() {
         <div className="grid gap-8 lg:grid-cols-12">
           <div className="lg:col-span-7">
             <div className="max-w-3xl">
-              <SectionLabel>Professional Path</SectionLabel>
+              <SectionLabel>Academic and Professional Path</SectionLabel>
 
               <h2
                 id="professional-path-heading"
                 className="font-heading text-primary mt-3 text-4xl leading-tight font-bold tracking-tight md:text-5xl"
               >
-                Technology, information, and healthcare systems
+                Studying the information, systems, and disparities shaping women&apos;s health
               </h2>
 
               <div className="text-muted mt-6 space-y-5 text-base leading-relaxed md:text-lg">
                 <p>
-                  My professional background is in full-stack software development. I&apos;ve worked
-                  with structured data, databases, APIs, documentation, testing, troubleshooting,
-                  accessibility, and operational workflows using technologies including TypeScript,
-                  React, Next.js, Node.js, SQL, and PostgreSQL.
+                  I&apos;m pursuing a Bachelor of Science in Health Services Management at the
+                  University of Maryland Global Campus, alongside certificates in Health Information
+                  Management &amp; Data Analytics and Data Analytics. Through this academic path,
+                  I&apos;m developing a stronger understanding of healthcare systems, health
+                  information, research, data, and the operational conditions that influence care.
                 </p>
 
                 <p>
-                  Most recently, I served as the sole full-stack developer for Walton Arts Center
-                  and Walmart AMP, where I built and maintained production applications used by
-                  staff and the public. That experience strengthened how I approach technical
-                  ownership, information accuracy, usability, reliability, and systems operating
-                  under real organizational constraints.
+                  My direction is rooted in a long-standing interest in women&apos;s health and in
+                  the racial disparities that affect diagnosis, treatment, research, information,
+                  and outcomes. I&apos;m especially interested in delayed diagnosis, fragmented
+                  care, incomplete health information, and the ways longitudinal data may help
+                  reveal patterns that are difficult to recognize during isolated encounters.
                 </p>
 
                 <p>
-                  I wanted to use my technical background to contribute more directly to
-                  people&apos;s health and access to information. My personal health experiences,
-                  interest in healthcare disparities, and desire to understand how information
-                  affects care led me toward health technology and informatics. I&apos;m now
-                  developing healthcare-domain knowledge through my Health Services Management
-                  degree and certificate pathways in Health Information Management &amp; Data
-                  Analytics and Data Analytics.
+                  Before beginning my healthcare education, I worked as a full-stack software
+                  developer. Most recently, I served as the sole full-stack developer for Walton
+                  Arts Center and Walmart AMP, where I built and maintained production applications
+                  used by staff and the public.
                 </p>
 
                 <p>
-                  I&apos;m intentionally seeking hands-on work where healthcare information,
-                  documentation, data, systems, and operations intersect. Long term, I&apos;m
-                  building toward becoming a Women&apos;s Health Equity Advocate &amp;
-                  Informatician, connecting health information, research, data, and patient-centered
-                  technology to support clearer information and more equitable care.
+                  That experience gave me a professional foundation in structured data, databases,
+                  documentation, quality assurance, accessibility, technical problem-solving, and
+                  systems operating under real organizational constraints. Software is no longer the
+                  center of my professional identity, but it remains an important part of what I
+                  bring into healthcare, research, and informatics.
+                </p>
+
+                <p>
+                  I&apos;m now seeking opportunities that allow me to develop practical healthcare
+                  experience while continuing my education. Long term, I&apos;m building toward
+                  becoming a Women&apos;s Health Equity Advocate &amp; Informaticist whose work
+                  connects advocacy, health information, research, data, and patient-centered
+                  technology.
                 </p>
               </div>
             </div>
@@ -94,18 +100,8 @@ export default function AboutPage() {
             <GlassCard>
               <div className="space-y-6">
                 <InfoBlock
-                  label="Current Focus"
-                  body="Health information, medical records, documentation and data workflows, healthcare operations, and healthcare data support."
-                />
-
-                <InfoBlock
-                  label="Professional Foundation"
-                  body="Full-stack development, structured data, SQL and PostgreSQL, documentation, quality assurance, accessibility, troubleshooting, and workflow analysis."
-                />
-
-                <InfoBlock
                   label="Academic Path"
-                  body="BS in Health Services Management at UMGC, 2026-2029."
+                  body="BS in Health Services Management at UMGC, alongside certificates in Health Information Management & Data Analytics and Data Analytics."
                 />
 
                 <div>
@@ -121,8 +117,23 @@ export default function AboutPage() {
                 </div>
 
                 <InfoBlock
+                  label="Advocacy Focus"
+                  body="Racial disparities, delayed diagnosis, undertreatment, fragmented care, research gaps, and women's whole-body health."
+                />
+
+                <InfoBlock
+                  label="Developing Interests"
+                  body="Health information, healthcare data, biomedical informatics, longitudinal health records, research, and precision medicine."
+                />
+
+                <InfoBlock
+                  label="Professional Foundation"
+                  body="Software development, structured data systems, databases, documentation, accessibility, quality assurance, and workflow analysis."
+                />
+
+                <InfoBlock
                   label="Long-Term Direction"
-                  body="Becoming a Women's Health Equity Advocate & Informatician, connecting health information, data, research, digital health, and patient-centered technology."
+                  body="Building toward becoming a Women's Health Equity Advocate & Informaticist."
                 />
               </div>
             </GlassCard>
@@ -140,24 +151,29 @@ export default function AboutPage() {
                 id="equity-lens-heading"
                 className="font-heading text-primary mt-3 text-4xl leading-tight font-bold tracking-tight md:text-5xl"
               >
-                Why women&apos;s health equity remains central
+                Whole-body women&apos;s health, with the most affected women at the center
               </h2>
             </div>
 
             <div className="text-muted space-y-5 text-base leading-relaxed md:text-lg">
               <p>
                 My advocacy centers racially underserved and underrepresented women whose symptoms,
-                pain, concerns, and full-body health are too often dismissed, misunderstood,
+                pain, concerns, and whole-body health are too often dismissed, misunderstood,
                 diagnosed late, undertreated, or overlooked in research and healthcare data.
-                Everyone is welcome to learn from this work, but the women most affected by these
-                disparities remain at the center.
               </p>
 
               <p>
-                My interests include reproductive, endocrine, metabolic, cardiovascular, autoimmune,
-                chronic illness, and mental health concerns. I&apos;m especially interested in the
-                racial disparities, fragmented information, research gaps, and delayed answers that
-                can make care more difficult to understand and navigate.
+                My interests extend across reproductive, endocrine, metabolic, cardiovascular,
+                autoimmune, chronic illness, mental health, and multisystem concerns across the life
+                course. This broader scope matters because women&apos;s health cannot be understood
+                through reproductive health alone.
+              </p>
+
+              <p>
+                I&apos;m particularly interested in the fragmented information, research gaps,
+                diagnostic delays, and racial disparities that can make care more difficult to
+                understand and navigate. Everyone is welcome to learn from this work, but the women
+                most affected by these disparities remain at the center.
               </p>
 
               <p>
@@ -178,12 +194,13 @@ export default function AboutPage() {
             id="working-approach-heading"
             className="font-heading text-primary mt-3 text-4xl leading-tight font-bold tracking-tight md:text-5xl"
           >
-            How I approach information and systems
+            Study carefully, question responsibly, and connect information to people
           </h2>
 
           <p className="text-muted mt-4 text-base leading-relaxed md:text-lg">
-            I&apos;m drawn to work that requires accuracy, organization, systems thinking, clear
-            documentation, and respect for the people who rely on the information.
+            I&apos;m drawn to work that requires accuracy, organization, evidence-conscious
+            thinking, clear documentation, and respect for the people represented by the
+            information.
           </p>
         </div>
 
@@ -191,24 +208,24 @@ export default function AboutPage() {
           <Card>
             <PrincipleCard
               label="SYSTEMS"
-              title="Understand the workflow"
-              body="I break complex work into people, information, processes, tools, constraints, and decisions."
+              title="Understand the full context"
+              body="I examine the relationships among people, information, processes, tools, constraints, and decisions."
             />
           </Card>
 
           <Card>
             <PrincipleCard
-              label="QUALITY"
+              label="EVIDENCE"
               title="Protect clarity and accuracy"
-              body="I value careful documentation, testing, consistency, accessibility, and information people can understand."
+              body="I value careful research, transparent limitations, consistent documentation, accessibility, and information people can understand."
             />
           </Card>
 
           <Card>
             <PrincipleCard
               label="PURPOSE"
-              title="Connect the work to people"
-              body="I want technology, data, and research to support useful systems and more informed, equitable experiences."
+              title="Keep people at the center"
+              body="I want advocacy, information, research, data, and technology to support clearer understanding and more equitable care."
             />
           </Card>
         </div>
@@ -220,12 +237,12 @@ export default function AboutPage() {
             <SectionLabel>Explore</SectionLabel>
 
             <h2 className="font-heading text-primary mt-3 text-3xl leading-tight font-bold md:text-4xl">
-              See the experience behind the direction
+              Explore the experience and learning behind the direction
             </h2>
 
             <p className="text-muted mt-4 text-base leading-relaxed">
-              Review my professional background, selected projects, and current
-              healthcare-information learning path.
+              Review my professional foundation, developing healthcare knowledge, selected projects,
+              and path toward women&apos;s health equity and informatics.
             </p>
           </div>
 

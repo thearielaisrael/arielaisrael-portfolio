@@ -16,16 +16,16 @@ export const metadata: Metadata = {
   title: "Experience",
 
   description:
-    "Professional software-development, data, documentation, accessibility, quality-assurance, and operational experience supporting Ariela Israel's transition into health information and informatics.",
+    "Explore Ariela Israel's professional experience across software systems, structured data, documentation, accessibility, quality assurance, operations, and her developing healthcare and informatics path.",
 
   alternates: {
     canonical: "/experience",
   },
 
   openGraph: {
-    title: "Experience",
+    title: "Experience | Ariela Israel",
     description:
-      "Professional experience across software systems, structured data, documentation, accessibility, quality assurance, and operational workflows.",
+      "Professional experience, applied study, and education supporting Ariela Israel's path toward women's health equity and informatics.",
     url: "/experience",
   },
 };
@@ -35,18 +35,19 @@ export default function ExperiencePage() {
     <main className="mx-auto w-full max-w-360 space-y-20 px-6 pb-24 md:px-10">
       <PageHeader
         eyebrow="Experience"
-        heading="Software, systems, and operational experience"
+        heading="Experience across systems, information, and operations"
         description={
           <>
-            My professional background is in full-stack development, structured data systems,
+            My professional experience spans software development, structured data systems,
             production technology, documentation, accessibility, quality assurance, and
             workflow-focused problem-solving.
           </>
         }
         supportingText={
           <>
-            I&apos;m now bringing that foundation into health information, healthcare data, and
-            informatics while completing my Health Services Management degree.
+            I&apos;m building on that foundation through my Health Services Management education and
+            developing interests in women&apos;s health equity, health information, research,
+            healthcare data, and informatics.
           </>
         }
       />
@@ -65,15 +66,16 @@ export default function ExperiencePage() {
 
       <section className="space-y-8">
         <div className="max-w-3xl space-y-4">
-          <SectionLabel>Featured Experience</SectionLabel>
+          <SectionLabel>Professional Foundation</SectionLabel>
 
           <h2 className="font-heading text-primary tracking-light text-3xl leading-[1.08] font-bold text-balance md:text-5xl">
-            Professional software and systems work
+            Established software and systems experience
           </h2>
 
           <p className="text-muted text-base leading-relaxed md:text-lg">
-            Selected experience demonstrating technical ownership, structured information,
-            documentation, operational workflows, accessibility, and reliable production systems.
+            Selected professional work demonstrating technical ownership, structured information,
+            documentation, operational workflows, accessibility, quality assurance, and reliable
+            production systems.
           </p>
         </div>
 
@@ -89,12 +91,13 @@ export default function ExperiencePage() {
           <SectionLabel>Applied Study</SectionLabel>
 
           <h2 className="font-heading text-primary tracking-light text-3xl leading-[1.08] font-bold text-balance md:text-4xl">
-            Health information, digital health, and informatics
+            Developing healthcare, research, and informatics knowledge
           </h2>
 
           <p className="text-muted text-base leading-relaxed md:text-lg">
-            Independent educational work connecting my software background with healthcare systems,
-            health information, data, and women&apos;s health equity.
+            Independent educational work connecting my existing systems-and-data foundation with
+            health information, healthcare data, research, digital health, and women&apos;s health
+            equity.
           </p>
         </div>
 
@@ -152,7 +155,7 @@ export default function ExperiencePage() {
 
           <p className="text-muted text-base leading-relaxed md:text-lg">
             Earlier roles that strengthened process adherence, record accuracy, communication,
-            troubleshooting, and reliability in high-volume environments.
+            troubleshooting, reliability, and service in high-volume environments.
           </p>
         </div>
 
@@ -168,8 +171,13 @@ export default function ExperiencePage() {
           <SectionLabel>Education</SectionLabel>
 
           <h2 className="font-heading text-primary tracking-light text-3xl leading-[1.08] font-bold text-balance md:text-4xl">
-            Healthcare management and software engineering
+            Health Services Management, data, and software engineering
           </h2>
+
+          <p className="text-muted text-base leading-relaxed md:text-lg">
+            Formal education supporting my interdisciplinary development across healthcare systems,
+            health information, analytics, technology, and informatics.
+          </p>
         </div>
 
         <div className="grid gap-5 lg:grid-cols-2">

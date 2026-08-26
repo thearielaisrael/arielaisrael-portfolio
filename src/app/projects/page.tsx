@@ -11,16 +11,16 @@ export const metadata: Metadata = {
   title: "Projects",
 
   description:
-    "Professional and educational projects by Ariela Israel across software development, structured data, operational systems, health information, digital health, and women's health equity.",
+    "Professional, educational, and planned projects by Ariela Israel across information systems, health information, healthcare data, women's health equity, research, and patient-centered technology.",
 
   alternates: {
     canonical: "/projects",
   },
 
   openGraph: {
-    title: "Projects",
+    title: "Projects | Ariela Israel",
     description:
-      "Projects across software development, structured data, operational systems, health information, and digital health.",
+      "Projects connecting information systems, health information, healthcare data, research, and women's health equity.",
     url: "/projects",
   },
 };
@@ -39,25 +39,26 @@ export default function ProjectsPage() {
     <main className="mx-auto w-full max-w-360 px-6 pb-24 md:px-10">
       <PageHeader
         eyebrow="Projects"
-        heading="Projects across software, health information, and digital health"
-        description="Selected professional and educational projects demonstrating structured data, operational workflows, information access, accessibility, and full-stack development."
-        supportingText="My current work builds on that technical foundation as I develop knowledge across health information, healthcare data, informatics, and women's health equity."
+        heading="Projects connecting information, systems, and women’s health equity"
+        description="A collection of completed work and developing concepts across structured information, operational systems, health information, healthcare data, research, and patient-centered technology."
+        supportingText="My professional systems experience provides the technical foundation. My current education and independent projects are helping me build healthcare-domain knowledge as I work toward becoming a Women’s Health Equity Advocate & Informaticist."
       />
 
       <section aria-labelledby="selected-work-heading" className="mt-16 md:mt-20">
         <div className="mb-7 max-w-3xl">
-          <SectionLabel>Selected Work</SectionLabel>
+          <SectionLabel>Completed Work</SectionLabel>
 
           <h2
             id="selected-work-heading"
             className="font-heading text-primary mt-3 text-3xl leading-tight font-bold tracking-tight md:text-5xl"
           >
-            Completed projects and professional evidence
+            Professional systems and technical evidence
           </h2>
 
           <p className="text-muted mt-4 text-base leading-relaxed md:text-lg">
-            Built work demonstrating production ownership, database-backed systems, user workflows,
-            technical problem-solving, and accessible digital experiences.
+            Completed projects demonstrating production ownership, structured information,
+            database-backed systems, operational workflows, accessibility, and technical
+            problem-solving.
           </p>
         </div>
 
@@ -72,8 +73,8 @@ export default function ProjectsPage() {
         <ProjectSection
           id="health-information-data-systems"
           eyebrow="Health Information + Data Systems"
-          heading="Building healthcare-domain experience"
-          description="Independent educational work exploring data quality, documentation workflows, information organization, and healthcare data systems. These projects use synthetic information and are not presented as professional healthcare experience."
+          heading="Learning through health-information projects"
+          description="Independent educational work exploring health-record data quality, documentation workflows, information organization, and healthcare data systems. These projects use synthetic information and are not presented as professional healthcare experience."
           projects={healthInformationProjects}
         />
       ) : null}
@@ -81,9 +82,9 @@ export default function ProjectsPage() {
       {conceptProjects.length > 0 ? (
         <ProjectSection
           id="concept-roadmap"
-          eyebrow="Concept Roadmap"
-          heading="Future work in digital health and women's health equity"
-          description="Planned independent concepts connecting software, data, patient education, care navigation, and health-equity research. Their status is shown clearly so completed evidence remains distinct from future direction."
+          eyebrow="Research + Informatics Roadmap"
+          heading="Developing ideas for women’s health equity"
+          description="Planned independent concepts connecting health information, research, data, patient education, care navigation, and patient-centered technology. Each project is labeled by status so future direction remains clearly separated from completed work."
           projects={conceptProjects}
         />
       ) : null}

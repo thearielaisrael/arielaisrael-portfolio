@@ -28,7 +28,7 @@ export type SocialIcon = {
   icon: ComponentType<SVGProps<SVGSVGElement>>;
 };
 
-export const resumeHref = "/resume/arielaisrael-resume.pdf";
+export const resumeHref = "/resume/ariela-israel-general-resume.pdf";
 
 export const MenuItems: MenuItem[] = [
   {

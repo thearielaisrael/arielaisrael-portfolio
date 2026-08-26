@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { useForm, ValidationError } from "@formspree/react";
 
 import SocialLinks from "@/src/components/nav/SocialLinks";
@@ -17,9 +18,9 @@ export default function ContactPage() {
     <main className="mx-auto w-full max-w-360 px-6 pb-24 md:px-10">
       <PageHeader
         eyebrow="Contact"
-        heading="Let's connect about health information, healthcare systems, and patient-centered technology"
-        description="I'm currently open to professional opportunities in health information, medical records, documentation and data workflows, healthcare operations, healthcare data support, and related health-technology roles."
-        supportingText="I also welcome relevant conversations across digital health, informatics, patient education, research, and women's health equity advocacy."
+        heading="Let’s connect about health information, research, and women’s health equity"
+        description="I’m currently open to professional opportunities in health information, medical records, documentation and data workflows, healthcare operations, healthcare data support, and related roles."
+        supportingText="I also welcome thoughtful conversations across informatics, research, patient education, digital health, and the racial disparities affecting women’s whole-body healthcare."
       />
 
       <section aria-labelledby="contact-form-heading" className="mt-16 md:mt-20">
@@ -31,27 +32,34 @@ export default function ContactPage() {
 
                 <div className="mt-4 flex flex-wrap gap-2">
                   <ChipRegBorder>Health Information</ChipRegBorder>
+
                   <ChipRegBorder>Medical Records</ChipRegBorder>
+
                   <ChipRegBorder>Healthcare Operations</ChipRegBorder>
+
                   <ChipRegBorder>Healthcare Data Support</ChipRegBorder>
+
                   <ChipRegBorder>Health Technology</ChipRegBorder>
-                  <ChipRegBorder>Women&apos;s Health Equity Advocacy</ChipRegBorder>
+
+                  <ChipRegBorder>Research Conversations</ChipRegBorder>
+
+                  <ChipRegBorder>Women&apos;s Health Equity</ChipRegBorder>
                 </div>
               </div>
 
               <div className="border-default mt-6 border-t pt-6">
-                <SectionLabel>Professional Direction</SectionLabel>
+                <SectionLabel>Academic + Professional Direction</SectionLabel>
 
                 <p className="text-muted mt-3 text-sm leading-relaxed">
-                  I&apos;m bringing professional experience in software systems, structured data,
-                  documentation, quality assurance, accessibility, and workflow analysis into
-                  healthcare.
+                  I&apos;m a Health Services Management student pursuing certificate pathways in
+                  Health Information Management &amp; Data Analytics and Data Analytics.
                 </p>
 
                 <p className="text-muted mt-4 text-sm leading-relaxed">
-                  Long term, I&apos;m building toward becoming a Women&apos;s Health Equity Advocate
-                  &amp; Informatician through health information, data, research, digital health,
-                  and patient-centered systems.
+                  I bring a professional foundation in software systems, structured data,
+                  documentation, quality assurance, accessibility, and workflow analysis. Long term,
+                  I&apos;m building toward becoming a Women&apos;s Health Equity Advocate &amp;
+                  Informaticist.
                 </p>
               </div>
 
@@ -81,8 +89,8 @@ export default function ContactPage() {
                   </h2>
 
                   <p className="text-muted mt-4 max-w-md text-sm leading-relaxed">
-                    Your message was submitted successfully. I&apos;ll review the details and
-                    respond when the opportunity or conversation is a relevant fit.
+                    Your message was submitted successfully. I&apos;ll review it and respond as soon
+                    as I can.
                   </p>
 
                   <Link
@@ -105,7 +113,7 @@ export default function ContactPage() {
                     </h2>
 
                     <p className="text-muted mt-3 max-w-2xl text-sm leading-relaxed">
-                      For employment outreach, please include the role, organization, work
+                      For employment outreach, please include the position, organization, work
                       arrangement, and any relevant details.
                     </p>
                   </div>
@@ -196,11 +204,13 @@ export default function ContactPage() {
                             Healthcare Data or Informatics
                           </option>
 
+                          <option value="research">Research Conversation</option>
+
                           <option value="health-technology">Health Technology</option>
 
-                          <option value="research-collaboration">Research or Collaboration</option>
-
                           <option value="advocacy">Women&apos;s Health Equity Advocacy</option>
+
+                          <option value="collaboration">Collaboration</option>
 
                           <option value="other">Other</option>
                         </select>
@@ -266,9 +276,9 @@ function Field({
   htmlFor,
   children,
 }: {
-  label: React.ReactNode;
+  label: ReactNode;
   htmlFor: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <div className="flex flex-col">

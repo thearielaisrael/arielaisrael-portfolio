@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   title: "The Informatics Diary",
 
   description:
-    "Independent field notes documenting Ariela Israel's transition from software development into health information, healthcare data, informatics, and women's health equity advocacy.",
+    "The Informatics Diary documents Ariela Israel's developing work across women's health equity, health information, healthcare data, research, biomedical informatics, and academic life.",
 
   alternates: {
     canonical: "/field-notes",
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "The Informatics Diary",
     description:
-      "Field notes on health information, digital health, healthcare data, academic learning, and women's health equity.",
+      "Field notes from Ariela Israel's path toward becoming a Women's Health Equity Advocate & Informaticist.",
     url: "/field-notes",
     type: "website",
   },
@@ -30,27 +30,27 @@ export const metadata: Metadata = {
 const writingThemes = [
   {
     label: "EQUITY",
-    title: "Women's Health Equity",
+    title: "Women's Whole-Body Health Equity",
     description:
-      "Writing on racial disparities, patient dismissal, delayed diagnosis, undertreatment, medical bias, research gaps, care access, and the experiences of women who are too often unheard.",
+      "Writing on racial disparities, patient dismissal, delayed diagnosis, undertreatment, medical bias, research gaps, fragmented care, and the experiences of women who are too often unheard.",
   },
   {
-    label: "INFORMATION",
-    title: "Health Information + Systems",
+    label: "INFORMATICS",
+    title: "Health Information + Biomedical Informatics",
     description:
-      "Learning notes on documentation, data quality, healthcare workflows, information systems, and how health information moves through care environments.",
+      "Learning notes on health information, documentation, data quality, longitudinal records, healthcare workflows, information systems, and how information moves through care environments.",
   },
   {
-    label: "DATA + TECH",
-    title: "Digital Health + Healthcare Data",
+    label: "RESEARCH + DATA",
+    title: "Research, Healthcare Data + Precision Medicine",
     description:
-      "Explorations of structured data, digital tools, accessibility, dashboards, information design, and the responsible interpretation of healthcare data.",
+      "Explorations of research literacy, structured data, digital tools, health disparities, responsible data interpretation, and the developing role of informatics in more precise and equitable care.",
   },
   {
     label: "LEARNING",
     title: "Academic Becoming",
     description:
-      "Field notes from studying Health Services Management, health information, data analytics, informatics, research practices, and professional development.",
+      "Field notes from studying Health Services Management, Health Information Management and Data Analytics, informatics, research practices, and professional development.",
   },
 ];
 
@@ -59,9 +59,9 @@ export default function FieldNotesPage() {
     <main className="mx-auto w-full max-w-360 px-6 pb-24 md:px-10">
       <PageHeader
         eyebrow="The Informatics Diary"
-        heading="Field notes on health information, digital health, and women's health equity"
-        description="The Informatics Diary documents my transition from software development into health information, healthcare data, and informatics."
-        supportingText="I write about what I'm learning through my Health Services Management education, health-tech projects, research, and developing understanding of healthcare systems as I work toward becoming a Women's Health Equity Advocate & Informatician."
+        heading="Field notes on women's health equity, information, research, and informatics"
+        description="The Informatics Diary is my independent writing and learning archive."
+        supportingText="I document what I'm studying, questioning, researching, and building along my path toward becoming a Women's Health Equity Advocate & Informaticist."
         actions={
           <>
             <a
@@ -73,7 +73,7 @@ export default function FieldNotesPage() {
               Read on Substack ↗
             </a>
 
-            <SecondaryCTA link="/projects" label="View Projects" />
+            <SecondaryCTA link="/projects" label="Explore Projects" />
           </>
         }
       />
@@ -88,27 +88,33 @@ export default function FieldNotesPage() {
                 id="editorial-purpose-heading"
                 className="font-heading text-primary mt-3 text-4xl leading-tight font-bold tracking-tight md:text-5xl"
               >
-                A place to study carefully and think in public
+                A place to study carefully, question responsibly, and think in public
               </h2>
             </div>
 
             <div className="text-muted space-y-5 text-base leading-relaxed md:text-lg">
               <p>
-                My advocacy centers racially underserved and underrepresented women who are too
-                often dismissed, diagnosed late, undertreated, overlooked in research, or left
-                without clear information and coordinated care. Everyone is welcome to learn, but
-                the women most affected by these disparities remain at the center.
+                My advocacy centers racially underserved and underrepresented women whose symptoms,
+                pain, concerns, and whole-body health are too often dismissed, misunderstood,
+                diagnosed late, undertreated, or overlooked in research and healthcare data.
+              </p>
+
+              <p>
+                I&apos;m especially interested in racial disparities, delayed diagnosis, fragmented
+                care, longitudinal health information, biomedical informatics, and how research and
+                data may contribute to more precise and equitable care. Everyone is welcome to
+                learn, but the women most affected by these disparities remain at the center.
               </p>
 
               <p>
                 The writing is exploratory and evidence-conscious. I aim to distinguish established
                 information from interpretation, cite credible sources, document limitations, and
-                avoid presenting developing knowledge as professional clinical authority.
+                represent my developing knowledge honestly.
               </p>
 
               <p className="text-sm">
                 The Informatics Diary is educational and does not provide medical advice, diagnosis,
-                or individualized treatment guidance.
+                individualized treatment guidance, or professional clinical authority.
               </p>
             </div>
           </div>
@@ -123,12 +129,12 @@ export default function FieldNotesPage() {
             id="writing-themes-heading"
             className="font-heading text-primary mt-3 text-3xl leading-tight font-bold tracking-tight md:text-5xl"
           >
-            What I&apos;m studying and documenting
+            What I&apos;m studying, questioning, and documenting
           </h2>
 
           <p className="text-muted mt-4 text-base leading-relaxed md:text-lg">
-            The archive follows four connected areas rather than treating healthcare, technology,
-            research, and equity as separate interests.
+            The archive follows four connected areas that reflect the interdisciplinary path
+            I&apos;m building across healthcare, information, research, equity, and technology.
           </p>
         </div>
 
@@ -157,12 +163,13 @@ export default function FieldNotesPage() {
             <SectionLabel>Read the Diary</SectionLabel>
 
             <h2 className="font-heading text-primary mt-3 text-3xl leading-tight font-bold md:text-4xl">
-              Essays and field notes live on Substack
+              Essays, research notes, and field notes live on Substack
             </h2>
 
             <p className="text-muted mt-4 text-base leading-relaxed">
-              Visit The Informatics Diary for published writing, research notes, and updates as the
-              archive develops.
+              Visit The Informatics Diary to follow my academic development, developing research
+              interests, advocacy questions, and path toward women&apos;s health equity and
+              informatics.
             </p>
           </div>
 

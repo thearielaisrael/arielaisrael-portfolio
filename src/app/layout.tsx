@@ -25,16 +25,22 @@ const geistMono = Geist_Mono({
   weight: ["400", "500", "600"],
 });
 
+const siteUrl = "https://thearielaisrael.com";
+
+const siteTitle = "Ariela Israel | Health Information, Data & Women’s Health Equity";
+
+const siteDescription =
+  "Health Services Management student studying health information and data analytics, with a professional systems background and a long-term focus on women’s health equity and informatics.";
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.arielainstem.com"),
+  metadataBase: new URL(siteUrl),
 
   title: {
-    default: "Ariela Israel | Software, Health Information & Informatics",
+    default: siteTitle,
     template: "%s | Ariela Israel",
   },
 
-  description:
-    "Software developer and Health Services Management student transitioning into health information, healthcare data, and informatics while building toward becoming a Women's Health Equity Advocate & Informatician.",
+  description: siteDescription,
 
   applicationName: "Ariela Israel",
 
@@ -45,7 +51,7 @@ export const metadata: Metadata = {
   authors: [
     {
       name: "Ariela Israel",
-      url: "https://www.arielainstem.com",
+      url: siteUrl,
     },
   ],
 
@@ -55,21 +61,23 @@ export const metadata: Metadata = {
   keywords: [
     "Ariela Israel",
     "health information",
-    "medical records",
-    "release of information",
     "healthcare data",
     "health informatics",
+    "biomedical informatics",
+    "health information management",
     "health services management",
-    "software developer",
-    "structured data",
-    "health technology",
-    "digital health",
+    "data analytics",
     "women's health equity",
     "women's health equity advocate",
-    "informatician",
-    "healthcare operations",
-    "healthcare documentation",
-    "data quality",
+    "informaticist",
+    "racial disparities in healthcare",
+    "delayed diagnosis",
+    "whole-body women's health",
+    "precision medicine",
+    "healthcare systems",
+    "patient-centered technology",
+    "structured data",
+    "information systems",
   ],
 
   formatDetection: {
@@ -82,22 +90,21 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     siteName: "Ariela Israel",
-    title: "Ariela Israel | Software, Health Information & Informatics",
-    description:
-      "Software developer and Health Services Management student bringing a systems-and-data foundation into healthcare and building toward becoming a Women's Health Equity Advocate & Informatician.",
-    url: "https://www.arielainstem.com",
+    title: siteTitle,
+    description: siteDescription,
+    url: siteUrl,
   },
 
   twitter: {
-    card: "summary_large_image",
-    title: "Ariela Israel | Software, Health Information & Informatics",
-    description:
-      "Software developer and Health Services Management student bringing a systems-and-data foundation into healthcare and building toward becoming a Women's Health Equity Advocate & Informatician.",
+    card: "summary",
+    title: siteTitle,
+    description: siteDescription,
   },
 
   robots: {
     index: true,
     follow: true,
+
     googleBot: {
       index: true,
       follow: true,
@@ -110,6 +117,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   colorScheme: "light dark",
+
   themeColor: [
     {
       media: "(prefers-color-scheme: light)",
@@ -134,16 +142,16 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               try {
-                const storedTheme = localStorage.getItem('theme');
+                const storedTheme = localStorage.getItem("theme");
                 const prefersDark = window.matchMedia(
-                  '(prefers-color-scheme: dark)'
+                  "(prefers-color-scheme: dark)"
                 ).matches;
 
                 if (
-                  storedTheme === 'dark' ||
+                  storedTheme === "dark" ||
                   (!storedTheme && prefersDark)
                 ) {
-                  document.documentElement.classList.add('dark');
+                  document.documentElement.classList.add("dark");
                 }
               } catch (_) {}
             `,
@@ -155,7 +163,9 @@ export default function RootLayout({
         className={`${plusJakartaSans.variable} ${nunitoSans.variable} ${geistMono.variable} bg-background text-foreground overflow-x-hidden overflow-y-scroll antialiased`}
       >
         <Header />
+
         {children}
+
         <Footer />
       </body>
     </html>

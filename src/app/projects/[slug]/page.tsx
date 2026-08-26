@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChipThinBorder, ChipRegBorder } from "@/src/components/ui/Chips";
+
+import { ChipRegBorder, ChipThinBorder } from "@/src/components/ui/Chips";
 import { Card, GlassCard } from "@/src/components/ui/Cards";
 import { caseStudies, getCaseStudyBySlug } from "@/src/data/caseStudyData";
+
 import type { Metadata } from "next";
 
 type CaseStudyPageProps = {
@@ -23,23 +25,26 @@ export async function generateMetadata({ params }: CaseStudyPageProps): Promise<
 
   if (!caseStudy) {
     return {
-      title: "Project Not Found | Ariela Israel",
+      title: "Project Not Found",
     };
   }
 
-  const url = `https://www.arielainstem.com/projects/${caseStudy.slug}`;
+  const url = `https://thearielaisrael.com/projects/${caseStudy.slug}`;
 
   return {
     title: caseStudy.title,
     description: caseStudy.summary,
+
     alternates: {
       canonical: url,
     },
+
     openGraph: {
-      title: caseStudy.title,
+      title: `${caseStudy.title} | Ariela Israel`,
       description: caseStudy.summary,
       url,
       type: "article",
+      siteName: "Ariela Israel",
     },
   };
 }
@@ -52,6 +57,8 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
     notFound();
   }
 
+  const documentLabel = getDocumentLabel(caseStudy.status);
+
   return (
     <main className="mx-auto w-full max-w-360 space-y-10 px-6 pb-24 md:px-10">
       <section className="relative isolate pt-20 md:pt-28">
@@ -63,7 +70,7 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
         <p className="font-mono-brand text-accent text-xs font-semibold tracking-[0.24em] uppercase">
           {caseStudy.projectType}
           <span aria-hidden="true"> · </span>
-          {caseStudy.status === "Planned" ? "Project Brief" : "Case Study"}
+          {documentLabel}
         </p>
 
         <div className="mt-4 max-w-5xl">
@@ -280,12 +287,27 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
   );
 }
 
+function getDocumentLabel(status: "Built" | "In Progress" | "Planned" | "Production") {
+  switch (status) {
+    case "Planned":
+      return "Project Brief";
+
+    case "In Progress":
+      return "Development Notes";
+
+    case "Built":
+    case "Production":
+      return "Case Study";
+  }
+}
+
 function MetaItem({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <p className="font-mono-brand text-accent text-xs font-semibold tracking-[0.22em] uppercase">
         {label}
       </p>
+
       <p className="text-foreground mt-2 text-sm font-bold">{value}</p>
     </div>
   );
@@ -338,6 +360,7 @@ function SectionInner({
                 aria-hidden="true"
                 className="bg-accent mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full"
               />
+
               <span>{item}</span>
             </li>
           ))}
@@ -351,6 +374,7 @@ function DecisionCard({ title, body }: { title: string; body: string }) {
   return (
     <div>
       <h3 className="text-foreground text-lg font-bold">{title}</h3>
+
       <p className="text-muted mt-3 text-sm leading-relaxed">{body}</p>
     </div>
   );

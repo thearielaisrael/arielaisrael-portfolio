@@ -4,16 +4,14 @@ import { GlassCard } from "../ui/Cards";
 import BackgroundFX from "./BackgroundFX";
 
 const professionalStrengths = [
-  "TypeScript",
-  "React",
-  "SQL",
-  "PostgreSQL",
-  "Structured Data",
-  "Documentation",
-  "Quality Assurance",
-  "Workflow Analysis",
+  "Women's Health Equity",
+  "Health Information",
+  "Healthcare Data",
+  "Informatics",
+  "Research",
+  "Data Quality",
+  "Health Systems",
   "Accessibility",
-  "Troubleshooting",
 ];
 
 export default function Hero() {
@@ -25,34 +23,29 @@ export default function Hero() {
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:items-center lg:gap-0">
           <div className="lg:col-span-7">
             <p className="text-accent mb-4 font-mono text-xs font-semibold tracking-[0.28em] uppercase md:text-sm">
-              Software · Health Information · Informatics
+              Women&apos;s Health Equity · Informatics · Research
             </p>
 
-            <h1 className="font-heading text-primary max-w-4xl text-5xl leading-[0.98] font-extrabold tracking-[-0.03em] text-balance md:text-6xl lg:text-[clamp(3.75rem,5vw,5.5rem)]">
-              Where software systems meet health information.
+            <h1 className="font-heading text-primary max-w-4xl text-5xl leading-[0.98] font-extrabold tracking-[-0.03em] text-balance md:text-6xl lg:text-[clamp(3.75rem,4vw,5.5rem)]">
+              Studying the information, systems, and disparities shaping{" "}
+              <span className="text-signature-aura-pink">women&apos;s health</span>
             </h1>
 
             <p className="text-foreground mt-5 max-w-3xl text-xl leading-snug font-semibold md:text-2xl lg:text-[1.65rem]">
-              Software developer and Health Services Management student bringing a systems-and-data
-              foundation into healthcare.
+              I’m Ariela Israel, a Health Services Management student building toward becoming a
+              Women’s Health Equity Advocate & Informaticist.
             </p>
 
             <div className="text-muted mt-6 max-w-3xl space-y-4 text-base leading-relaxed md:text-lg">
               <p>
-                I&apos;m Ariela
-                <span className="text-accent ml-2 align-top text-sm font-semibold tracking-wide opacity-85 md:text-base">
-                  (ar-ree-el-la)
-                </span>
-                . My professional foundation includes structured data, SQL-backed systems,
-                documentation, quality assurance, accessibility, troubleshooting, and operational
-                workflows.
+                My developing work connects women&apos;s health equity, health information,
+                healthcare data, research, biomedical informatics, and patient-centered technology.
               </p>
 
               <p>
-                My immediate focus is health information and medical records work where accuracy,
-                organization, documentation, data quality, and reliable systems matter. Long term,
-                I&apos;m building toward becoming a Women&apos;s Health Equity Advocate &amp;
-                Informatician.
+                I’m especially interested in racial disparities, delayed diagnosis, fragmented care,
+                and the gaps that affect how racially underserved and underrepresented women&apos;s
+                whole-body health is understood.
               </p>
             </div>
 
@@ -61,9 +54,9 @@ export default function Hero() {
             </p>
 
             <div className="mt-7 flex flex-wrap gap-4">
-              <PrimaryCTA link="/about" label="My Background" />
+              <PrimaryCTA link="/about" label="Explore My Direction" />
 
-              <SecondaryCTA link="/projects" label="View Projects" />
+              <SecondaryCTA link="/projects" label="View My Work" />
             </div>
           </div>
 
@@ -75,23 +68,28 @@ export default function Hero() {
 
               <div className="mt-5 space-y-5 lg:space-y-4">
                 <SnapshotBlock
-                  label="Immediate Focus"
-                  body="Health information, medical records, release of information, documentation and data workflows, healthcare operations, and related support roles."
+                  label="Academic Path"
+                  body="Pursuing a BS in Health Services Management at UMGC, alongside certificates in Health Information Management & Data Analytics and Data Analytics."
+                />
+
+                <SnapshotBlock
+                  label="Advocacy Focus"
+                  body="Racial disparities, delayed diagnosis, undertreatment, fragmented care, research gaps, and whole-body women's health."
+                />
+
+                <SnapshotBlock
+                  label="Developing Interest"
+                  body="Health information, healthcare data, biomedical informatics, longitudinal health records, research, and precision medicine."
                 />
 
                 <SnapshotBlock
                   label="Professional Foundation"
-                  body="Software development, structured data systems, SQL and databases, documentation, testing, troubleshooting, accessibility, and production-system ownership."
-                />
-
-                <SnapshotBlock
-                  label="Academic Path"
-                  body="BS in Health Services Management at UMGC with certificate pathways in Health Information Management & Data Analytics and Data Analytics."
+                  body="Software development, structured data systems, databases, documentation, accessibility, quality assurance, and workflow analysis."
                 />
 
                 <SnapshotBlock
                   label="Long-Term Direction"
-                  body="Becoming a Women's Health Equity Advocate & Informatician, connecting health information, data, research, digital health, and patient-centered technology."
+                  body="Building toward becoming a Women's Health Equity Advocate & Informaticist."
                 />
               </div>
 

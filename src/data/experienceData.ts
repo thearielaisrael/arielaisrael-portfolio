@@ -88,27 +88,28 @@ export const featuredExperience: ExperienceEntry[] = [
 
 export const appliedStudy: AppliedStudyEntry[] = [
   {
-    id: "applied-health-tech-projects",
-    title: "Health Information, Digital Health & Informatics Projects",
-    organization: "Independent Study / Applied Health-Tech Projects",
+    id: "womens-health-equity-informatics-study",
+    title: "Women's Health Equity, Health Information & Informatics Study",
+    organization: "Independent Study / Applied Projects",
     period: "January 2026 - Present",
     summary:
-      "Independent study and portfolio development connecting software engineering, health systems, health information, healthcare data, digital health, and women's health equity.",
+      "Independent academic study and project development connecting women's health equity, health information, healthcare data, research, informatics, and patient-centered technology.",
     highlights: [
-      "Developing educational project concepts involving health-record data quality, patient education, care navigation, symptom documentation, healthcare information organization, and care coordination.",
-      "Strengthening technical fluency through health-focused exercises in TypeScript, React, Next.js, SQL, forms, accessibility, data modeling, and full-stack workflows.",
-      "Exploring how structured information, workflow design, data quality, and user-centered interfaces can support clearer health communication and more usable healthcare information.",
-      "Developing The Informatics Diary as a field-note archive documenting my healthcare education, informatics learning, technical projects, and research into disparities affecting racially underserved and underrepresented women.",
-      "Building foundational knowledge in health services management, health information management, data analytics, privacy-conscious information handling, healthcare operations, and clinical-workflow concepts.",
+      "Developing healthcare-domain knowledge through formal study in Health Services Management, Health Information Management & Data Analytics, and Data Analytics.",
+      "Exploring racial disparities, delayed diagnosis, fragmented care, research gaps, longitudinal health information, and women's whole-body health across the life course.",
+      "Developing educational project concepts involving health-record data quality, documentation workflows, patient education, care navigation, and healthcare information organization.",
+      "Using synthetic or publicly available information for educational projects rather than protected patient information or professional clinical records.",
+      "Documenting academic development, research questions, informatics learning, and technical reflections through The Informatics Diary.",
+      "Building on an existing software and systems foundation through health-focused work involving structured data, SQL, accessibility, data modeling, and information design.",
     ],
     focusAreas: [
+      "Women's Health Equity",
       "Health Information",
       "Healthcare Data",
-      "Digital Health",
-      "Informatics",
-      "Patient Education",
-      "Care Navigation",
-      "Women's Health Equity",
+      "Biomedical Informatics",
+      "Research Literacy",
+      "Data Quality",
+      "Academic Development",
     ],
   },
 ];

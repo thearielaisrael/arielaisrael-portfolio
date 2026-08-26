@@ -23,13 +23,12 @@ export type CaseStudyArchitectureStep = {
 
 export type CaseStudyCategory =
   | "Health Information + Data Systems"
-  | "Product Systems"
+  | "Professional Systems + Software"
   | "Operational Tools"
-  | "Full-Stack Applications"
   | "Patient-Centered Digital Health Tools"
-  | "Care Navigation & Healthcare Workflow Systems"
-  | "Health Data, Research & Equity Explorations"
-  | "Patient Education & Advocacy Resources";
+  | "Care Navigation + Workflow Systems"
+  | "Women's Health Equity Data + Research"
+  | "Patient Education + Advocacy";
 
 export type CaseStudyStatus = "Built" | "In Progress" | "Planned" | "Production";
 
@@ -82,7 +81,7 @@ export const caseStudies: CaseStudy[] = [
     title: "Periodic Tables Reservation System",
     summary:
       "A full-stack reservation management application built to support structured booking workflows, table coordination, operational visibility, and clearer day-to-day service management.",
-    category: "Full-Stack Applications",
+    category: "Professional Systems + Software",
     projectType: "Educational Project",
     status: "Built",
     stack: ["React", "Express.js", "PostgreSQL", "Knex.js"],
@@ -180,7 +179,7 @@ export const caseStudies: CaseStudy[] = [
     outcome: {
       eyebrow: "Outcome",
       title: "What this project demonstrates",
-      body: "This project demonstrates full-stack application development, relational data modeling, database-backed workflow management, validation, and the translation of operational complexity into a clearer user-facing system. These capabilities are transferable to information-intensive environments where accuracy, structured workflows, and reliable systems matter.",
+      body: "This project demonstrates full-stack application development, relational data modeling, database-backed workflow management, validation, and the translation of operational complexity into a clearer user-facing system. It provides evidence of the systems thinking, information organization, and workflow analysis I now bring into my study of health information and healthcare operations.",
     },
 
     nextSteps: {
@@ -202,7 +201,7 @@ export const caseStudies: CaseStudy[] = [
     title: "AMP Ticket Add-On Flow",
     summary:
       "A production feature designed to improve add-on visibility, checkout usability, and user flow clarity within an existing ticketing ecosystem.",
-    category: "Full-Stack Applications",
+    category: "Professional Systems + Software",
     projectType: "Professional Work",
     status: "Production",
     stack: ["React", "TypeScript", "Tailwind CSS"],
@@ -299,7 +298,7 @@ export const caseStudies: CaseStudy[] = [
     outcome: {
       eyebrow: "Outcome",
       title: "What this project demonstrates",
-      body: "This work demonstrates production frontend development, feature integration within an established system, accessibility-conscious implementation, and thoughtful alignment between user flow, technical constraints, and organizational priorities.",
+      body: "This work demonstrates production frontend development, feature integration within an established system, accessibility-conscious implementation, and thoughtful alignment between user flow, technical constraints, and organizational priorities. It also reflects my ability to improve information access and usability within complex operational environments.",
     },
 
     nextSteps: {
@@ -321,7 +320,7 @@ export const caseStudies: CaseStudy[] = [
     title: "Art of Wine Companion App",
     summary:
       "A mobile-first event companion app designed to support vendor discovery, event navigation, structured information access, and reusable UI patterns for future event experiences.",
-    category: "Full-Stack Applications",
+    category: "Professional Systems + Software",
     projectType: "Professional Work",
     status: "Production",
     stack: ["Next.js", "TypeScript", "Prisma", "PostgreSQL"],
@@ -418,7 +417,7 @@ export const caseStudies: CaseStudy[] = [
     outcome: {
       eyebrow: "Outcome",
       title: "What this project demonstrates",
-      body: "This project demonstrates mobile-first application development, structured content modeling, relational data systems, reusable interface design, and the creation of tools that improve information access in a real-world environment.",
+      body: "This project demonstrates mobile-first application development, structured content modeling, relational data systems, reusable interface design, and the creation of tools that improve information access in a real-world environment. Those capabilities form part of the technical and information-systems foundation I am carrying into healthcare.",
     },
 
     nextSteps: {
@@ -429,7 +428,7 @@ export const caseStudies: CaseStudy[] = [
         "Refine vendor discovery flows and UI states",
         "Add richer saved or favorited content interactions",
         "Document reusable architecture patterns for future event apps",
-        "Apply the information architecture lessons from this project to future patient education and care navigation tools",
+        "Carry the information architecture lessons from this project into future health-information, patient-education, and care-navigation concepts",
       ],
     },
   },
