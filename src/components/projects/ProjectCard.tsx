@@ -7,7 +7,7 @@ import { ChipContext, ChipStatus } from "../ui/Chips";
 export const ProjectCard = ({ project }: { project: Project }) => {
   const hasLinks = Boolean(project.caseStudyHref || project.repoHref || project.demoHref);
 
-  const isHealthInformationProject = project.category === "Health Information + Data Systems";
+  const isHealthInformationProject = project.category === "Health Information + Informatics";
 
   return (
     <article
