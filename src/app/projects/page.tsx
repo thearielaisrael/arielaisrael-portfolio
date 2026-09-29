@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   title: "Projects",
 
   description:
-    "Professional and developing projects by Ariela Israel across software systems, health information, healthcare data, informatics, research, and women's health equity.",
+    "Explore Ariela Israel's completed software and systems work alongside developing educational projects in health information, biomedical informatics, healthcare data, and women's health equity.",
 
   alternates: {
     canonical: "/projects",
@@ -20,18 +20,14 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Projects | Ariela Israel",
     description:
-      "Professional systems work and developing projects across health information, healthcare data, informatics, research, and women's health equity.",
+      "Completed technical work and developing educational projects connecting software systems, health information, biomedical informatics, healthcare data, and women's health equity.",
     url: "/projects",
   },
 };
 
 export default function ProjectsPage() {
-  const healthInformationProjects = projects.filter(
-    (project) => project.category === "Health Information + Informatics",
-  );
-
-  const womensHealthResearchProjects = projects.filter(
-    (project) => project.category === "Women's Health Equity + Research",
+  const developingProjects = projects.filter(
+    (project) => project.status === "In Progress" || project.status === "Planned",
   );
 
   return (
@@ -39,8 +35,8 @@ export default function ProjectsPage() {
       <PageHeader
         eyebrow="Projects"
         heading="Projects connecting information, systems, and women's health equity"
-        description="A collection of completed professional work and developing projects across structured information, health information, healthcare data, research, informatics, and women's health equity."
-        supportingText="My professional systems experience provides the technical foundation. Through formal study, independent research, and project-based learning, I'm developing the healthcare-domain knowledge needed to explore how information and technology can support more precise and equitable care."
+        description="A collection of completed technical work and developing educational projects across software systems, health information, healthcare data, research, informatics, and women's health equity."
+        supportingText="My completed software and systems work provides the technical foundation. Through undergraduate study, independent inquiry, and project-based learning, I'm developing the healthcare knowledge needed to explore how information and technology may support more precise and equitable care."
       />
 
       <section aria-labelledby="selected-work-heading" className="mt-16 md:mt-20">
@@ -51,13 +47,13 @@ export default function ProjectsPage() {
             id="selected-work-heading"
             className="font-heading text-primary mt-3 text-3xl leading-tight font-bold tracking-tight md:text-5xl"
           >
-            Professional systems and technical evidence
+            Built systems and technical foundations
           </h2>
 
           <p className="text-muted mt-4 text-base leading-relaxed md:text-lg">
-            Completed projects demonstrating production ownership, structured information,
-            database-backed systems, operational workflows, accessibility, and technical
-            problem-solving.
+            Selected professional and educational projects demonstrating full-stack development,
+            structured information, database-backed systems, operational workflows, accessibility,
+            testing, and technical problem-solving.
           </p>
         </div>
 
@@ -68,23 +64,13 @@ export default function ProjectsPage() {
         </div>
       </section>
 
-      {healthInformationProjects.length > 0 ? (
+      {developingProjects.length > 0 ? (
         <ProjectSection
-          id="health-information-informatics"
-          eyebrow="Health Information + Informatics"
-          heading="Learning how healthcare information becomes usable"
-          description="Independent educational projects exploring data quality, longitudinal information, information organization, and healthcare systems using synthetic data. These projects are designed to develop healthcare-domain knowledge and are not presented as professional clinical experience."
-          projects={healthInformationProjects}
-        />
-      ) : null}
-
-      {womensHealthResearchProjects.length > 0 ? (
-        <ProjectSection
-          id="womens-health-equity-research"
-          eyebrow="Women's Health Equity + Research"
-          heading="Investigating where information, care, and inequity intersect"
-          description="Developing research and analytics work examining diagnostic processes, care gaps, healthcare information, and racial inequities across women's health. This work uses scholarly literature, synthetic information, and appropriately sourced public data."
-          projects={womensHealthResearchProjects}
+          id="developing-work"
+          eyebrow="Developing Work"
+          heading="Applying technical foundations to health data and equity"
+          description="Planned educational projects connecting my established systems and data experience with health information, data quality, women's health equity, research methods, and responsible analysis."
+          projects={developingProjects}
         />
       ) : null}
     </main>
@@ -119,7 +105,7 @@ function ProjectSection({
         <p className="text-muted mt-4 text-base leading-relaxed md:text-lg">{description}</p>
       </div>
 
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-5 md:grid-cols-2">
         {projects.map((project) => (
           <ProjectCard key={project.slug} project={project} />
         ))}

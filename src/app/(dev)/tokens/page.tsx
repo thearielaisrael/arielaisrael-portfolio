@@ -22,6 +22,7 @@ import {
 } from "@/src/components/ui/Chips";
 import { SectionLabel } from "@/src/components/projects/SectionLabel";
 import { StackBadge } from "@/src/components/projects/StackBadge";
+import { resumeHref } from "@/src/data/navData";
 
 type ThemeMode = "light" | "dark";
 
@@ -499,21 +500,21 @@ export default function TokenPage() {
 
             <div className="space-y-4">
               <h1 className="font-heading text-primary text-4xl leading-[0.98] font-extrabold tracking-[-0.035em] text-balance md:text-6xl">
-                One identity, two visual expressions
+                One design system for a developing professional direction
               </h1>
 
               <p className="text-muted max-w-3xl text-base leading-relaxed md:text-lg">
-                Pink Academia and Pink Informatics Night express different dimensions of the same
-                academic-professional identity. They share one voice, one typography system, one
-                pink foundation, and one direction toward women&apos;s health equity and
-                informatics.
+                This reference keeps Ariela&apos;s portfolio visually and verbally consistent across
+                professional experience, academic development, research interests, projects, and
+                public scholarship. Pink Academia and Pink Informatics Night are coordinated
+                expressions of the same identity.
               </p>
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <ChipThinBorder>Health Information</ChipThinBorder>
+              <ChipThinBorder>Clinical + Biomedical Informatics</ChipThinBorder>
               <ChipRegBorder>Systems + Structured Data</ChipRegBorder>
-              <ChipThinBorder>Healthcare Operations</ChipThinBorder>
+              <ChipThinBorder>Research + Evidence</ChipThinBorder>
               <ChipRegBorder>Women&apos;s Health Equity</ChipRegBorder>
             </div>
           </div>
@@ -568,9 +569,9 @@ export default function TokenPage() {
               description="Nunito Sans for readable paragraphs, descriptions, forms, and supporting content."
             >
               <p className="text-muted font-sans text-base leading-relaxed md:text-lg">
-                I&apos;m a software developer and Health Services Management student bringing a
-                systems-and-data foundation into health information, healthcare data, and
-                informatics.
+                I&apos;m a Health Services Management student and former software developer building
+                from professional systems and data experience toward health information, research,
+                and clinical and biomedical informatics.
               </p>
             </Specimen>
 
@@ -580,11 +581,11 @@ export default function TokenPage() {
             >
               <div className="space-y-3">
                 <p className="text-accent font-mono text-xs font-semibold tracking-[0.24em] uppercase">
-                  Current Professional Focus
+                  Developing Professional Direction
                 </p>
 
                 <p className="text-subtle font-mono text-sm">
-                  HEALTH INFORMATION · MEDICAL RECORDS · DATA WORKFLOWS
+                  HEALTH DATA · INFORMATION SYSTEMS · RESEARCH LITERACY
                 </p>
               </div>
             </Specimen>
@@ -593,30 +594,30 @@ export default function TokenPage() {
 
         <DesignSection
           eyebrow="Identity Hierarchy"
-          title="Present foundation, immediate transition, and long-term direction"
-          description="Recruiter-facing pages should establish proven experience first, clearly identify the current healthcare transition, and present the advocacy and informatics goal as the long-term direction."
+          title="Distinguish proven experience, current development, and future direction"
+          description="Public-facing pages should lead with established professional evidence, identify current academic and project-based development accurately, and present advocacy, informatics, and research goals as future-facing."
         >
           <div className="grid gap-5 lg:grid-cols-3">
             <HierarchyCard
               number="01"
-              label="Professional Foundation"
-              title="Software, systems, and data"
+              label="Proven Foundation"
+              title="Professional systems and structured data"
               description="Professional software development, structured data, SQL and databases, documentation, accessibility, testing, troubleshooting, and production ownership."
             />
 
             <HierarchyCard
               number="02"
-              label="Immediate Focus"
-              title="Health information and medical records"
-              description="Building hands-on healthcare experience through medical records, documentation workflows, information accuracy, data quality, and healthcare operations."
+              label="Immediate Professional Direction"
+              title="Health data and information systems"
+              description="Pursuing bridge roles in application and systems support, data quality, health information, healthcare data coordination and reporting, research data support, and healthcare operations."
               highlighted
             />
 
             <HierarchyCard
               number="03"
               label="Long-Term Direction"
-              title="Women's Health Equity Advocate & Informatician"
-              description="Connecting health information, data, research, digital health, and patient-centered technology to support clearer and more equitable care."
+              title="Women's Health Equity Advocate, Informaticist, and Researcher"
+              description="Building toward clinical and biomedical informatics research focused on women's health equity, longitudinal data, diagnostic disparities, clinical phenotyping, and precision medicine."
               editorial
             />
           </div>
@@ -625,18 +626,18 @@ export default function TokenPage() {
         <DesignSection
           eyebrow="Brand Expressions"
           title="One identity with two coordinated visual languages"
-          description="The active expression follows the purpose of the content. Pink Academia supports clarity, advocacy, education, and professional communication. Pink Informatics Night supports technical exploration, data, systems, research, and immersive digital work."
+          description="The active expression follows the purpose of the content. Pink Academia supports scholarship, equity, public communication, and professional material. Pink Informatics Night supports systems, data, research, technical exploration, and clinical and biomedical informatics."
         >
           <div className="grid gap-5 lg:grid-cols-2">
             <ExpressionCard
               label="Light Expression"
               title="Pink Academia"
               tone="Warm, clear, scholarly"
-              description="A feminine academic environment for healthcare, advocacy, education, professional communication, and reflective learning."
+              description="A feminine scholarly environment for advocacy, education, evidence-conscious writing, professional communication, and reflective learning."
               uses={[
-                "Healthcare and women’s health equity",
-                "Patient education and health literacy",
-                "Academic notes and course reflections",
+                "Women's health equity and advocacy",
+                "Research summaries and evidence-conscious writing",
+                "Academic notes and learning reflections",
                 "Recruiter-facing and professional materials",
                 "Long-form writing and research summaries",
               ]}
@@ -653,9 +654,10 @@ export default function TokenPage() {
               label="Dark Expression"
               title="Pink Informatics Night"
               tone="Luminous, technical, immersive"
-              description="A feminine digital research environment for informatics, data, systems, technical projects, and investigative work."
+              description="A feminine technical environment for informatics, data, systems, research development, and project-based investigation."
               uses={[
-                "Health informatics and healthcare data",
+                "Clinical and biomedical informatics",
+                "Health data and information systems",
                 "Software and system workflows",
                 "SQL, Python, and Power BI learning",
                 "Research methods and project demonstrations",
@@ -848,7 +850,7 @@ export default function TokenPage() {
           description="These compact components keep project categories and technology labels consistent across standard and featured project cards."
         >
           <div className="border-default bg-surface shadow-card rounded-3xl border p-6 md:p-8">
-            <SectionLabel>Health Information + Data Systems</SectionLabel>
+            <SectionLabel>Health Data + Information Systems</SectionLabel>
 
             <h3 className="font-heading text-primary text-2xl font-semibold">
               Health Record Data Quality Lab
@@ -893,7 +895,7 @@ export default function TokenPage() {
               label="Primary and disabled actions"
               description="Use one primary CTA within a local action group. Disabled treatment communicates genuinely unavailable work."
             >
-              <PrimaryCTA link="/experience" label="View Experience" />
+              <PrimaryCTA link="/cv" label="View CV" />
 
               <PrimaryCTA link="/projects" label="Coming Soon" status="disabled" />
             </ActionExample>
@@ -902,7 +904,7 @@ export default function TokenPage() {
               label="Secondary and tertiary actions"
               description="Secondary actions provide professional context. Tertiary actions support technical or healthcare-data routes."
             >
-              <SecondaryCTA link="/resume/arielaisrael-resume.pdf" label="View Resume" />
+              <SecondaryCTA link={resumeHref} label="View Resume" />
 
               <TertiaryCTA link="/projects" label="Explore Projects" />
             </ActionExample>
@@ -911,7 +913,7 @@ export default function TokenPage() {
               label="Inline action"
               description="Use for compact card actions and low-emphasis navigation."
             >
-              <PrimaryBtn link="/field-notes" label="Read Field Notes" />
+              <PrimaryBtn link="/writing" label="Read My Writing" />
             </ActionExample>
           </div>
         </DesignSection>
@@ -994,7 +996,7 @@ export default function TokenPage() {
           <div className="grid gap-5 lg:grid-cols-2">
             <Specimen
               label="Recruiter-Facing Areas"
-              description="Homepage, Experience, professional projects, navigation, resume access, and contact form."
+              description="Homepage, CV, professional projects, navigation, resume access, and contact form."
             >
               <ul className="text-muted space-y-3 text-sm leading-relaxed md:text-base">
                 <li>Use concise, evidence-based language.</li>
@@ -1029,10 +1031,10 @@ export default function TokenPage() {
               description="Concrete, evidence-based, and immediately relevant."
             >
               <p className="text-foreground text-base leading-relaxed">
-                I bring professional experience managing production software, structured data,
+                I bring professional experience in production software, structured data,
                 documentation, testing, troubleshooting, accessibility, and operational workflows.
-                I&apos;m now applying that foundation within health information and healthcare
-                systems.
+                I&apos;m building the healthcare, research, and informatics knowledge needed to
+                apply that foundation to a new set of questions.
               </p>
             </Specimen>
 
@@ -1041,8 +1043,8 @@ export default function TokenPage() {
               description="Purposeful, personal, and clearly identified as future-facing."
             >
               <p className="font-heading text-primary text-3xl leading-[1.08] font-medium tracking-[-0.02em]">
-                I&apos;m building toward becoming a Women&apos;s Health Equity Advocate &amp;
-                Informatician.
+                I&apos;m building toward becoming a Women&apos;s Health Equity Advocate, Clinical
+                and Biomedical Informaticist, and researcher.
               </p>
 
               <p className="text-muted mt-4 text-sm leading-relaxed">
@@ -1369,16 +1371,19 @@ function RecruiterSnapshot() {
 
         <SnapshotRow
           label="Seeking"
-          value="Hands-on experience in health information, medical records, documentation workflows, and healthcare data support."
+          value="Bridge roles in application and systems support, data quality, health information, healthcare data coordination and reporting, research data support, and healthcare operations."
         />
 
-        <SnapshotRow label="Direction" value="Women's Health Equity Advocate & Informatician." />
+        <SnapshotRow
+          label="Direction"
+          value="Women's Health Equity Advocate, Clinical and Biomedical Informaticist, and researcher."
+        />
       </div>
 
       <div className="mt-7 flex flex-wrap gap-3">
-        <PrimaryCTA link="/experience" label="View Experience" />
+        <PrimaryCTA link="/cv" label="View CV" />
 
-        <SecondaryCTA link="/resume/arielaisrael-resume.pdf" label="View Resume" />
+        <SecondaryCTA link={resumeHref} label="View Resume" />
       </div>
     </article>
   );
@@ -1401,7 +1406,7 @@ function ProfessionalEvidenceBanner() {
     <article className="glass-panel shadow-glow rounded-[2rem] p-6 md:p-8">
       <div className="flex flex-wrap gap-2">
         <ChipContext>Professional Foundation</ChipContext>
-        <ChipStatus>Proven Experience</ChipStatus>
+        <ChipStatus>Completed Work</ChipStatus>
       </div>
 
       <h3 className="font-heading text-primary mt-5 text-3xl leading-tight font-bold tracking-tight">
@@ -1422,7 +1427,7 @@ function ProfessionalEvidenceBanner() {
       </div>
 
       <div className="mt-7">
-        <PrimaryBtn link="/experience" label="Review Professional Experience" />
+        <PrimaryBtn link="/cv" label="Review Professional Experience" />
       </div>
     </article>
   );
@@ -1459,8 +1464,8 @@ function LearningProjectPreview() {
         </p>
 
         <p className="text-muted mt-3 text-sm leading-relaxed">
-          It separates a developing educational lab from completed professional work while still
-          showing its relevance to the health-information transition.
+          It separates a developing educational lab from completed professional work while showing
+          how the project supports current learning in health data and information systems.
         </p>
       </div>
 
@@ -1488,13 +1493,13 @@ function FieldNotePreview() {
       </h3>
 
       <p className="text-muted mt-4 text-sm leading-relaxed">
-        A preview treatment for concise field notes connecting coursework, developing healthcare
-        knowledge, technical foundations, and questions that may later become deeper essays or
-        projects.
+        A preview treatment for concise learning notes connecting coursework, developing healthcare
+        knowledge, research literacy, technical foundations, and questions that may later become
+        deeper essays or projects.
       </p>
 
       <div className="border-default mt-7 border-t pt-6">
-        <PrimaryBtn link="/field-notes" label="Read Field Notes" />
+        <PrimaryBtn link="/writing" label="Read The Informatics Diary" />
       </div>
     </article>
   );

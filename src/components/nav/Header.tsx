@@ -8,6 +8,8 @@ import { MenuItems, SocialIcons } from "../../data/navData";
 import MenuButton from "./MenuButton";
 import NavDrawer from "./NavDrawer";
 import PrimaryNav from "./PrimaryNav";
+import SocialLinks from "./SocialLinks";
+import ThemeToggle from "./ThemeToggle";
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -49,23 +51,33 @@ const Header = () => {
     };
   }, [closeMenu, menuOpen]);
 
+  const mainIcons = SocialIcons.slice(0, 2).toReversed();
+
   return (
     <header className="border-default bg-background/90 sticky top-0 z-50 border-b backdrop-blur-xl">
       <nav
         aria-label="Primary navigation"
-        className="mx-auto flex w-full max-w-360 items-center justify-between gap-6 px-6 py-4 md:px-10"
+        className="mx-auto grid w-full max-w-360 grid-cols-[1fr_auto] items-center gap-6 px-6 py-4 md:px-10 lg:grid-cols-[1fr_auto_1fr]"
       >
+        {/* LEFT — Logo */}
         <Link
           href="/"
           aria-label="Ariela Israel — home"
-          className="ring-brand text-accent hover:text-primary font-heading inline-flex shrink-0 items-center rounded-lg py-1 text-xl font-normal tracking-[0.2em] lowercase transition-colors md:text-2xl md:tracking-[0.24em]"
+          className="ring-brand text-accent hover:text-primary font-heading inline-flex shrink-0 items-center justify-self-start rounded-lg py-1 text-xl font-normal tracking-[0.2em] lowercase transition-colors md:text-2xl md:tracking-[0.24em]"
           onClick={closeMenu}
         >
           ariela israel
         </Link>
 
-        <div className="flex items-center gap-3">
-          <PrimaryNav menuItems={MenuItems} socialIcons={SocialIcons} />
+        {/* CENTER — Desktop primary navigation */}
+        <PrimaryNav menuItems={MenuItems} />
+
+        {/* RIGHT — Desktop socials/theme + mobile menu */}
+        <div className="flex items-center gap-3 justify-self-end">
+          <div className="hidden items-center gap-4 lg:flex">
+            <SocialLinks icons={mainIcons} />
+            <ThemeToggle />
+          </div>
 
           <MenuButton onClick={() => setMenuOpen(true)} />
         </div>

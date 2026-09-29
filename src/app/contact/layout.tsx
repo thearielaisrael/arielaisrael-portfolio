@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "Contact",
 
   description:
-    "Contact Ariela Israel about professional opportunities and relevant conversations across health information, medical records, healthcare data, informatics, research, and women's health equity.",
+    "Contact Ariela Israel about professional opportunities in application and systems support, data quality, health information, healthcare data, operations, research support, and related work.",
 
   alternates: {
     canonical: "/contact",
@@ -14,8 +14,9 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Contact | Ariela Israel",
     description:
-      "Connect with Ariela Israel about health information, healthcare data, research, informatics, women's health equity, and related professional opportunities.",
+      "Connect with Ariela Israel about systems, data quality, health information, healthcare operations, research support, women's health equity, and aligned professional opportunities.",
     url: "/contact",
+    type: "website",
   },
 };
 

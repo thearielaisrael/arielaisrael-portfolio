@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 import { caseStudies } from "@/src/data/caseStudyData";
 
-const siteUrl = "https://www.arielainstem.com";
+const siteUrl = "https://www.thearielaisrael.com";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const primaryRoutes: MetadataRoute.Sitemap = [
@@ -12,7 +12,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
     },
     {
-      url: `${siteUrl}/experience`,
+      url: `${siteUrl}/research`,
       changeFrequency: "monthly",
       priority: 0.9,
     },
@@ -27,7 +27,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
     {
-      url: `${siteUrl}/field-notes`,
+      url: `${siteUrl}/cv`,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: `${siteUrl}/writing`,
       changeFrequency: "weekly",
       priority: 0.7,
     },

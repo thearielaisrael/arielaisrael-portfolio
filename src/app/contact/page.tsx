@@ -1,8 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import type { ReactNode } from "react";
 import { useForm, ValidationError } from "@formspree/react";
+import Link from "next/link";
+
+import type { ReactNode } from "react";
 
 import SocialLinks from "@/src/components/nav/SocialLinks";
 import { SectionLabel } from "@/src/components/projects/SectionLabel";
@@ -11,6 +12,60 @@ import { Card, GlassCard } from "@/src/components/ui/Cards";
 import { ChipRegBorder } from "@/src/components/ui/Chips";
 import { SocialIcons } from "@/src/data/navData";
 
+const openTo = [
+  "Application & Systems Support",
+  "Data Quality & Validation",
+  "Health Information",
+  "Healthcare Data Coordination",
+  "Healthcare Operations",
+  "Junior Data & Reporting",
+  "Research Data Support",
+  "Women's Health Equity",
+];
+
+const contactReasons = [
+  {
+    value: "employment",
+    label: "Employment Opportunity",
+  },
+  {
+    value: "application-systems",
+    label: "Application or Systems Support",
+  },
+  {
+    value: "data-quality",
+    label: "Data Quality or Data Operations",
+  },
+  {
+    value: "health-information",
+    label: "Health Information or Medical Records",
+  },
+  {
+    value: "healthcare-data",
+    label: "Healthcare Data or Reporting",
+  },
+  {
+    value: "healthcare-operations",
+    label: "Healthcare Operations",
+  },
+  {
+    value: "research",
+    label: "Research or Academic Conversation",
+  },
+  {
+    value: "equity-informatics",
+    label: "Women's Health Equity or Informatics",
+  },
+  {
+    value: "collaboration",
+    label: "Collaboration",
+  },
+  {
+    value: "other",
+    label: "Other",
+  },
+];
+
 export default function ContactPage() {
   const [state, handleSubmit] = useForm("xwvrbwvq");
 
@@ -18,9 +73,9 @@ export default function ContactPage() {
     <main className="mx-auto w-full max-w-360 px-6 pb-24 md:px-10">
       <PageHeader
         eyebrow="Contact"
-        heading="Let's connect about health information, research, and women's health equity"
-        description="I'm currently open to professional opportunities in health information, medical records, documentation and data workflows, healthcare operations, healthcare data support, and related roles."
-        supportingText="I also welcome thoughtful conversations across informatics, research, patient education, digital health, and the racial disparities affecting women's whole-body healthcare."
+        heading="Let's connect about systems, health information, data, and research"
+        description="I'm open to professional opportunities across application and systems support, data quality, health information, healthcare data coordination, reporting, healthcare operations, and related roles."
+        supportingText="I also welcome thoughtful academic and professional conversations about women's health equity, clinical and biomedical informatics, research, responsible health technology, and public scholarship."
       />
 
       <section aria-labelledby="contact-form-heading" className="mt-16 md:mt-20">
@@ -31,19 +86,9 @@ export default function ContactPage() {
                 <SectionLabel>Open To</SectionLabel>
 
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <ChipRegBorder>Health Information</ChipRegBorder>
-
-                  <ChipRegBorder>Medical Records</ChipRegBorder>
-
-                  <ChipRegBorder>Healthcare Operations</ChipRegBorder>
-
-                  <ChipRegBorder>Healthcare Data Support</ChipRegBorder>
-
-                  <ChipRegBorder>Health Technology</ChipRegBorder>
-
-                  <ChipRegBorder>Research Conversations</ChipRegBorder>
-
-                  <ChipRegBorder>Women&apos;s Health Equity</ChipRegBorder>
+                  {openTo.map((item) => (
+                    <ChipRegBorder key={item}>{item}</ChipRegBorder>
+                  ))}
                 </div>
               </div>
 
@@ -51,15 +96,19 @@ export default function ContactPage() {
                 <SectionLabel>Academic + Professional Direction</SectionLabel>
 
                 <p className="text-muted mt-3 text-sm leading-relaxed">
-                  I&apos;m a Health Services Management student pursuing certificate pathways in
-                  Health Information Management &amp; Data Analytics and Data Analytics.
+                  I&apos;m a Health Services Management student pursuing certificates in Health
+                  Information Management &amp; Data Analytics and Data Analytics.
                 </p>
 
                 <p className="text-muted mt-4 text-sm leading-relaxed">
-                  I bring a professional foundation in software systems, structured data,
-                  documentation, quality assurance, accessibility, and workflow analysis. Long term,
-                  I&apos;m building toward becoming a Women&apos;s Health Equity Advocate &amp;
-                  Informaticist.
+                  I bring professional experience in software systems, structured data, databases,
+                  documentation, quality assurance, accessibility, troubleshooting, and workflow
+                  analysis.
+                </p>
+
+                <p className="text-muted mt-4 text-sm leading-relaxed">
+                  Long term, I&apos;m building toward work as a Women&apos;s Health Equity Advocate,
+                  Clinical and Biomedical Informaticist, and researcher.
                 </p>
               </div>
 
@@ -94,10 +143,10 @@ export default function ContactPage() {
                   </p>
 
                   <Link
-                    href="/experience"
+                    href="/cv"
                     className="ring-brand bg-cta text-cta-foreground shadow-card hover:shadow-pop mt-8 inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-bold tracking-wide transition hover:-translate-y-0.5 hover:brightness-95"
                   >
-                    View Experience
+                    View My CV
                   </Link>
                 </div>
               ) : (
@@ -114,7 +163,7 @@ export default function ContactPage() {
 
                     <p className="text-muted mt-3 max-w-2xl text-sm leading-relaxed">
                       For employment outreach, please include the position, organization, work
-                      arrangement, and any relevant details.
+                      arrangement, and any relevant details about the opportunity.
                     </p>
                   </div>
 
@@ -192,27 +241,11 @@ export default function ContactPage() {
                             Select a reason
                           </option>
 
-                          <option value="employment">Employment Opportunity</option>
-
-                          <option value="health-information">
-                            Health Information or Medical Records
-                          </option>
-
-                          <option value="healthcare-operations">Healthcare Operations</option>
-
-                          <option value="health-data-informatics">
-                            Healthcare Data or Informatics
-                          </option>
-
-                          <option value="research">Research Conversation</option>
-
-                          <option value="health-technology">Health Technology</option>
-
-                          <option value="advocacy">Women&apos;s Health Equity Advocacy</option>
-
-                          <option value="collaboration">Collaboration</option>
-
-                          <option value="other">Other</option>
+                          {contactReasons.map((reason) => (
+                            <option key={reason.value} value={reason.value}>
+                              {reason.label}
+                            </option>
+                          ))}
                         </select>
 
                         <span
@@ -242,8 +275,8 @@ export default function ContactPage() {
 
                   <div className="border-default flex flex-wrap items-center justify-between gap-4 border-t pt-5">
                     <p className="text-subtle max-w-lg text-sm leading-relaxed">
-                      Please do not include private health information or other sensitive personal
-                      information.
+                      Please do not include private health information, protected health
+                      information, or other sensitive personal information.
                     </p>
 
                     <button

@@ -4,17 +4,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, useReducedMotion } from "motion/react";
 
-import type { MenuItem, SocialIcon } from "../../data/navData";
-
-import SocialLinks from "./SocialLinks";
-import ThemeToggle from "./ThemeToggle";
+import type { MenuItem } from "../../data/navData";
 
 interface PrimaryNavProps {
   menuItems: MenuItem[];
-  socialIcons: SocialIcon[];
 }
 
-const PrimaryNav = ({ menuItems, socialIcons }: PrimaryNavProps) => {
+const PrimaryNav = ({ menuItems }: PrimaryNavProps) => {
   const pathname = usePathname();
   const reduceMotion = useReducedMotion();
 
@@ -65,11 +61,6 @@ const PrimaryNav = ({ menuItems, socialIcons }: PrimaryNavProps) => {
           );
         })}
       </ul>
-
-      <div className="flex items-center gap-4">
-        <SocialLinks icons={socialIcons} />
-        <ThemeToggle />
-      </div>
     </div>
   );
 };

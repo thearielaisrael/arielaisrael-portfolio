@@ -5,13 +5,13 @@ import BackgroundFX from "./BackgroundFX";
 
 const professionalStrengths = [
   "Women's Health Equity",
-  "Health Information",
-  "Healthcare Data",
-  "Informatics",
+  "Biomedical Informatics",
+  "Clinical Informatics",
+  "Health Data",
+  "Precision Medicine",
+  "Longitudinal Data",
   "Research",
-  "Data Quality",
-  "Health Systems",
-  "Accessibility",
+  "Clinical Phenotyping",
 ];
 
 export default function Hero() {
@@ -23,34 +23,36 @@ export default function Hero() {
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:items-center lg:gap-0">
           <div className="lg:col-span-7">
             <p className="text-accent mb-4 font-mono text-xs font-semibold tracking-[0.28em] uppercase md:text-sm">
-              Women&apos;s Health Equity · Informatics · Research
+              Women&apos;s Health Equity · Biomedical Informatics · Research
             </p>
 
             <h1 className="font-heading text-primary max-w-4xl text-5xl leading-[0.98] font-extrabold tracking-[-0.03em] text-balance md:text-6xl lg:text-[clamp(3.75rem,4vw,5.5rem)]">
-              Studying the information, systems, and disparities shaping{" "}
+              Studying the data, evidence, and systems shaping{" "}
               <span className="text-signature-aura-pink">women&apos;s health</span>
             </h1>
 
             <p className="text-foreground mt-5 max-w-3xl text-xl leading-snug font-semibold md:text-2xl lg:text-[1.65rem]">
-              I&apos;m Ariela Israel, a Health Services Management student building toward becoming a
-              Women&apos;s Health Equity Advocate & Informaticist.
+              I&apos;m Ariela Israel, a Health Services Management student, Women&apos;s Health
+              Equity Advocate, and aspiring Clinical & Biomedical Informaticist.
             </p>
 
             <div className="text-muted mt-6 max-w-3xl space-y-4 text-base leading-relaxed md:text-lg">
               <p>
-                My developing work connects women&apos;s health equity, health information,
-                healthcare data, research, biomedical informatics, and patient-centered technology.
+                I&apos;m building toward a research career at the intersection of women&apos;s
+                health equity, clinical and biomedical informatics, health data, and precision
+                medicine.
               </p>
 
               <p>
-                I&apos;m especially interested in racial disparities, delayed diagnosis, fragmented care,
-                and the gaps that affect how racially underserved and underrepresented women&apos;s
-                whole-body health is understood.
+                I&apos;m especially interested in how longitudinal clinical and biomedical data can
+                help investigate diagnostic disparities, improve clinical decision-making, and
+                advance more equitable precision medicine for underserved and underrepresented
+                women.
               </p>
             </div>
 
             <p className="font-heading text-signature-aura-pink mt-6 text-xl leading-[1.1] font-medium tracking-[0.08em] uppercase italic md:text-2xl">
-              Pink, precise, and patient-centered.
+              Pink, precise, evidence-driven, and patient-centered.
             </p>
 
             <div className="mt-7 flex flex-wrap gap-4">
@@ -74,22 +76,22 @@ export default function Hero() {
 
                 <SnapshotBlock
                   label="Advocacy Focus"
-                  body="Racial disparities, delayed diagnosis, undertreatment, fragmented care, research gaps, and whole-body women's health."
+                  body="Advancing more equitable health outcomes for underserved and underrepresented women, with particular interest in racial disparities, diagnostic delay, undertreatment, fragmented care, research gaps, and whole-body women's health."
                 />
 
                 <SnapshotBlock
-                  label="Developing Interest"
-                  body="Health information, healthcare data, biomedical informatics, longitudinal health records, research, and precision medicine."
+                  label="Research Interest"
+                  body="Clinical and biomedical informatics, longitudinal health data, diagnostic disparities, clinical phenotyping, precision medicine, clinical decision support, and equitable applications of AI in healthcare."
                 />
 
                 <SnapshotBlock
-                  label="Professional Foundation"
-                  body="Software development, structured data systems, databases, documentation, accessibility, quality assurance, and workflow analysis."
+                  label="Developing Methods"
+                  body="Research methods, statistics, scientific literature evaluation, health-data analysis, and computational skills in R, Python, and SQL."
                 />
 
                 <SnapshotBlock
-                  label="Long-Term Direction"
-                  body="Building toward becoming a Women's Health Equity Advocate & Informaticist."
+                  label="Technical Foundation"
+                  body="Software engineering, structured data, databases, systems thinking, documentation, accessibility, testing, and digital product development."
                 />
               </div>
 

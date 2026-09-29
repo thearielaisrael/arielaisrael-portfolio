@@ -28,7 +28,7 @@ export type SocialIcon = {
   icon: ComponentType<SVGProps<SVGSVGElement>>;
 };
 
-export const resumeHref = "/resume/ariela-israel-general-resume.pdf";
+export const resumeHref = "/resume/Ariela-Israel-Resume-Master.pdf";
 
 export const MenuItems: MenuItem[] = [
   {
@@ -36,38 +36,28 @@ export const MenuItems: MenuItem[] = [
     href: "/",
   },
   {
-    label: "Experience",
-    href: "/experience",
+    label: "About",
+    href: "/about",
+  },
+  {
+    label: "Research",
+    href: "/research",
   },
   {
     label: "Projects",
     href: "/projects",
   },
   {
-    label: "Diary",
-    href: "/field-notes",
+    label: "Writing",
+    href: "/writing",
   },
   {
-    label: "About",
-    href: "/about",
+    label: "CV",
+    href: "/cv",
   },
   {
     label: "Contact",
     href: "/contact",
-  },
-];
-
-export const RecruiterActions: RecruiterAction[] = [
-  {
-    label: "Experience",
-    href: "/experience",
-    available: false,
-  },
-  {
-    label: "Resume",
-    href: "/resume/arielaisrael-resume.pdf",
-    available: false,
-    download: true,
   },
 ];
 

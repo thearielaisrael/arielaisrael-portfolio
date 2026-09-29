@@ -1,4 +1,4 @@
-import type { ProjectType } from "./projectData";
+import type { ProjectCategory, ProjectStatus, ProjectType } from "./projectData";
 
 export type CaseStudyMetaItem = {
   label: string;
@@ -21,16 +21,9 @@ export type CaseStudyArchitectureStep = {
   label: string;
 };
 
-export type CaseStudyCategory =
-  | "Health Information + Data Systems"
-  | "Professional Systems + Software"
-  | "Operational Tools"
-  | "Patient-Centered Digital Health Tools"
-  | "Care Navigation + Workflow Systems"
-  | "Women's Health Equity Data + Research"
-  | "Patient Education + Advocacy";
+export type CaseStudyCategory = ProjectCategory;
 
-export type CaseStudyStatus = "Built" | "In Progress" | "Planned" | "Production";
+export type CaseStudyStatus = ProjectStatus | "Production";
 
 export type CaseStudy = {
   slug: string;
@@ -80,117 +73,119 @@ export const caseStudies: CaseStudy[] = [
     slug: "periodic-tables-reservation-system",
     title: "Periodic Tables Reservation System",
     summary:
-      "A full-stack reservation management application built to support structured booking workflows, table coordination, operational visibility, and clearer day-to-day service management.",
+      "A completed educational full-stack application demonstrating relational data modeling, validated CRUD workflows, reservation and table-state management, and operational system design.",
     category: "Professional Systems + Software",
     projectType: "Educational Project",
     status: "Built",
-    stack: ["React", "Express.js", "PostgreSQL", "Knex.js"],
+    stack: ["React", "Express.js", "PostgreSQL", "Knex.js", "JavaScript", "CSS"],
     backHref: "/projects",
 
     meta: [
-      { label: "Role", value: "Solo Engineer" },
+      { label: "Role", value: "Solo Full-Stack Developer" },
       { label: "Status", value: "Built" },
-      { label: "Focus", value: "Workflow + Operations" },
+      { label: "Focus", value: "Relational Data + Workflow Validation" },
       { label: "Type", value: "Educational Full-Stack Application" },
     ],
 
     overview: {
       eyebrow: "Overview",
-      title: "What this project is",
-      body: "This project is a reservation management system designed to support structured booking workflows, table coordination, CRUD operations, and role-oriented user flows. While it was built for restaurant service, the project reflects a larger interest in workflow design, operational clarity, and systems that make complex coordination easier to manage.",
+      title: "Modeling a multi-step operational workflow",
+      body: "Periodic Tables is a completed educational reservation-management application built around interconnected reservation, seating, and table-status workflows. The project required coordinating frontend interactions, API behavior, business-rule validation, and relational data while keeping each workflow state understandable to the user.",
     },
 
     problem: {
       eyebrow: "Problem",
-      title: "Why this project exists",
-      body: "Reservation workflows become difficult to manage when booking details, table states, and service coordination are handled inconsistently. The project was built to create a clearer operational system for managing reservations, seating flow, and real-time service decisions.",
+      title: "Keeping related reservation and seating states consistent",
+      body: "Reservation management involves more than storing booking details. Reservations must move through valid states, tables must reflect current availability, and seating actions must follow operational rules. The application needed to coordinate these related records and prevent invalid actions from producing inconsistent data or confusing workflow states.",
     },
 
     goals: {
       eyebrow: "Goals",
-      title: "Project goals",
+      title: "What the application needed to accomplish",
       list: [
-        "Build a full-stack application for reservation and seating workflows",
-        "Support CRUD operations with validation and operational rules",
-        "Model real coordination needs through relational data and user flows",
-        "Create a clean, responsive interface for day-to-day workflow management",
-        "Demonstrate how structured systems can reduce confusion in high-movement service environments",
+        "Support reservation creation, review, editing, cancellation, and seating workflows",
+        "Model relationships among reservations, tables, capacity, and status",
+        "Enforce business rules through frontend and backend validation",
+        "Keep database records and visible workflow states consistent",
+        "Provide responsive interfaces for completing common operational tasks",
       ],
     },
 
     system: {
       eyebrow: "System",
-      title: "System architecture",
-      body: "The application separates frontend workflow views, backend business logic, and relational data storage so reservation handling remains structured, predictable, and easier to maintain.",
+      title: "Connecting user actions to validated relational data",
+      body: "The application separated interface behavior, API requests, business-rule validation, query logic, and relational storage. Each reservation or table action moved through these layers before the updated state was returned to the interface.",
       architecture: [
-        { label: "Reservation input" },
-        { label: "Validation / business rules" },
-        { label: "Express API" },
-        { label: "PostgreSQL" },
-        { label: "Reservation + table state queries" },
-        { label: "React interface" },
+        { label: "Reservation or table action" },
+        { label: "React workflow interface" },
+        { label: "Express API endpoint" },
+        { label: "Validation and business rules" },
+        { label: "Knex query layer" },
+        { label: "PostgreSQL relational data" },
+        { label: "Updated workflow state" },
       ],
     },
 
     technology: {
-      eyebrow: "Stack",
-      title: "Technology used",
+      eyebrow: "Technology",
+      title: "Tools used",
+      body: "The application used React for workflow interfaces, Express.js for API and backend behavior, Knex.js for database queries and migrations, and PostgreSQL for relational data storage.",
       list: ["React", "Express.js", "PostgreSQL", "Knex.js", "JavaScript", "CSS"],
     },
 
     features: {
-      eyebrow: "Features",
-      title: "Key capabilities",
+      eyebrow: "Application Work",
+      title: "Key implementation areas",
       list: [
-        "Reservation creation, editing, and cancellation flows",
-        "Table assignment and seating management",
-        "Business-rule validation for operational constraints",
-        "Responsive interfaces for reservation workflows",
-        "Structured backend logic for stateful reservation handling",
-        "Database-backed coordination between related operational entities",
+        "Reservation creation, editing, search, and cancellation",
+        "Table creation and capacity management",
+        "Reservation seating and table assignment",
+        "Reservation and table-status transitions",
+        "Frontend and backend validation for operational rules",
+        "Database-backed coordination of related records",
       ],
     },
 
     technicalDecisions: {
       eyebrow: "Technical Decisions",
-      title: "Important implementation choices",
+      title: "Implementation choices shaped by workflow integrity",
       decisions: [
         {
-          title: "Why PostgreSQL",
-          body: "Reservations and table states require structured relationships, reliable querying, and predictable updates, which made PostgreSQL a practical choice for modeling the application data.",
+          title: "Model related records relationally",
+          body: "Reservations and tables have connected states and constraints. PostgreSQL provided a structured way to represent those relationships, enforce consistency, and query the records needed for each workflow.",
         },
         {
-          title: "Why Express for backend logic",
-          body: "Express provided a straightforward way to handle reservation workflows, validation rules, and API endpoints while keeping the backend understandable and maintainable.",
+          title: "Validate across application layers",
+          body: "User-facing validation supported clearer interaction, while backend validation protected business rules and data integrity when reservation and table actions reached the API.",
         },
         {
-          title: "Why prioritize workflow over decoration",
-          body: "For operations-heavy applications, clear interaction flows and state handling matter more than visual complexity. The project prioritized usability, task completion, and operational clarity.",
+          title: "Make state transitions explicit",
+          body: "Reservation and table workflows depend on valid status changes. The implementation treated those transitions as defined operational actions rather than allowing records to change without context.",
         },
       ],
     },
 
     constraints: {
       eyebrow: "Constraints",
-      title: "Challenges and limitations",
-      body: "Reservation systems involve many small operational rules that can create bugs if they are not handled intentionally. A key challenge was translating real workflow constraints into backend validation, database structure, and predictable UI behavior.",
+      title: "Coordinating rules across related workflows",
+      body: "A change to one record could affect several parts of the application. Seating a reservation, for example, required the reservation and table to meet specific conditions before both states could be updated correctly. The project required careful coordination among interface behavior, API logic, validation, queries, and error handling.",
     },
 
     outcome: {
       eyebrow: "Outcome",
-      title: "What this project demonstrates",
-      body: "This project demonstrates full-stack application development, relational data modeling, database-backed workflow management, validation, and the translation of operational complexity into a clearer user-facing system. It provides evidence of the systems thinking, information organization, and workflow analysis I now bring into my study of health information and healthcare operations.",
+      title: "What the completed project demonstrates",
+      body: "The completed application demonstrates full-stack development, relational data modeling, SQL-backed workflows, CRUD operations, layered validation, API design, state management, and systematic handling of operational rules. It provides concrete evidence of the structured-data, workflow-analysis, testing, and problem-solving foundation I bring to systems, data-quality, and health-information work.",
     },
 
     nextSteps: {
-      eyebrow: "Next Steps",
-      title: "Future improvements",
+      eyebrow: "Further Development",
+      title: "How the application could continue to evolve",
       list: [
-        "Refine table management and edge-case handling",
-        "Improve interface clarity for high-volume service flow",
-        "Add stronger reporting around reservation activity",
-        "Modernize the rebuild with updated styling, documentation, and clearer case study notes",
-        "Use the rebuild to further demonstrate workflow design and operational systems thinking",
+        "Expand automated testing for validation rules, state transitions, and edge cases",
+        "Strengthen reporting around reservation volume, table use, and workflow activity",
+        "Improve error states and recovery guidance for invalid actions",
+        "Refine accessibility and responsive behavior across workflow screens",
+        "Modernize technical documentation and deployment instructions",
       ],
     },
   },
@@ -200,7 +195,7 @@ export const caseStudies: CaseStudy[] = [
     slug: "amp-ticket-add-on-flow",
     title: "AMP Ticket Add-On Flow",
     summary:
-      "A production feature designed to improve add-on visibility, checkout usability, and user flow clarity within an existing ticketing ecosystem.",
+      "A production ticketing feature built to make event add-ons easier to discover and select while preserving checkout continuity, accessibility, and compatibility with an established application.",
     category: "Professional Systems + Software",
     projectType: "Professional Work",
     status: "Production",
@@ -208,126 +203,126 @@ export const caseStudies: CaseStudy[] = [
     backHref: "/projects",
 
     meta: [
-      { label: "Role", value: "Sole Developer" },
+      { label: "Role", value: "Sole Full-Stack Developer" },
       { label: "Status", value: "Production" },
-      { label: "Focus", value: "Checkout UX + Feature Integration" },
+      { label: "Focus", value: "Feature Integration + Checkout UX" },
       { label: "Type", value: "Professional Production Feature" },
     ],
 
     overview: {
       eyebrow: "Overview",
-      title: "What this project is",
-      body: "This project was a production feature built within an existing ticketing environment to improve how event add-ons were surfaced during the purchase experience. The work focused on usability, accessibility-conscious interface refinement, integration constraints, and feature implementation inside an established system.",
+      title: "Extending an established ticketing experience",
+      body: "This project involved designing and implementing an add-on feature within an existing production ticketing application. The feature needed to make optional event purchases easier to discover and select while fitting the application's established checkout flow, interface patterns, accessibility expectations, and technical constraints.",
     },
 
     problem: {
       eyebrow: "Problem",
-      title: "Why this project exists",
-      body: "Add-on opportunities can be missed when they are not clearly surfaced in the purchasing flow. The goal of this work was to improve add-on visibility and usability without disrupting the surrounding ticketing experience or creating unnecessary friction for users.",
+      title: "Making optional purchases visible without disrupting checkout",
+      body: "Add-on opportunities can be overlooked when they are difficult to find, poorly timed, or disconnected from the surrounding purchase flow. The challenge was to improve their visibility and usability without adding unnecessary friction, confusing users, or destabilizing an established production experience.",
     },
 
     goals: {
       eyebrow: "Goals",
-      title: "Project goals",
+      title: "What the feature needed to accomplish",
       list: [
-        "Improve visibility of add-on options during checkout",
-        "Integrate the feature cleanly into an existing ticketing environment",
-        "Preserve usability and accessibility while extending the flow",
-        "Support a production-ready implementation within platform constraints",
-        "Balance business goals with user clarity and checkout continuity",
+        "Make relevant add-on options easier to discover during the purchase process",
+        "Integrate the feature into the existing ticketing experience and interface patterns",
+        "Preserve checkout continuity while introducing an additional decision point",
+        "Support accessible and understandable interaction states",
+        "Implement and test the feature within existing platform and production constraints",
       ],
     },
 
     system: {
       eyebrow: "System",
-      title: "Feature integration flow",
-      body: "Because this was a feature integration rather than a standalone system, the architecture centered on extending an existing frontend flow while respecting current platform boundaries, dependencies, and user expectations.",
+      title: "Integrating the feature into an existing flow",
+      body: "Because this was an extension of an established production application, the implementation needed to work within existing checkout behavior, state management, interface patterns, dependencies, and integration boundaries rather than introducing an isolated experience.",
       architecture: [
-        { label: "User enters checkout flow" },
-        { label: "Add-on feature UI" },
+        { label: "Existing checkout context" },
+        { label: "Add-on presentation" },
+        { label: "User selection and interaction state" },
         { label: "Existing ticketing integration" },
-        { label: "Selection / state handling" },
         { label: "Checkout continuation" },
       ],
     },
 
     technology: {
-      eyebrow: "Stack",
-      title: "Technology used",
+      eyebrow: "Technology",
+      title: "Tools used",
+      body: "The feature was implemented within the application's existing frontend stack using React, TypeScript, and Tailwind CSS.",
       list: ["React", "TypeScript", "Tailwind CSS"],
     },
 
     features: {
-      eyebrow: "Features",
-      title: "Key capabilities",
+      eyebrow: "Feature Work",
+      title: "Key implementation areas",
       list: [
-        "Integrated add-on visibility within the purchase flow",
-        "Usability-focused frontend interaction patterns",
-        "Feature implementation inside an existing production ecosystem",
-        "Accessibility-conscious UI refinement",
-        "Improved alignment between business goals and user flow",
-        "State handling for add-on selection within the checkout experience",
+        "Add-on presentation within the existing purchase flow",
+        "Selection and interaction-state handling",
+        "Integration with established ticketing behavior",
+        "Accessible interface structure and controls",
+        "Responsive styling consistent with the surrounding application",
+        "Testing and refinement within a production environment",
       ],
     },
-
     technicalDecisions: {
       eyebrow: "Technical Decisions",
-      title: "Important implementation choices",
+      title: "Implementation choices shaped by the existing system",
       decisions: [
         {
-          title: "Why integrate instead of rebuilding",
-          body: "The existing ticketing environment already had production dependencies, so the feature had to extend current behavior without destabilizing the broader system.",
+          title: "Extend the existing flow",
+          body: "The feature needed to work within an established ticketing application, so the implementation extended current checkout behavior and interface patterns instead of creating a separate purchasing experience.",
         },
         {
-          title: "Why TypeScript for the feature layer",
-          body: "TypeScript helped keep state and interaction behavior more predictable while integrating the feature into an existing frontend codebase.",
+          title: "Keep interaction state predictable",
+          body: "TypeScript supported clearer handling of selection states and interaction behavior while the feature was integrated into an existing frontend codebase.",
         },
         {
-          title: "Why UX clarity was central",
-          body: "Because the feature depended on visibility and decision-making within a purchase flow, interface clarity, placement, and user continuity mattered as much as implementation details.",
+          title: "Prioritize checkout clarity",
+          body: "The feature introduced another decision within a sensitive purchase flow. Placement, labeling, accessible controls, and continuity needed to remain understandable without competing with the primary checkout task.",
         },
       ],
     },
 
     constraints: {
       eyebrow: "Constraints",
-      title: "Challenges and limitations",
-      body: "Feature work inside an existing production system is constrained by upstream integrations, surrounding UX patterns, existing business rules, and the need to avoid regressions. This project required balancing product goals with system stability and user experience.",
+      title: "Working within a production ecosystem",
+      body: "The feature had to operate within existing platform behavior, dependencies, business rules, interface conventions, and release expectations. The work also required protecting checkout continuity, reducing regression risk, and documenting the project without exposing proprietary system details.",
     },
 
     outcome: {
       eyebrow: "Outcome",
-      title: "What this project demonstrates",
-      body: "This work demonstrates production frontend development, feature integration within an established system, accessibility-conscious implementation, and thoughtful alignment between user flow, technical constraints, and organizational priorities. It also reflects my ability to improve information access and usability within complex operational environments.",
+      title: "What the completed work demonstrates",
+      body: "The result was a production feature integrated into an established ticketing application. The work demonstrates feature development within an existing system, typed interaction-state handling, accessibility-conscious interface implementation, testing, troubleshooting, and balancing product requirements with technical constraints and user-flow clarity.",
     },
 
     nextSteps: {
-      eyebrow: "Next Steps",
-      title: "Future improvements",
+      eyebrow: "Further Development",
+      title: "How the feature could continue to evolve",
       list: [
-        "Measure interaction performance and add-on engagement more deeply",
-        "Refine feature placement based on user behavior",
-        "Expand analytics around add-on selection patterns",
-        "Document implementation considerations for similar feature work",
-        "Use this case study to show how product clarity and system constraints shape implementation decisions",
+        "Evaluate feature discoverability and interaction patterns using appropriately collected product data",
+        "Refine placement and presentation based on documented user behavior and accessibility feedback",
+        "Expand testing across checkout states, edge cases, and supported devices",
+        "Strengthen implementation documentation for maintenance and future feature work",
+        "Review the feature periodically as the surrounding ticketing experience changes",
       ],
     },
   },
 
-  // AOW
+  // ART OF WINE
   {
     slug: "art-of-wine-companion-app",
     title: "Art of Wine Companion App",
     summary:
-      "A mobile-first event companion app designed to support vendor discovery, event navigation, structured information access, and reusable UI patterns for future event experiences.",
+      "A production mobile-first event companion application built to organize event and vendor information, support discovery and wayfinding, and provide a reusable foundation for future event experiences.",
     category: "Professional Systems + Software",
     projectType: "Professional Work",
     status: "Production",
-    stack: ["Next.js", "TypeScript", "Prisma", "PostgreSQL"],
+    stack: ["Next.js", "TypeScript", "Prisma", "PostgreSQL", "Tailwind CSS"],
     backHref: "/projects",
 
     meta: [
-      { label: "Role", value: "Sole Developer" },
+      { label: "Role", value: "Sole Full-Stack Developer" },
       { label: "Status", value: "Production" },
       { label: "Focus", value: "Information Access + Event Experience" },
       { label: "Type", value: "Professional Production Application" },
@@ -335,100 +330,101 @@ export const caseStudies: CaseStudy[] = [
 
     overview: {
       eyebrow: "Overview",
-      title: "What this project is",
-      body: "This project is a mobile-first event companion application built to support users during a large-scale event experience. It focuses on vendor discovery, event-specific information access, structured content modeling, and reusable frontend patterns for future event applications.",
+      title: "Organizing an event experience around accessible information",
+      body: "The Art of Wine Companion App is a production mobile-first application built to help attendees navigate event information and discover participating vendors. The project combined structured content, relational data, backend-supported information access, and reusable interface patterns within an experience designed primarily for mobile use.",
     },
 
     problem: {
       eyebrow: "Problem",
-      title: "Why this project exists",
-      body: "Large events often create friction around wayfinding, vendor discovery, and access to event-specific information. The goal of this project was to create a more usable digital companion that improves navigation, information access, and decision-making during the event experience.",
+      title: "Helping attendees find useful information during a live event",
+      body: "Large events can make vendor discovery, wayfinding, and access to event-specific information difficult, especially when attendees are moving through a busy environment and relying on their phones. The application needed to organize that information into a clear, responsive experience without overwhelming users or making important details difficult to find.",
     },
 
     goals: {
       eyebrow: "Goals",
-      title: "Project goals",
+      title: "What the application needed to accomplish",
       list: [
-        "Design a mobile-first interface for event attendees",
-        "Support vendor browsing and discovery workflows",
-        "Create a reusable UI and data structure for future event apps",
-        "Build a maintainable application foundation that can scale beyond a single event",
-        "Make event-specific information easier to find, understand, and act on",
+        "Create a mobile-first experience for attendees using the application during the event",
+        "Make vendor and event information easier to browse and locate",
+        "Organize content through a structured and maintainable data model",
+        "Support reusable interface and data patterns for future event applications",
+        "Balance useful functionality with clear navigation and fast scanning",
       ],
     },
 
     system: {
       eyebrow: "System",
-      title: "Information architecture and system flow",
-      body: "The app combines structured content modeling, frontend interaction design, and backend-backed event data so users can move through event information in a more coherent way.",
+      title: "Connecting structured event data to a mobile-first interface",
+      body: "The application connected structured event and vendor information with a relational database, server-side application logic, and reusable frontend components. This separation supported clearer content organization while allowing the interface to present information in a format suited to mobile event use.",
       architecture: [
-        { label: "Event content / vendor data" },
-        { label: "Structured data model" },
-        { label: "Prisma / PostgreSQL" },
-        { label: "API / server logic" },
-        { label: "Next.js mobile-first UI" },
+        { label: "Event and vendor information" },
+        { label: "Structured Prisma data model" },
+        { label: "PostgreSQL database" },
+        { label: "Server and application logic" },
+        { label: "Next.js mobile-first interface" },
       ],
     },
 
     technology: {
-      eyebrow: "Stack",
-      title: "Technology used",
+      eyebrow: "Technology",
+      title: "Tools used",
+      body: "The application used Next.js and TypeScript for the application layer, Prisma for structured data access, PostgreSQL for relational storage, and Tailwind CSS for responsive interface styling.",
       list: ["Next.js", "TypeScript", "Prisma", "PostgreSQL", "Tailwind CSS"],
     },
 
     features: {
-      eyebrow: "Features",
-      title: "Key capabilities",
+      eyebrow: "Application Work",
+      title: "Key implementation areas",
       list: [
         "Vendor discovery and browsing flows",
-        "Mobile-first layout for event use",
-        "Structured event content modeling",
-        "Reusable component patterns for future event apps",
-        "Interactive support for event-specific information access",
-        "Backend-backed content organization for event and vendor data",
+        "Mobile-first event information access",
+        "Structured event and vendor content",
+        "Relational data modeling with Prisma and PostgreSQL",
+        "Reusable interface components for related event experiences",
+        "Responsive navigation and content presentation",
       ],
     },
 
     technicalDecisions: {
       eyebrow: "Technical Decisions",
-      title: "Important implementation choices",
+      title: "Implementation choices shaped by event use",
       decisions: [
         {
-          title: "Why mobile-first by default",
-          body: "Because the application is intended for live event use, the interface needed to prioritize on-the-go access, fast scanning, and constrained mobile attention first.",
+          title: "Design for mobile use first",
+          body: "Attendees were expected to access the application while moving through the event, so the interface prioritized mobile screen sizes, clear navigation, fast scanning, and focused content presentation.",
         },
         {
-          title: "Why Prisma with PostgreSQL",
-          body: "The project benefits from a structured schema and typed data access, making Prisma and PostgreSQL a strong fit for event and vendor-related content relationships.",
+          title: "Model event information relationally",
+          body: "Vendor and event information contained structured relationships that needed to remain consistent and maintainable. Prisma and PostgreSQL provided a typed data-access layer and a relational foundation for organizing that content.",
         },
         {
-          title: "Why reusable UI patterns matter",
-          body: "The app was designed not only as a single event experience, but as a foundation for similar future experiences, so reusable components and scalable structure were important from the start.",
+          title: "Build reusable patterns",
+          body: "The application was designed as more than a one-time interface. Reusable components and structured content patterns created a foundation that could support similar event experiences without rebuilding every interaction from the beginning.",
         },
       ],
     },
 
     constraints: {
       eyebrow: "Constraints",
-      title: "Challenges and limitations",
-      body: "Event applications must balance usefulness with speed, simplicity, and attention constraints, especially on mobile devices. One key challenge was deciding how much functionality to include without making the experience feel heavy or cluttered.",
+      title: "Building for attention-limited event use",
+      body: "The application needed to remain useful on a small screen while users were navigating a live event with limited time and attention. The work required balancing information depth with scanability, organizing varied event content consistently, and keeping the production implementation maintainable without introducing unnecessary interface complexity.",
     },
 
     outcome: {
       eyebrow: "Outcome",
-      title: "What this project demonstrates",
-      body: "This project demonstrates mobile-first application development, structured content modeling, relational data systems, reusable interface design, and the creation of tools that improve information access in a real-world environment. Those capabilities form part of the technical and information-systems foundation I am carrying into healthcare.",
+      title: "What the completed work demonstrates",
+      body: "The result was a production mobile-first application supported by structured content, relational data, reusable components, and backend application logic. The project demonstrates full-stack product development, information architecture, database-backed content organization, responsive interface design, and the translation of event and operational requirements into a usable digital system.",
     },
 
     nextSteps: {
-      eyebrow: "Next Steps",
-      title: "Future improvements",
+      eyebrow: "Further Development",
+      title: "How the application could continue to evolve",
       list: [
-        "Expand interactive event guidance and wayfinding support",
-        "Refine vendor discovery flows and UI states",
-        "Add richer saved or favorited content interactions",
-        "Document reusable architecture patterns for future event apps",
-        "Carry the information architecture lessons from this project into future health-information, patient-education, and care-navigation concepts",
+        "Evaluate information findability using appropriately collected feedback and product data",
+        "Refine vendor discovery, filtering, and browsing states",
+        "Expand event guidance and wayfinding support where useful",
+        "Add saved or favorited content interactions if supported by user needs",
+        "Strengthen documentation for reuse across future event applications",
       ],
     },
   },
