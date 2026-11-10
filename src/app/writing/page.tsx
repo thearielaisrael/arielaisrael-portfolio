@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: "The Informatics Diary",
 
   description:
-    "Read The Informatics Diary, Ariela Israel's student-led public learning archive exploring women's health equity, health information, biomedical informatics, healthcare data, research literacy, and academic development.",
+    "Read Ariela Israel's public learning archive exploring Black women's health equity, research methods, health information, clinical and biomedical informatics, health data, and precision medicine.",
 
   alternates: {
     canonical: "/writing",
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "The Informatics Diary | Ariela Israel",
     description:
-      "Student-led writing and learning notes exploring women's health equity, health information, biomedical informatics, healthcare data, research literacy, and academic development.",
+      "A public learning archive documenting developing knowledge in Black women's health equity, research, health data, and clinical and biomedical informatics.",
     url: "/writing",
     type: "website",
   },
@@ -27,28 +27,52 @@ export const metadata: Metadata = {
 
 const writingThemes = [
   {
+    key: "black-womens-health-equity",
     label: "EQUITY",
-    title: "Women's Whole-Body Health Equity",
-    description:
-      "Writing about racial disparities, delayed diagnosis, undertreatment, fragmented care, research gaps, medical bias, and the experiences of women who are too often unheard or insufficiently represented.",
+    title: <>Black Women&apos;s Whole-Body Health Equity</>,
+    description: (
+      <>
+        Writing about diagnostic disparities, undertreatment, fragmented care, research gaps,
+        medical bias, incomplete clinical recognition, and the evidence shaping Black women&apos;s
+        health across conditions and specialties.
+      </>
+    ),
   },
   {
+    key: "health-data-informatics",
     label: "HEALTH DATA + INFORMATICS",
-    title: "Health Information and Biomedical Informatics",
-    description:
-      "Learning notes on documentation, data quality, longitudinal health information, clinical and biomedical informatics, healthcare workflows, information systems, and how information moves through care environments.",
+    title: <>Health Information and Biomedical Informatics</>,
+    description: (
+      <>
+        Learning notes on clinical documentation, data quality, longitudinal health information,
+        clinical phenotyping, healthcare workflows, information systems, and how information moves
+        through care and research environments.
+      </>
+    ),
   },
   {
+    key: "research-evidence",
     label: "RESEARCH + EVIDENCE",
-    title: "Research Literacy and Responsible Interpretation",
-    description:
-      "Explorations of research methods, scientific literature, public health data, evidence quality, analytical limitations, precision medicine, and the responsible interpretation of health information.",
+    title: <>Research Literacy and Responsible Interpretation</>,
+    description: (
+      <>
+        Explorations of research methods, scientific literature, study design, evidence quality,
+        analytical limitations, research representation, precision medicine, and responsible
+        interpretation.
+      </>
+    ),
   },
   {
+    key: "academic-path",
     label: "ACADEMIC PATH",
-    title: "Learning in Public",
-    description:
-      "Field notes from studying Health Services Management, Health Information Management and Data Analytics, research practices, informatics, professional development, and the questions shaping my future direction.",
+    title: <>Learning in Public</>,
+    description: (
+      <>
+        Field notes from studying Health Services Management, health information, data analytics,
+        research methods, informatics, and the questions shaping my developing academic and
+        professional direction.
+      </>
+    ),
   },
 ];
 
@@ -57,9 +81,21 @@ export default function WritingPage() {
     <main className="mx-auto w-full max-w-360 px-6 pb-24 md:px-10">
       <PageHeader
         eyebrow="The Informatics Diary"
-        heading="Field notes on women's health equity, information, research, and informatics"
-        description="The Informatics Diary is my student-led public writing and learning archive."
-        supportingText="I document what I'm studying, questioning, reading, and building as I develop toward work in women's health equity, clinical and biomedical informatics, and research."
+        heading="Field notes on health equity, evidence, data, and informatics"
+        description={
+          <>
+            The Informatics Diary is my public learning archive exploring Black women&apos;s health
+            equity through research, clinical and biomedical informatics, health data, and precision
+            medicine.
+          </>
+        }
+        supportingText={
+          <>
+            I document what I&apos;m studying, reading, questioning, analyzing, and building while
+            remaining transparent about my current academic stage and the knowledge I&apos;m still
+            developing.
+          </>
+        }
         actions={
           <>
             <a
@@ -92,24 +128,23 @@ export default function WritingPage() {
 
             <div className="text-muted space-y-5 text-base leading-relaxed md:text-lg">
               <p>
-                My advocacy centers racially underserved and underrepresented women whose symptoms,
-                pain, concerns, and whole-body health are too often dismissed, misunderstood,
-                diagnosed late, undertreated, or overlooked in research and healthcare data.
+                The Informatics Diary begins with a central concern: Black women&apos;s symptoms,
+                pain, conditions, and care experiences are not always adequately recognized,
+                studied, represented, or understood within healthcare and biomedical research.
               </p>
 
               <p>
-                I&apos;m especially interested in racial disparities, delayed diagnosis, fragmented
-                care, longitudinal health information, clinical and biomedical informatics, and how
-                research and data may contribute to more precise and equitable care. Everyone is
-                welcome to learn, but the women most affected by these disparities remain at the
-                center.
+                I&apos;m especially interested in diagnostic disparities, fragmented care,
+                longitudinal clinical information, research representation, clinical phenotyping,
+                precision medicine, and how stronger evidence and better information systems could
+                support more equitable clinical recognition.
               </p>
 
               <p>
                 The Diary gives me a place to explore these subjects while my knowledge is still
                 developing. I use writing to examine questions, connect ideas across disciplines,
-                reflect on what I&apos;m learning, and practice communicating complex information
-                clearly.
+                evaluate evidence, reflect on what I&apos;m learning, and practice communicating
+                complex information clearly.
               </p>
 
               <p>
@@ -147,7 +182,7 @@ export default function WritingPage() {
 
         <div className="mt-8 grid gap-6 md:grid-cols-2">
           {writingThemes.map((theme) => (
-            <Card key={theme.title}>
+            <Card key={theme.key}>
               <article>
                 <ChipMono>{theme.label}</ChipMono>
 
@@ -177,9 +212,10 @@ export default function WritingPage() {
             </h2>
 
             <p className="text-muted mt-4 text-base leading-relaxed">
-              Visit The Informatics Diary to follow my academic development, developing research
-              interests, advocacy questions, project work, and path toward women&apos;s health
-              equity and informatics.
+              Visit The Informatics Diary to follow my academic development, research questions,
+              evidence reviews, project work, and developing understanding of Black women&apos;s
+              health equity, clinical and biomedical informatics, health data, and precision
+              medicine.
             </p>
           </div>
 

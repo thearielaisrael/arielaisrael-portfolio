@@ -14,11 +14,11 @@ export type CvResearchInterest = {
 
 export const cvProfile = {
   eyebrow: "Curriculum Vitae",
-  heading: "Professional and academic experience across systems, data, and healthcare",
+  heading: "Professional and academic experience across software, data, and healthcare",
   description:
-    "I am a Health Services Management student, Women's Health Equity Advocate, and aspiring Clinical and Biomedical Informaticist with professional experience in software systems, structured data, databases, documentation, accessibility, quality assurance, and workflow-focused problem-solving.",
+    "I am a Health Services Management student and former full-stack software developer building toward clinical and biomedical informatics research focused on Black women's whole-body health equity.",
   supportingText:
-    "This evolving record brings together my established professional experience, current education, completed technical work, developing research interests, and public scholarship.",
+    "This evolving record brings together my established professional experience, current education, completed technical work, developing research interests, and public learning archive.",
 };
 
 export const academicSnapshot = {
@@ -26,9 +26,9 @@ export const academicSnapshot = {
   degree: "Bachelor of Science",
   field: "Health Services Management",
   status: "In Progress",
-  expectedCompletion: "2029",
-  gpa: "4.0",
-  gpaScale: "4.0",
+  expectedCompletion: "December 2029",
+  gpa: "4.00",
+  gpaScale: "4.00",
   certificates: [
     {
       name: "Health Information Management & Data Analytics",
@@ -43,9 +43,9 @@ export const academicSnapshot = {
 
 export const researchInterests: CvResearchInterest[] = [
   {
-    title: "Women's Whole-Body Health Equity",
+    title: "Black Women's Whole-Body Health Equity",
     description:
-      "Racial and systemic disparities affecting underserved and underrepresented women across reproductive, endocrine, metabolic, cardiovascular, autoimmune, chronic, mental, and multisystem health.",
+      "Racial and systemic disparities affecting disease recognition, diagnosis, treatment, research representation, clinical response, and outcomes across Black women's whole-body health.",
   },
   {
     title: "Longitudinal Health Data",
@@ -180,7 +180,7 @@ export const publicScholarship = {
   type: "Student-Led Public Learning Archive",
   href: "https://theinformaticsdiary.substack.com",
   description:
-    "An independent writing and learning archive documenting my developing knowledge across women's health equity, health information, healthcare data, research literacy, clinical and biomedical informatics, and academic development.",
+    "An independent public learning archive documenting my developing knowledge across Black women's health equity, health information, research methods, clinical and biomedical informatics, health data, precision medicine, and academic development.",
   practices: [
     "Distinguishing established evidence from interpretation",
     "Citing credible and relevant sources",
@@ -195,18 +195,7 @@ export const publicScholarship = {
 export const currentResearchDirection = {
   label: "Evolving Research Question",
   question:
-    "How can clinical and biomedical informatics use longitudinal phenotyping to help shorten diagnostic delay in women's health?",
+    "How can longitudinal clinical data and phenotyping improve disease recognition and shorten diagnostic delay for Black women?",
   context:
-    "This question guides my developing interests in research methods, statistics, clinical data, phenotyping, health disparities, and biomedical informatics. It represents a future research direction rather than a completed study or formal finding.",
+    "This question guides my developing interests in research methods, statistics, longitudinal clinical data, phenotyping, health disparities, and biomedical informatics. It represents a future research direction rather than a completed study or formal finding.",
 };
-
-export const cvFutureSections = [
-  "Research Experience",
-  "Publications",
-  "Presentations and Posters",
-  "Academic Honors and Awards",
-  "Professional Memberships",
-  "Research Ethics and Human-Subjects Training",
-  "Conferences and Invited Talks",
-  "Teaching and Mentoring",
-] as const;

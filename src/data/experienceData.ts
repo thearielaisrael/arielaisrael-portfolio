@@ -9,16 +9,6 @@ export type ExperienceEntry = {
   strengths: string[];
 };
 
-export type AppliedStudyEntry = {
-  id: string;
-  title: string;
-  organization: string;
-  period: string;
-  summary: string;
-  highlights: string[];
-  focusAreas: string[];
-};
-
 export type EducationEntry = {
   institution: string;
   credential: string;
@@ -86,34 +76,6 @@ export const featuredExperience: ExperienceEntry[] = [
   },
 ];
 
-export const appliedStudy: AppliedStudyEntry[] = [
-  {
-    id: "womens-health-equity-informatics-study",
-    title: "Women's Health Equity, Health Information & Informatics Study",
-    organization: "Independent Study / Applied Projects",
-    period: "January 2026 - Present",
-    summary:
-      "Independent academic study and project development connecting women's health equity, health information, healthcare data, research, informatics, and patient-centered technology.",
-    highlights: [
-      "Developing healthcare-domain knowledge through formal study in Health Services Management, Health Information Management & Data Analytics, and Data Analytics.",
-      "Exploring racial disparities, delayed diagnosis, fragmented care, research gaps, longitudinal health information, and women's whole-body health across the life course.",
-      "Developing educational project concepts involving health-record data quality, documentation workflows, patient education, care navigation, and healthcare information organization.",
-      "Using synthetic or publicly available information for educational projects rather than protected patient information or professional clinical records.",
-      "Documenting academic development, research questions, informatics learning, and technical reflections through The Informatics Diary.",
-      "Building on an existing software and systems foundation through health-focused work involving structured data, SQL, accessibility, data modeling, and information design.",
-    ],
-    focusAreas: [
-      "Women's Health Equity",
-      "Health Information",
-      "Healthcare Data",
-      "Biomedical Informatics",
-      "Research Literacy",
-      "Data Quality",
-      "Academic Development",
-    ],
-  },
-];
-
 export const additionalExperience: ExperienceEntry[] = [
   {
     id: "enterprise-mobility",
@@ -176,7 +138,7 @@ export const education: EducationEntry[] = [
     institution: "University of Maryland Global Campus",
     credential: "Bachelor of Science",
     field: "Health Services Management",
-    period: "2026 - 2029",
+    period: "August 2026 - December 2029",
     status: "In Progress",
     certificates: [
       {

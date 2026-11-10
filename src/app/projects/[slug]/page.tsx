@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: CaseStudyPageProps): Promise<
     };
   }
 
-  const url = `https://thearielaisrael.com/projects/${caseStudy.slug}`;
+  const url = `https://www.thearielaisrael.com/projects/${caseStudy.slug}`;
 
   return {
     title: caseStudy.title,

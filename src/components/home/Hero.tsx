@@ -1,17 +1,43 @@
+import type { ReactNode } from "react";
+
 import { PrimaryCTA, SecondaryCTA } from "../ui/Buttons";
 import { ChipThinBorder } from "../ui/Chips";
 import { GlassCard } from "../ui/Cards";
 import BackgroundFX from "./BackgroundFX";
 
 const professionalStrengths = [
-  "Women's Health Equity",
-  "Biomedical Informatics",
-  "Clinical Informatics",
-  "Health Data",
-  "Precision Medicine",
-  "Longitudinal Data",
-  "Research",
-  "Clinical Phenotyping",
+  {
+    key: "black-womens-health-equity",
+    label: <>Black Women&apos;s Health Equity</>,
+  },
+  {
+    key: "biomedical-informatics",
+    label: <>Biomedical Informatics</>,
+  },
+  {
+    key: "clinical-informatics",
+    label: <>Clinical Informatics</>,
+  },
+  {
+    key: "health-data",
+    label: <>Health Data</>,
+  },
+  {
+    key: "precision-medicine",
+    label: <>Precision Medicine</>,
+  },
+  {
+    key: "longitudinal-data",
+    label: <>Longitudinal Data</>,
+  },
+  {
+    key: "research",
+    label: <>Research</>,
+  },
+  {
+    key: "clinical-phenotyping",
+    label: <>Clinical Phenotyping</>,
+  },
 ];
 
 export default function Hero() {
@@ -23,35 +49,35 @@ export default function Hero() {
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:items-center lg:gap-0">
           <div className="lg:col-span-7">
             <p className="text-accent mb-4 font-mono text-xs font-semibold tracking-[0.28em] uppercase md:text-sm">
-              Women&apos;s Health Equity · Biomedical Informatics · Research
+              Health Services Management · Health Data · Informatics Research
             </p>
 
-            <h1 className="font-heading text-primary max-w-4xl text-5xl leading-[0.98] font-extrabold tracking-[-0.03em] text-balance md:text-6xl lg:text-[clamp(3.75rem,4vw,5.5rem)]">
-              Studying the data, evidence, and systems shaping{" "}
-              <span className="text-signature-aura-pink">women&apos;s health</span>
+            <h1 className="font-heading text-primary max-w-4xl text-5xl leading-[0.98] font-extrabold tracking-[-0.03em] text-balance lowercase md:text-6xl lg:text-[clamp(3.75rem,4vw,5.5rem)]">
+              Making Black women visible to the{" "}
+              <span className="text-signature-text">evidence, data, and systems</span> shaping
+              medicine
             </h1>
 
             <p className="text-foreground mt-5 max-w-3xl text-xl leading-snug font-semibold md:text-2xl lg:text-[1.65rem]">
-              I&apos;m Ariela Israel, a Health Services Management student, Women&apos;s Health
-              Equity Advocate, and aspiring Clinical & Biomedical Informaticist.
+              I&apos;m Ariela Israel, a Health Services Management student and former full-stack
+              software developer building toward clinical and biomedical informatics research.
             </p>
 
             <div className="text-muted mt-6 max-w-3xl space-y-4 text-base leading-relaxed md:text-lg">
               <p>
-                I&apos;m building toward a research career at the intersection of women&apos;s
-                health equity, clinical and biomedical informatics, health data, and precision
-                medicine.
+                I&apos;m developing the health-services, research, data, and scientific foundation
+                needed to study how medicine recognizes, diagnoses, treats, and responds to disease
+                in Black women.
               </p>
 
               <p>
-                I&apos;m especially interested in how longitudinal clinical and biomedical data can
-                help investigate diagnostic disparities, improve clinical decision-making, and
-                advance more equitable precision medicine for underserved and underrepresented
-                women.
+                My long-term interests include longitudinal clinical data, clinical phenotyping,
+                diagnostic disparities, precision medicine, and health information systems that
+                support more complete and equitable evidence.
               </p>
             </div>
 
-            <p className="font-heading text-signature-aura-pink mt-6 text-xl leading-[1.1] font-medium tracking-[0.08em] uppercase italic md:text-2xl">
+            <p className="font-heading text-signature-text mt-6 text-2xl leading-[1.1] font-medium tracking-[0.08em] uppercase italic md:text-2xl">
               Pink, precise, evidence-driven, and patient-centered.
             </p>
 
@@ -71,33 +97,60 @@ export default function Hero() {
               <div className="mt-5 space-y-5 lg:space-y-4">
                 <SnapshotBlock
                   label="Academic Path"
-                  body="Pursuing a BS in Health Services Management at UMGC, alongside certificates in Health Information Management & Data Analytics and Data Analytics."
+                  body={
+                    <>
+                      Pursuing a BS in Health Services Management at UMGC, with certificate pathways
+                      in Health Information Management and Data Analytics, plus Data Analytics.
+                    </>
+                  }
                 />
 
                 <SnapshotBlock
-                  label="Advocacy Focus"
-                  body="Advancing more equitable health outcomes for underserved and underrepresented women, with particular interest in racial disparities, diagnostic delay, undertreatment, fragmented care, research gaps, and whole-body women's health."
+                  label="Health Equity Focus"
+                  body={
+                    <>
+                      Building toward research focused on Black women&apos;s whole-body health,
+                      including diagnostic delay, undertreatment, fragmented care, research gaps,
+                      and incomplete clinical recognition.
+                    </>
+                  }
                 />
 
                 <SnapshotBlock
-                  label="Research Interest"
-                  body="Clinical and biomedical informatics, longitudinal health data, diagnostic disparities, clinical phenotyping, precision medicine, clinical decision support, and equitable applications of AI in healthcare."
+                  label="Research Direction"
+                  body={
+                    <>
+                      Clinical and biomedical informatics, longitudinal health data, clinical
+                      phenotyping, diagnostic disparities, precision medicine, and equitable
+                      clinical intelligence.
+                    </>
+                  }
                 />
 
                 <SnapshotBlock
                   label="Developing Methods"
-                  body="Research methods, statistics, scientific literature evaluation, health-data analysis, and computational skills in R, Python, and SQL."
+                  body={
+                    <>
+                      Research methods, statistics, scientific literature evaluation, health-data
+                      analysis, and computational skills in R, Python, and SQL.
+                    </>
+                  }
                 />
 
                 <SnapshotBlock
                   label="Technical Foundation"
-                  body="Software engineering, structured data, databases, systems thinking, documentation, accessibility, testing, and digital product development."
+                  body={
+                    <>
+                      Software engineering, structured data, databases, systems thinking,
+                      documentation, accessibility, testing, and digital product development.
+                    </>
+                  }
                 />
               </div>
 
               <div className="mt-7 flex flex-wrap gap-2">
                 {professionalStrengths.map((strength) => (
-                  <ChipThinBorder key={strength}>{strength}</ChipThinBorder>
+                  <ChipThinBorder key={strength.key}>{strength.label}</ChipThinBorder>
                 ))}
               </div>
             </GlassCard>
@@ -108,7 +161,7 @@ export default function Hero() {
   );
 }
 
-function SnapshotBlock({ label, body }: { label: string; body: string }) {
+function SnapshotBlock({ label, body }: { label: string; body: ReactNode }) {
   return (
     <div>
       <p className="text-foreground text-sm font-semibold tracking-wide">{label}</p>

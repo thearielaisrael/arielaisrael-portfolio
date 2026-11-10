@@ -1,7 +1,7 @@
 export type ProjectCategory =
   | "Professional Systems + Software"
   | "Health Data + Information Systems"
-  | "Women's Health Equity + Research";
+  | "Black Women's Health Equity + Research";
 
 export type ProjectStatus = "Built" | "In Progress" | "Planned";
 
@@ -64,67 +64,141 @@ export const projects: Project[] = [
   },
 
   /*
-   * Healthcare-domain work is clearly identified as independent
-   * educational or research work using synthetic or public information.
+   * Healthcare-domain projects are clearly identified as proposed
+   * educational or research-informed work.
+   *
+   * These projects will use synthetic, fictional, public, deidentified,
+   * or otherwise appropriately authorized data.
    */
   {
-    slug: "health-record-data-quality-lab",
-    title: "Health Record Data Quality Lab",
+    slug: "black-womens-diagnostic-equity-evidence-map",
+    title: "Black Women's Diagnostic Equity Evidence Map",
     summary:
-      "A planned educational project using synthetic health-record data to profile data quality, identify missing and inconsistent fields, flag potential duplicate records for human review, apply validation rules, document correction decisions, and produce a concise quality report.",
-    category: "Health Data + Information Systems",
-    stack: ["SQL", "PostgreSQL", "Python", "Pandas", "Data Validation", "Synthetic Data"],
-    status: "Planned",
-    projectType: "Independent Concept",
-  },
-  {
-    slug: "womens-health-equity-data-analysis",
-    title: "Women's Health Equity Data Analysis",
-    summary:
-      "A planned independent analysis using an appropriately sourced public dataset to investigate a focused question about disparities in women's health. The project will define a study population and variables, document data quality and limitations, apply descriptive analysis, and interpret findings alongside credible scholarly literature.",
-    category: "Women's Health Equity + Research",
+      "A proposed structured evidence map examining published research on diagnostic disparities affecting Black women across multiple conditions, with attention to study populations, disparity categories, evidence limitations, and research gaps.",
+    category: "Black Women's Health Equity + Research",
     stack: [
-      "Public Health Data",
-      "Data Cleaning",
-      "Descriptive Statistics",
-      "Data Visualization",
+      "Literature Review",
+      "Evidence Mapping",
+      "Research Methods",
       "Evidence Synthesis",
+      "Data Visualization",
     ],
     status: "Planned",
     projectType: "Independent Concept",
   },
-
-  /*
-   * Deferred portfolio roadmap
-   *
-   * These concepts are intentionally excluded from the public projects array.
-   * They should only return after they have a specific problem, intended user,
-   * evidence base, data source, scope, and concrete deliverable.
-   *
-   * Patient Education + Advocacy
-   * Reconsider later as an evidence-based educational resource connected to
-   * The Informatics Diary. Keep it educational, accessible, well sourced, and
-   * explicitly nonclinical.
-   *
-   * Referral + Follow-Up Workflow Analysis
-   * Reimagine the former Care Access Workflow System as a focused educational
-   * workflow project. It could eventually examine referrals, follow-up states,
-   * documentation gaps, handoffs, and operational visibility using a synthetic
-   * process and dataset.
-   *
-   * Synthetic Longitudinal Phenotyping Study
-   * Reimagine the former Longitudinal Health Record Explorer as a future
-   * research-oriented project after further development in research methods,
-   * statistics, clinical data, and biomedical informatics.
-   *
-   * Patient Dismissal Research
-   * Keep deferred until there is a defensible research question, appropriate
-   * data source, ethical methodology, and clearly bounded analytical purpose.
-   *
-   * Early Detection Care Gap Dashboard
-   * Consider later as a visualization or communication layer for a completed
-   * women's health equity analysis rather than as a separate project concept.
-   */
+  {
+    slug: "diagnostic-journey-explorer",
+    title: "Diagnostic Journey Explorer",
+    summary:
+      "An educational prototype using synthetic longitudinal patient records to explore how symptoms, encounters, findings, documentation, and fragmented information accumulate across a diagnostic journey.",
+    category: "Health Data + Information Systems",
+    stack: [
+      "Synthetic Data",
+      "Longitudinal Data",
+      "Data Visualization",
+      "Clinical Information",
+      "Information Architecture",
+    ],
+    status: "Planned",
+    projectType: "Independent Concept",
+  },
+  {
+    slug: "clinical-phenotyping-mini-lab",
+    title: "Clinical Phenotyping Mini-Lab",
+    summary:
+      "A future educational project exploring how computable phenotypes are defined and represented using synthetic or appropriately sourced public data, including phenotype logic, structured variables, validation considerations, and equity limitations.",
+    category: "Health Data + Information Systems",
+    stack: [
+      "Biomedical Informatics",
+      "Clinical Phenotyping",
+      "Structured Data",
+      "SQL",
+      "Python",
+      "Synthetic Data",
+    ],
+    status: "Planned",
+    projectType: "Independent Concept",
+  },
+  {
+    slug: "black-womens-health-research-representation-audit",
+    title: "Black Women's Health Research Representation Audit",
+    summary:
+      "A proposed analysis of how Black women are represented and reported in published biomedical research or clinical trials, including population composition, race and sex reporting, inclusion criteria, intersectional analysis, and evidence limitations.",
+    category: "Black Women's Health Equity + Research",
+    stack: [
+      "Research Equity",
+      "Public Research Data",
+      "Data Analysis",
+      "Evidence Evaluation",
+      "Data Visualization",
+    ],
+    status: "Planned",
+    projectType: "Independent Concept",
+  },
+  {
+    slug: "clinical-documentation-equity-explorer",
+    title: "Clinical Documentation Equity Explorer",
+    summary:
+      "An educational exploration of how patient-reported symptoms and experiences may be transformed as information moves through clinical notes, structured terminology, diagnoses, problem lists, and health-data systems.",
+    category: "Health Data + Information Systems",
+    stack: [
+      "Health Information",
+      "Clinical Documentation",
+      "Data Quality",
+      "Structured Terminology",
+      "Information Modeling",
+    ],
+    status: "Planned",
+    projectType: "Independent Concept",
+  },
+  {
+    slug: "equity-aware-clinical-decision-support-prototype",
+    title: "Equity-Aware Clinical Decision Support Prototype",
+    summary:
+      "A nonclinical educational prototype exploring how synthetic longitudinal information might support reassessment and escalation workflows while accounting for validation, false positives, alert fatigue, and equity requirements.",
+    category: "Health Data + Information Systems",
+    stack: [
+      "Clinical Informatics",
+      "Workflow Design",
+      "Synthetic Data",
+      "Decision Support",
+      "Research-Informed Design",
+    ],
+    status: "Planned",
+    projectType: "Independent Concept",
+  },
+  {
+    slug: "learning-health-system-equity-dashboard",
+    title: "Learning Health System Equity Dashboard",
+    summary:
+      "A proposed dashboard using fictional or synthetic healthcare-system data to explore disparities in time to diagnosis, referral completion, follow-up, treatment initiation, repeat encounters, care continuity, and patient-reported experience.",
+    category: "Black Women's Health Equity + Research",
+    stack: [
+      "Health Services Research",
+      "Quality Improvement",
+      "Healthcare Analytics",
+      "Data Visualization",
+      "Synthetic Data",
+    ],
+    status: "Planned",
+    projectType: "Independent Concept",
+  },
+  {
+    slug: "precision-medicine-equity-audit",
+    title: "Precision Medicine Equity Audit",
+    summary:
+      "A future research-informed project examining population representation, biomedical data sources, phenotype definitions, generalizability, validation requirements, and equity considerations in precision-medicine research.",
+    category: "Black Women's Health Equity + Research",
+    stack: [
+      "Precision Medicine",
+      "Biomedical Evidence",
+      "Research Representation",
+      "Evidence Evaluation",
+      "Data Visualization",
+    ],
+    status: "Planned",
+    projectType: "Independent Concept",
+  },
 ];
 
 export const featuredProjects = projects.filter(

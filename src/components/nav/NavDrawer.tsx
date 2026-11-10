@@ -97,9 +97,10 @@ const NavDrawer = ({ menuItems, socialIcons, onClose }: NavDrawerProps) => {
 
   return (
     <motion.div
+      id="mobile-navigation-drawer"
       ref={drawerRef}
       key="mobile-menu"
-      className="bg-background text-foreground fixed inset-0 z-9999 h-screen w-screen overflow-y-auto lg:hidden"
+      className="bg-background text-foreground fixed inset-0 z-9999 h-dvh w-full overflow-y-auto overscroll-contain lg:hidden"
       initial={reduceMotion ? { opacity: 0 } : { x: "100%", opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       exit={reduceMotion ? { opacity: 0 } : { x: "100%", opacity: 0 }}
@@ -131,7 +132,7 @@ const NavDrawer = ({ menuItems, socialIcons, onClose }: NavDrawerProps) => {
         className="data-grid pointer-events-none absolute inset-0 opacity-[0.12]"
       />
 
-      <div className="relative z-10 flex min-h-screen flex-col px-6 py-5">
+      <div className="relative z-10 flex min-h-dvh flex-col px-6 py-5">
         <div className="flex items-center justify-between gap-4">
           <Link
             href="/"
@@ -216,19 +217,18 @@ const NavDrawer = ({ menuItems, socialIcons, onClose }: NavDrawerProps) => {
             </p>
 
             <p className="text-foreground mt-4 text-base leading-relaxed font-semibold">
-              Bringing a software, systems, and data foundation into health information and
-              informatics.
+              Health Services Management student and former full-stack software developer building
+              toward clinical and biomedical informatics research.
             </p>
 
             <p className="text-muted mt-3 text-sm leading-relaxed">
-              I&apos;m seeking hands-on healthcare experience in health information, medical
-              records, documentation and data workflows, healthcare operations, and related support
-              roles.
+              I&apos;m open to opportunities in health information, research support, health IT,
+              data quality, healthcare operations, application support, and related work.
             </p>
 
             <p className="text-subtle mt-3 text-sm leading-relaxed">
-              Long term, I&apos;m building toward becoming a Women&apos;s Health Equity Advocate
-              &amp; Informatician.
+              My long-term focus is strengthening the evidence, data, and health information systems
+              shaping Black women&apos;s care.
             </p>
 
             <div className="mt-5 flex flex-wrap items-center gap-4">

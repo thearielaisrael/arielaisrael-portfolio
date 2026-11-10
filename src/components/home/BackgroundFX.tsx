@@ -26,8 +26,10 @@ export default function BackgroundFX({ opacityClass = "opacity-12", showParticle
       return;
     }
 
+    let isInViewport = true;
+
     const setSize = () => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
       dprRef.current = dpr;
 
@@ -78,7 +80,20 @@ export default function BackgroundFX({ opacityClass = "opacity-12", showParticle
 
     const maximumConnectionDistance = 120;
 
+    const stopAnimation = () => {
+      if (rafRef.current !== null) {
+        window.cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+    };
+
     const tick = () => {
+      rafRef.current = null;
+
+      if (document.hidden || !isInViewport) {
+        return;
+      }
+
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.scale(dprRef.current, dprRef.current);
@@ -129,14 +144,45 @@ export default function BackgroundFX({ opacityClass = "opacity-12", showParticle
       rafRef.current = window.requestAnimationFrame(tick);
     };
 
-    rafRef.current = window.requestAnimationFrame(tick);
+    const startAnimation = () => {
+      if (rafRef.current === null && !document.hidden && isInViewport) {
+        rafRef.current = window.requestAnimationFrame(tick);
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        stopAnimation();
+      } else {
+        startAnimation();
+      }
+    };
+
+    const viewportObserver = new IntersectionObserver(
+      ([entry]) => {
+        isInViewport = entry.isIntersecting;
+
+        if (isInViewport) {
+          startAnimation();
+        } else {
+          stopAnimation();
+        }
+      },
+      {
+        threshold: 0,
+      },
+    );
+
+    viewportObserver.observe(canvas);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    startAnimation();
 
     return () => {
-      if (rafRef.current !== null) {
-        window.cancelAnimationFrame(rafRef.current);
-      }
-
+      stopAnimation();
+      viewportObserver.disconnect();
       themeObserver.disconnect();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("resize", setSize);
     };
   }, [showParticles]);

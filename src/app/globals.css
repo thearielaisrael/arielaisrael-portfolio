@@ -35,6 +35,8 @@
   --color-signature-aura-pink: #ff699e;
   --color-accessible-rose: #c42b70;
 
+  --color-signature-text: #ed3f98;
+
   --color-aura-center: #ff91b8;
   --color-aura-bloom: #ffa0c1;
   --color-aura-blush: #ffaec8;
@@ -135,8 +137,8 @@
   /* ----------------------------------------------------------
      Pink Academia focus rings
   ---------------------------------------------------------- */
-  --ring-brand: 0 0 0 3px rgba(196, 43, 112, 0.34);
-  --ring-secondary: 0 0 0 3px rgba(36, 199, 201, 0.34);
+  --color-focus-brand: var(--color-accessible-rose);
+  --color-focus-secondary: var(--color-aqua-ink);
 
   /* ----------------------------------------------------------
      Pink Academia gradients
@@ -185,6 +187,8 @@
 
   --color-signature-aura-pink: #ff699e;
   --color-aura-center: #ff91b8;
+
+  --color-signature-text: var(--color-aura-center);
 
   --color-luminous-aqua: #5ee1e6;
   --color-luminous-periwinkle: #9ea8ff;
@@ -249,8 +253,8 @@
     0 0 0 1px rgba(255, 145, 184, 0.12), 0 18px 60px rgba(255, 105, 158, 0.24),
     0 0 48px rgba(196, 167, 255, 0.12), 0 0 72px rgba(94, 225, 230, 0.06);
 
-  --ring-brand: 0 0 0 3px rgba(255, 145, 184, 0.42);
-  --ring-secondary: 0 0 0 3px rgba(94, 225, 230, 0.38);
+  --color-focus-brand: var(--color-aura-center);
+  --color-focus-secondary: var(--color-luminous-aqua);
 
   /* ----------------------------------------------------------
      Pink Informatics Night gradients
@@ -317,7 +321,8 @@
   }
 
   .ring-brand:focus-visible {
-    box-shadow: var(--ring-brand);
+    outline: 3px solid var(--color-focus-brand);
+    outline-offset: 3px;
   }
 
   .ring-secondary {
@@ -325,7 +330,8 @@
   }
 
   .ring-secondary:focus-visible {
-    box-shadow: var(--ring-secondary);
+    outline: 3px solid var(--color-focus-secondary);
+    outline-offset: 3px;
   }
 
   /* Background helpers */
@@ -554,5 +560,20 @@
 
   .dark .fx-blend-screen {
     mix-blend-mode: screen;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }

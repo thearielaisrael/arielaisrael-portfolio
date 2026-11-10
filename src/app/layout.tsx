@@ -25,12 +25,32 @@ const geistMono = Geist_Mono({
   weight: ["400", "500", "600"],
 });
 
-const siteUrl = "https://thearielaisrael.com";
+const siteUrl = "https://www.thearielaisrael.com";
 
-const siteTitle = "Ariela Israel | Health Information, Data & Women’s Health Equity";
+const siteTitle = "Ariela Israel | Health Information & Biomedical Informatics";
 
 const siteDescription =
-  "Health Services Management student studying health information and data analytics, with a professional systems background and a long-term focus on women’s health equity and informatics.";
+  "Health Services Management student and former software developer building toward clinical and biomedical informatics research focused on health equity for Black women.";
+
+const personJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: "Ariela Israel",
+  url: siteUrl,
+  description:
+    "Health Services Management student and former full-stack software developer building toward clinical and biomedical informatics research focused on Black women's health equity.",
+  affiliation: {
+    "@type": "CollegeOrUniversity",
+    name: "University of Maryland Global Campus",
+    url: "https://www.umgc.edu",
+  },
+  sameAs: [
+    "https://github.com/thearielaisrael",
+    "https://linkedin.com/in/ariela-israel",
+    "https://theinformaticsdiary.substack.com",
+    "https://youtube.com/@thearielaisrael",
+  ],
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -58,28 +78,6 @@ export const metadata: Metadata = {
   creator: "Ariela Israel",
   publisher: "Ariela Israel",
 
-  keywords: [
-    "Ariela Israel",
-    "health information",
-    "healthcare data",
-    "health informatics",
-    "biomedical informatics",
-    "health information management",
-    "health services management",
-    "data analytics",
-    "women's health equity",
-    "women's health equity advocate",
-    "informaticist",
-    "racial disparities in healthcare",
-    "delayed diagnosis",
-    "whole-body women's health",
-    "precision medicine",
-    "healthcare systems",
-    "patient-centered technology",
-    "structured data",
-    "information systems",
-  ],
-
   formatDetection: {
     email: false,
     address: false,
@@ -93,12 +91,21 @@ export const metadata: Metadata = {
     title: siteTitle,
     description: siteDescription,
     url: siteUrl,
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Ariela Israel, Health Services Management student and former software developer building toward clinical and biomedical informatics research",
+      },
+    ],
   },
 
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: siteTitle,
     description: siteDescription,
+    images: ["/opengraph-image"],
   },
 
   robots: {
@@ -162,9 +169,25 @@ export default function RootLayout({
       <body
         className={`${plusJakartaSans.variable} ${nunitoSans.variable} ${geistMono.variable} bg-background text-foreground overflow-x-hidden overflow-y-scroll antialiased`}
       >
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(personJsonLd).replace(/</g, "\\u003c"),
+          }}
+        />
+
+        <a
+          href="#main-content"
+          className="ring-brand bg-cta text-cta-foreground sr-only z-10000 rounded-full px-5 py-3 font-semibold focus:not-sr-only focus:fixed focus:top-4 focus:left-4"
+        >
+          Skip to main content
+        </a>
+
         <Header />
 
-        {children}
+        <div id="main-content" tabIndex={-1} className="scroll-mt-24">
+          {children}
+        </div>
 
         <Footer />
       </body>

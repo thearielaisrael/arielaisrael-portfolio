@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   title: "Projects",
 
   description:
-    "Explore Ariela Israel's completed software and systems work alongside developing educational projects in health information, biomedical informatics, healthcare data, and women's health equity.",
+    "Explore Ariela Israel's completed software work and developing educational projects in health information, data quality, biomedical informatics, and health equity for Black women.",
 
   alternates: {
     canonical: "/projects",
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Projects | Ariela Israel",
     description:
-      "Completed technical work and developing educational projects connecting software systems, health information, biomedical informatics, healthcare data, and women's health equity.",
+      "Completed software systems and developing educational projects connecting technical experience with health information, research, data quality, and health equity for Black women.",
     url: "/projects",
   },
 };
@@ -34,9 +34,21 @@ export default function ProjectsPage() {
     <main className="mx-auto w-full max-w-360 px-6 pb-24 md:px-10">
       <PageHeader
         eyebrow="Projects"
-        heading="Projects connecting information, systems, and women's health equity"
-        description="A collection of completed technical work and developing educational projects across software systems, health information, healthcare data, research, informatics, and women's health equity."
-        supportingText="My completed software and systems work provides the technical foundation. Through undergraduate study, independent inquiry, and project-based learning, I'm developing the healthcare knowledge needed to explore how information and technology may support more precise and equitable care."
+        heading="Connecting software foundations with health information and research"
+        description={
+          <>
+            This portfolio includes completed professional and educational software work alongside
+            developing project concepts in health information, data quality, research, and Black
+            women&apos;s health equity.
+          </>
+        }
+        supportingText={
+          <>
+            My completed projects demonstrate the technical foundation I already have. My developing
+            work is designed to help me build domain knowledge and analytical experience without
+            presenting planned concepts as completed health-informatics research.
+          </>
+        }
       />
 
       <section aria-labelledby="selected-work-heading" className="mt-16 md:mt-20">
@@ -51,9 +63,9 @@ export default function ProjectsPage() {
           </h2>
 
           <p className="text-muted mt-4 text-base leading-relaxed md:text-lg">
-            Selected professional and educational projects demonstrating full-stack development,
-            structured information, database-backed systems, operational workflows, accessibility,
-            testing, and technical problem-solving.
+            These completed professional and educational projects demonstrate full-stack
+            development, relational data modeling, database-backed systems, operational workflows,
+            accessibility, testing, documentation, and technical problem-solving.
           </p>
         </div>
 
@@ -68,8 +80,15 @@ export default function ProjectsPage() {
         <ProjectSection
           id="developing-work"
           eyebrow="Developing Work"
-          heading="Applying technical foundations to health data and equity"
-          description="Planned educational projects connecting my established systems and data experience with health information, data quality, women's health equity, research methods, and responsible analysis."
+          heading="Applying technical foundations to health information and equity"
+          description={
+            <>
+              These planned educational projects connect my software and structured-data experience
+              with health-record quality, responsible analysis, research methods, and Black
+              women&apos;s health equity. They are presented as concepts until implementation
+              begins.
+            </>
+          }
           projects={developingProjects}
         />
       ) : null}
@@ -87,7 +106,7 @@ function ProjectSection({
   id: string;
   eyebrow: string;
   heading: string;
-  description: string;
+  description: React.ReactNode;
   projects: Project[];
 }) {
   return (

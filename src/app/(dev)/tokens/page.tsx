@@ -616,8 +616,8 @@ export default function TokenPage() {
             <HierarchyCard
               number="03"
               label="Long-Term Direction"
-              title="Women's Health Equity Advocate, Informaticist, and Researcher"
-              description="Building toward clinical and biomedical informatics research focused on women's health equity, longitudinal data, diagnostic disparities, clinical phenotyping, and precision medicine."
+              title="Black Women's Health Equity Advocate, Informaticist, and Researcher"
+              description="Building toward clinical and biomedical informatics research focused on Black women's health equity, longitudinal data, diagnostic disparities, clinical phenotyping, and precision medicine."
               editorial
             />
           </div>
@@ -635,7 +635,7 @@ export default function TokenPage() {
               tone="Warm, clear, scholarly"
               description="A feminine scholarly environment for advocacy, education, evidence-conscious writing, professional communication, and reflective learning."
               uses={[
-                "Women's health equity and advocacy",
+                "Black Women's health equity and advocacy",
                 "Research summaries and evidence-conscious writing",
                 "Academic notes and learning reflections",
                 "Recruiter-facing and professional materials",
@@ -1048,7 +1048,7 @@ export default function TokenPage() {
               </p>
 
               <p className="text-muted mt-4 text-sm leading-relaxed">
-                My advocacy centers racially underserved and underrepresented women who are too
+                My advocacy centers Black women who are too
                 often dismissed, diagnosed late, undertreated, overlooked in research, or left
                 without clear information and coordinated care.
               </p>

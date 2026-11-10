@@ -13,14 +13,14 @@ import { ChipRegBorder } from "@/src/components/ui/Chips";
 import { SocialIcons } from "@/src/data/navData";
 
 const openTo = [
-  "Application & Systems Support",
-  "Data Quality & Validation",
-  "Health Information",
-  "Healthcare Data Coordination",
+  "Health Information & Medical Records",
+  "Research Support & Coordination",
+  "Health Data Quality & Validation",
+  "Health IT & Application Support",
+  "Healthcare Data & Reporting",
   "Healthcare Operations",
-  "Junior Data & Reporting",
-  "Research Data Support",
-  "Women's Health Equity",
+  "Junior Data Roles",
+  "Black Women's Health Equity",
 ];
 
 const contactReasons = [
@@ -54,7 +54,7 @@ const contactReasons = [
   },
   {
     value: "equity-informatics",
-    label: "Women's Health Equity or Informatics",
+    label: "Black Women's Health Equity or Informatics",
   },
   {
     value: "collaboration",
@@ -73,9 +73,21 @@ export default function ContactPage() {
     <main className="mx-auto w-full max-w-360 px-6 pb-24 md:px-10">
       <PageHeader
         eyebrow="Contact"
-        heading="Let's connect about systems, health information, data, and research"
-        description="I'm open to professional opportunities across application and systems support, data quality, health information, healthcare data coordination, reporting, healthcare operations, and related roles."
-        supportingText="I also welcome thoughtful academic and professional conversations about women's health equity, clinical and biomedical informatics, research, responsible health technology, and public scholarship."
+        heading="Connect about health information, data, systems, and research"
+        description={
+          <>
+            I&apos;m open to opportunities in health information, research support, health IT,
+            data-quality work, healthcare operations, application and systems support, and related
+            roles where my technical and organizational experience can contribute.
+          </>
+        }
+        supportingText={
+          <>
+            I also welcome thoughtful academic and professional conversations about Black
+            women&apos;s health equity, clinical and biomedical informatics, research, responsible
+            health technology, and public scholarship.
+          </>
+        }
       />
 
       <section aria-labelledby="contact-form-heading" className="mt-16 md:mt-20">
@@ -107,8 +119,9 @@ export default function ContactPage() {
                 </p>
 
                 <p className="text-muted mt-4 text-sm leading-relaxed">
-                  Long term, I&apos;m building toward work as a Women&apos;s Health Equity Advocate,
-                  Clinical and Biomedical Informaticist, and researcher.
+                  Long term, I&apos;m building toward clinical and biomedical informatics research
+                  focused on strengthening the evidence, data, and health information systems
+                  shaping Black women&apos;s care.
                 </p>
               </div>
 

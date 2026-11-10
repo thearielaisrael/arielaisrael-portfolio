@@ -2,62 +2,99 @@ import Link from "next/link";
 
 import Hero from "../../components/home/Hero";
 import { FeaturedProjectCard } from "../../components/projects/FeaturedProjectCard";
-import { PrimaryCTA, SecondaryCTA } from "../../components/ui/Buttons";
+import { PrimaryCTA } from "../../components/ui/Buttons";
 import { projects } from "../../data/projectData";
 
 import type { Metadata } from "next";
 import { Card, GlassCard } from "@/src/components/ui/Cards";
 
+import type { ReactNode } from "react";
+
 export const metadata: Metadata = {
   title: {
-    absolute: "Ariela Israel | Software, Health Information & Informatics",
+    absolute: "Ariela Israel | Health Data, Informatics & Health Equity",
   },
 
   description:
-    "Software developer and Health Services Management student bringing experience with structured data, systems, documentation, accessibility, and operational workflows into healthcare.",
+    "Health Services Management student and former full-stack software developer building toward clinical and biomedical informatics research focused on Black women's health equity.",
 
   alternates: {
     canonical: "/",
   },
 
   openGraph: {
-    title: "Ariela Israel | Software, Health Information & Informatics",
+    title: "Ariela Israel | Health Data, Informatics & Health Equity",
     description:
-      "Software developer and Health Services Management student bringing a systems-and-data foundation into healthcare.",
+      "Building toward clinical and biomedical informatics research focused on Black women's health equity, longitudinal health data, and precision medicine.",
     url: "/",
   },
 };
 
-const questions = [
+const questions: {
+  key: string;
+  title: ReactNode;
+  description: ReactNode;
+}[] = [
   {
-    title: "Women's Health Equity",
-    description:
-      "Investigating disparities in diagnosis, treatment, research representation, clinical recognition, and health outcomes across women's whole-body health.",
+    key: "black-womens-health-equity",
+    title: <>Black Women&apos;s Health Equity</>,
+    description: (
+      <>
+        Investigating disparities in disease recognition, diagnosis, treatment, research
+        representation, clinical response, and health outcomes across Black women&apos;s whole-body
+        health.
+      </>
+    ),
   },
   {
-    title: "Longitudinal Health Data",
-    description:
-      "Exploring how patterns across time can reveal disease trajectories, missed opportunities for recognition, and gaps in care.",
+    key: "longitudinal-health-data",
+    title: <>Longitudinal Health Data</>,
+    description: (
+      <>
+        Exploring how patterns across time can reveal disease trajectories, diagnostic delay,
+        fragmented care, and missed opportunities for earlier clinical recognition.
+      </>
+    ),
   },
   {
-    title: "Clinical Phenotyping",
-    description:
-      "Learning how clinical data can be transformed into meaningful representations of health, disease, symptoms, and patient trajectories.",
+    key: "clinical-phenotyping",
+    title: <>Clinical Phenotyping</>,
+    description: (
+      <>
+        Learning how clinical data can be transformed into meaningful representations of symptoms,
+        conditions, disease progression, and patient trajectories.
+      </>
+    ),
   },
   {
-    title: "Clinical & Biomedical Informatics",
-    description:
-      "Studying how health information, biomedical knowledge, computational methods, and technology can support research and better care.",
+    key: "clinical-biomedical-informatics",
+    title: <>Clinical & Biomedical Informatics</>,
+    description: (
+      <>
+        Studying how health information, biomedical knowledge, computational methods, and technology
+        can support research, clinical understanding, and better care.
+      </>
+    ),
   },
   {
-    title: "Precision Medicine",
-    description:
-      "Exploring how clinical, genomic, biomarker, environmental, and other data can support more individualized approaches to prevention, diagnosis, and treatment.",
+    key: "precision-medicine",
+    title: <>Precision Medicine</>,
+    description: (
+      <>
+        Exploring how clinical, genomic, biomarker, environmental, and other data can support more
+        individualized approaches to prevention, diagnosis, and treatment.
+      </>
+    ),
   },
   {
-    title: "Equitable Clinical Intelligence",
-    description:
-      "Examining how decision support, algorithms, and AI can improve care without reproducing disparities already present in healthcare and its data.",
+    key: "equitable-clinical-intelligence",
+    title: <>Equitable Clinical Intelligence</>,
+    description: (
+      <>
+        Examining how decision support, algorithms, and AI can improve care without reproducing
+        disparities already embedded in healthcare systems and their data.
+      </>
+    ),
   },
 ];
 
@@ -74,21 +111,21 @@ export default function HomePage() {
             <SectionLabel>Research Interests</SectionLabel>
 
             <h2 className="font-heading text-primary tracking-light text-3xl leading-[1.08] font-bold text-balance md:text-5xl">
-              Questions I want to learn to answer
+              Questions shaping my developing research direction
             </h2>
 
             <p className="text-muted max-w-3xl text-base leading-relaxed md:text-lg">
-              My developing research interests center on how clinical and biomedical data can help
-              identify inequities, improve clinical understanding, and support more precise and
-              equitable care for women, particularly those who have been underserved or
-              underrepresented in healthcare and research.
+              My developing research interests center on how clinical and biomedical data can
+              improve disease recognition, expose inequities, and support more precise care for
+              Black women. These are long-term areas of inquiry that are guiding what I study now in
+              health services, research methods, health information, data analysis, and informatics.
             </p>
           </div>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
           {questions.map((question) => (
-            <Card key={question.title}>
+            <Card key={question.key}>
               <article>
                 <h3 className="font-heading text-primary mt-4 text-2xl leading-tight font-semibold">
                   {question.title}
@@ -113,26 +150,33 @@ export default function HomePage() {
                 id="equity-lens-heading"
                 className="font-heading text-primary mt-3 text-3xl leading-tight font-bold tracking-tight md:text-4xl"
               >
-                How can clinical and biomedical informatics use longitudinal phenotyping to help
-                shorten diagnostic delay in women&apos;s health?
+                How can longitudinal clinical data and phenotyping improve disease recognition and
+                shorten diagnostic delay for Black women?
               </h2>
             </div>
 
             <div className="text-muted flex flex-col space-y-5 text-base leading-relaxed md:text-lg">
               <p>
-                This question reflects an emerging area of interest rather than a completed research
-                study. I&apos;m using it to guide what I learn about research methods, statistics,
-                clinical data, phenotyping, health disparities, and biomedical informatics.
+                This is a developing research direction, not a completed study or a claim of
+                established expertise. I&apos;m using it to guide what I learn about research
+                methods, statistics, clinical data, health disparities, phenotyping, and biomedical
+                informatics.
               </p>
 
               <h3 className="mb-0 font-bold tracking-wide">Why this question?</h3>
 
               <p className="text-muted mt-3 text-sm leading-relaxed md:text-base">
-                Diagnostic delay can emerge from more than a single clinical encounter. Symptoms,
+                Disease recognition does not depend on a single clinical encounter. Symptoms,
                 diagnoses, laboratory results, referrals, treatments, and patterns of healthcare use
-                may accumulate across years of a patient&apos;s record. I&apos;m interested in
-                whether informatics can help identify those longitudinal patterns and whether doing
-                so can contribute to earlier, more equitable recognition of disease in women.
+                can accumulate across years of a patient&apos;s record. When those signals remain
+                fragmented or are interpreted without sufficient evidence, opportunities for earlier
+                recognition may be missed.
+              </p>
+
+              <p className="text-muted mt-3 text-sm leading-relaxed md:text-base">
+                I&apos;m interested in whether informatics can help connect those longitudinal
+                patterns, strengthen the evidence used to understand disease in Black women, and
+                support more timely and equitable clinical response.
               </p>
 
               <Link
@@ -153,14 +197,15 @@ export default function HomePage() {
             <SectionLabel>Selected Work</SectionLabel>
 
             <h2 className="font-heading text-primary tracking-light text-3xl leading-[1.08] font-bold text-balance md:text-5xl">
-              Technical foundations for where I&apos;m going next
+              Software foundations for a future in health data and informatics
             </h2>
 
             <p className="text-muted max-w-3xl text-base leading-relaxed md:text-lg">
-              My software engineering background shaped how I think about systems, structured data,
-              accessibility, documentation, reliability, and the people who depend on technology.
-              These projects represent the technical foundation I&apos;m bringing into clinical and
-              biomedical informatics.
+              Before beginning my health-services and informatics path, I worked in full-stack
+              software development. These projects demonstrate the systems thinking, structured-data
+              experience, accessibility practices, documentation, testing, and technical
+              problem-solving I&apos;m carrying into health information, research support, and
+              clinical and biomedical informatics.
             </p>
           </div>
 
@@ -186,15 +231,14 @@ export default function HomePage() {
             <SectionLabel>The Informatics Diary</SectionLabel>
 
             <h2 className="font-heading text-primary tracking-light text-3xl leading-[1.08] font-bold text-balance md:text-4xl">
-              Learning clinical & biomedical informatics in public
+              Documenting the path from software to clinical and biomedical informatics
             </h2>
 
             <p className="text-muted text-base leading-relaxed md:text-lg">
-              The Informatics Diary is my public learning journal documenting what I&apos;m
-              studying, reading, questioning, analyzing, and eventually researching as I develop in
-              clinical and biomedical informatics. I write at the intersection of women&apos;s
-              health equity, health data, research, and precision medicine, translating what I learn
-              while remaining transparent about what I&apos;m still learning.
+              The Informatics Diary is my public learning journal. It documents the questions,
+              concepts, evidence, and methods I encounter while developing foundations in health
+              services, research, health information, data analysis, and clinical and biomedical
+              informatics.
             </p>
           </div>
 
@@ -204,10 +248,10 @@ export default function HomePage() {
             </p>
 
             <p className="text-muted mb-6 text-base leading-relaxed md:text-lg">
-              My interest in informatics begins with the problems I care about: inequities in
-              women&apos;s health, gaps in diagnosis and clinical recognition, underrepresentation
-              in research and data, and the need for evidence that better reflects the women
-              medicine serves.
+              My interest in informatics begins with the problems I care about: incomplete evidence
+              about Black women&apos;s health, gaps in disease recognition and diagnosis, fragmented
+              clinical information, underrepresentation in research and data, and systems that do
+              not always reflect the people medicine is meant to serve.
             </p>
 
             <PrimaryCTA link="/writing" label="Read The Informatics Diary" />

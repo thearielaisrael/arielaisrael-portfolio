@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   title: "About",
 
   description:
-    "Learn about Ariela Israel's path toward clinical and biomedical informatics, women's health equity advocacy, health data, research, and precision medicine.",
+    "Learn about Ariela Israel's transition from full-stack software development to health services, health information, and clinical and biomedical informatics research.",
 
   alternates: {
     canonical: "/about",
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "About Ariela Israel",
     description:
-      "Health Services Management student, Women's Health Equity Advocate, and aspiring Clinical & Biomedical Informaticist building toward research in women's health equity.",
+      "Health Services Management student and former full-stack software developer building toward clinical and biomedical informatics research focused on Black women's health equity.",
     url: "/about",
   },
 };
@@ -33,9 +33,22 @@ export default function AboutPage() {
     <main className="mx-auto w-full max-w-360 px-6 pb-24 md:px-10">
       <PageHeader
         eyebrow="About Ariela"
-        heading="Building toward the intersection of women's health equity, evidence, and informatics"
-        description="I'm a Health Services Management student, Women's Health Equity Advocate, and aspiring Clinical & Biomedical Informaticist developing toward a research career focused on improving how women's health is understood through data, evidence, and technology."
-        supportingText="My path brings together healthcare systems, clinical and biomedical informatics, research, health data, precision medicine, and a technical foundation in software engineering."
+        heading="Building toward more equitable evidence, data, and health systems"
+        description={
+          <>
+            I&apos;m a Health Services Management student and former full-stack software developer
+            building toward clinical and biomedical informatics research focused on Black
+            women&apos;s whole-body health equity.
+          </>
+        }
+        supportingText={
+          <>
+            My path brings together healthcare systems, health information, research, data analysis,
+            and a technical foundation in software engineering. I&apos;m developing the knowledge
+            and methods needed to study how evidence, data, and information systems shape disease
+            recognition, diagnosis, treatment, and care.
+          </>
+        }
         actions={
           <>
             <PrimaryCTA link="/research" label="Explore My Research Direction" />
@@ -55,47 +68,49 @@ export default function AboutPage() {
               id="path-heading"
               className="font-heading text-primary mt-3 text-4xl leading-tight font-bold tracking-tight md:text-5xl"
             >
-              From building systems to studying what they can reveal.
+              From building software systems to studying the health systems they can support.
             </h2>
 
             <div className="text-muted mt-6 space-y-5 text-base leading-relaxed md:text-lg">
               <p>
                 I&apos;m pursuing a Bachelor of Science in Health Services Management at the
-                University of Maryland Global Campus, alongside certificates in Health Information
-                Management &amp; Data Analytics and Data Analytics.
+                University of Maryland Global Campus, with certificate pathways in Health
+                Information Management and Data Analytics, plus Data Analytics.
               </p>
 
               <p>
-                Through my undergraduate education, I&apos;m building a foundation in healthcare
-                systems, health information, data, research, and the organizational context in which
-                care occurs. I&apos;m especially interested in developing the research and
-                analytical skills that will prepare me for graduate study in clinical and biomedical
-                informatics.
+                My undergraduate education is helping me understand healthcare delivery,
+                organizational systems, health information, data, research, and the operational
+                context in which care occurs. I&apos;m also developing the research and analytical
+                foundation needed for future graduate study in clinical and biomedical informatics.
               </p>
 
               <p>
-                Before moving into healthcare, I worked in software development, building and
-                supporting digital applications, databases, APIs, and operational workflows. That
-                experience taught me to think in systems and to pay attention to structure, data,
-                documentation, accessibility, reliability, and how information moves between people
-                and technology.
+                Before beginning this path, I worked in full-stack software development. I built and
+                supported digital applications, databases, APIs, content systems, and operational
+                workflows. That experience taught me to think carefully about structure, data
+                quality, documentation, accessibility, reliability, and how information moves
+                between people and technology.
               </p>
 
               <p>
-                I don&apos;t intend to leave that technical foundation behind. Instead, I&apos;m
-                learning how to apply it to a different set of questions.
+                I&apos;m not leaving that technical foundation behind. I&apos;m learning how to
+                apply it to questions involving health information, clinical evidence, research, and
+                the systems that influence patient care.
               </p>
 
               <p className="text-foreground font-semibold">
-                What information are healthcare systems capturing? What are they missing? Whose
-                experiences are represented in the data? What patterns might exist across years of
-                care? How can those patterns become evidence, and how can that evidence contribute
-                to better decisions?
+                What information are healthcare systems capturing? What are they missing? How are
+                Black women&apos;s symptoms, conditions, and care experiences represented in the
+                evidence? What patterns may exist across years of clinical information, and how
+                might those patterns support earlier recognition and better decisions?
               </p>
 
               <p>
-                Those questions are leading me toward clinical and biomedical informatics, where I
-                hope to connect healthcare knowledge, data, research, technology, and advocacy.
+                Those questions are leading me toward clinical and biomedical informatics. My
+                long-term goal is to connect healthcare knowledge, rigorous research, meaningful
+                data, and responsible technology in service of Black women&apos;s whole-body health
+                equity.
               </p>
             </div>
           </div>
@@ -106,7 +121,12 @@ export default function AboutPage() {
             <div className="space-y-6">
               <InfoBlock
                 label="Academic Path"
-                body="BS in Health Services Management at UMGC, alongside certificates in Health Information Management & Data Analytics and Data Analytics."
+                body={
+                  <>
+                    BS in Health Services Management at UMGC, with certificate pathways in Health
+                    Information Management and Data Analytics, plus Data Analytics.
+                  </>
+                }
               />
 
               <div>
@@ -122,28 +142,55 @@ export default function AboutPage() {
               </div>
 
               <InfoBlock
-                label="Advocacy Focus"
-                body="Racial and systemic disparities affecting underserved and underrepresented women across whole-body health."
+                label="Health Equity Focus"
+                body={
+                  <>
+                    Black women&apos;s whole-body health, including diagnostic delay,
+                    undertreatment, fragmented care, incomplete clinical recognition, and research
+                    gaps.
+                  </>
+                }
               />
 
               <InfoBlock
                 label="Research Interests"
-                body="Longitudinal health data, clinical phenotyping, diagnostic disparities, clinical and biomedical informatics, precision medicine, and equitable clinical intelligence."
+                body={
+                  <>
+                    Longitudinal health data, clinical phenotyping, diagnostic disparities, clinical
+                    and biomedical informatics, precision medicine, and equitable clinical
+                    intelligence.
+                  </>
+                }
               />
 
               <InfoBlock
                 label="Developing Methods"
-                body="Research methods, statistics, scientific literature evaluation, health-data analysis, R, Python, and SQL."
+                body={
+                  <>
+                    Research methods, statistics, scientific literature evaluation, health-data
+                    analysis, R, Python, and SQL.
+                  </>
+                }
               />
 
               <InfoBlock
                 label="Technical Foundation"
-                body="Software engineering, structured data systems, databases, APIs, documentation, accessibility, testing, and systems thinking."
+                body={
+                  <>
+                    Full-stack software development, structured data systems, databases, APIs,
+                    documentation, accessibility, testing, and systems thinking.
+                  </>
+                }
               />
 
               <InfoBlock
                 label="Long-Term Direction"
-                body="Women's Health Equity Advocate, Clinical & Biomedical Informaticist, and researcher."
+                body={
+                  <>
+                    Clinical and biomedical informatics research advancing health equity for Black
+                    women through stronger evidence, data, and information systems.
+                  </>
+                }
               />
             </div>
           </GlassCard>
@@ -165,42 +212,43 @@ export default function AboutPage() {
                 The problem came before the technology.
               </h2>
 
-              <p className="font-heading text-signature-aura-pink mt-6 text-xl leading-snug font-medium tracking-[0.04em] uppercase italic md:text-2xl">
+              <p className="font-heading text-signature-text mt-6 text-2xl leading-snug font-medium tracking-[0.04em] uppercase italic md:text-2xl">
                 The advocacy and research fuel the technology, not the other way around.
               </p>
             </div>
 
             <div className="text-muted space-y-5 text-base leading-relaxed md:text-lg">
               <p>
-                I&apos;m interested in what happens when women aren&apos;t adequately represented,
-                recognized, believed, studied, or understood within healthcare.
+                I&apos;m interested in what happens when Black women are not adequately represented,
+                studied, recognized, believed, or understood within healthcare and biomedical
+                research.
               </p>
 
               <p>
-                My advocacy centers racially underserved and underrepresented women across
-                whole-body health, not only reproductive health. I&apos;m especially interested in
-                delayed diagnosis, undertreatment, fragmented care, research gaps, and information
-                barriers.
+                My long-term focus is Black women&apos;s whole-body health, not reproductive health
+                alone. That includes the racial and systemic factors that can contribute to
+                diagnostic delay, undertreatment, fragmented care, incomplete clinical recognition,
+                information barriers, and gaps in research.
               </p>
 
               <p>
-                My interests extend across reproductive, endocrine, metabolic, cardiovascular,
-                autoimmune, chronic illness, mental health, and multisystem concerns across the life
-                course. Women&apos;s health cannot be understood through reproductive health alone.
+                This direction extends across reproductive, endocrine, metabolic, cardiovascular,
+                autoimmune, neurological, chronic, mental, and multisystem health throughout the
+                life course. Black women&apos;s health cannot be fully understood through a single
+                organ system, condition, or stage of life.
               </p>
 
               <p>
-                Those problems are what draw me toward research and informatics. I want to
-                understand whether better data, stronger evidence, thoughtful informatics methods,
-                and responsible computational tools can help identify patterns that medicine has
-                historically overlooked.
+                These problems are what draw me toward research and informatics. I want to
+                understand whether stronger evidence, more complete data, thoughtful informatics
+                methods, and responsible computational tools can help reveal patterns that medicine
+                has historically overlooked.
               </p>
 
               <p>
                 I&apos;m particularly interested in how longitudinal clinical and biomedical data
-                can help investigate diagnostic disparities, improve clinical understanding, and
-                support more precise and equitable care for women who have been underserved or
-                underrepresented in healthcare and research.
+                could improve disease recognition, investigate diagnostic disparities, and support
+                more precise and equitable clinical responses for Black women.
               </p>
             </div>
           </div>
@@ -266,23 +314,30 @@ export default function AboutPage() {
                 id="direction-heading"
                 className="font-heading text-primary mt-3 text-4xl leading-tight font-bold tracking-tight md:text-5xl"
               >
-                Building toward research with room to contribute across healthcare.
+                Building the experience required for responsible research and informatics work.
               </h2>
             </div>
 
             <div className="text-muted space-y-5 text-base leading-relaxed md:text-lg">
               <p>
-                After completing my undergraduate education, I intend to pursue graduate training in
-                clinical and biomedical informatics while continuing to develop as a Women&apos;s
-                Health Equity Advocate and researcher.
+                My immediate goal is to continue developing through health information, research
+                support, healthcare operations, health IT, data-quality, and other roles where I can
+                strengthen my understanding of healthcare systems and contribute the technical and
+                organizational skills I already have.
               </p>
 
               <p>
-                I&apos;m preparing for work that can span research, health systems, government,
-                industry, and mission-driven organizations. The setting may change, but I want the
-                purpose of my work to remain consistent: connecting rigorous evidence, health
-                information, and responsible technology to meaningful improvements in women&apos;s
-                health.
+                After completing my undergraduate education, I intend to pursue graduate training in
+                clinical and biomedical informatics. My long-term goal is to conduct research that
+                connects rigorous evidence, longitudinal health data, and responsible technology to
+                better disease recognition and more equitable care for Black women.
+              </p>
+
+              <p>
+                That work could take place across academic research, health systems, government,
+                industry, or mission-driven organizations. The setting may change, but the purpose
+                remains consistent: making Black women more visible to the evidence, data, and
+                systems that shape medicine.
               </p>
             </div>
           </div>
@@ -293,8 +348,8 @@ export default function AboutPage() {
                 <SectionLabel>Current Research Direction</SectionLabel>
 
                 <p className="font-heading text-foreground mt-4 max-w-4xl text-2xl leading-tight font-semibold md:text-3xl">
-                  How can clinical and biomedical informatics use longitudinal phenotyping to help
-                  shorten diagnostic delay in women&apos;s health?
+                  How can longitudinal clinical data and phenotyping improve disease recognition and
+                  shorten diagnostic delay for Black women?
                 </p>
               </div>
 
@@ -333,7 +388,7 @@ export default function AboutPage() {
   );
 }
 
-function InfoBlock({ label, body }: { label: string; body: string }) {
+function InfoBlock({ label, body }: { label: string; body: React.ReactNode }) {
   return (
     <div>
       <SectionLabel>{label}</SectionLabel>

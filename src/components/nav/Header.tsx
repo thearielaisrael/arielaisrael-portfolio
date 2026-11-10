@@ -79,7 +79,7 @@ const Header = () => {
             <ThemeToggle />
           </div>
 
-          <MenuButton onClick={() => setMenuOpen(true)} />
+          <MenuButton isOpen={menuOpen} onClick={() => setMenuOpen(true)} />
         </div>
 
         <AnimatePresence>

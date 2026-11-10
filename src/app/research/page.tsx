@@ -7,62 +7,112 @@ import { SectionLabel } from "@/src/components/projects/SectionLabel";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Research",
+  title: "Research Direction",
 
   description:
-    "Explore Ariela Israel's developing research interests in women's health equity, longitudinal health data, clinical phenotyping, diagnostic disparities, and clinical and biomedical informatics.",
+    "Explore Ariela Israel's developing research direction in Black women's health equity, longitudinal clinical data, clinical phenotyping, diagnostic disparities, and biomedical informatics.",
 
   alternates: {
     canonical: "/research",
   },
 
   openGraph: {
-    title: "Research | Ariela Israel",
+    title: "Research Direction | Ariela Israel",
     description:
-      "Developing research interests connecting women's health equity, longitudinal health data, clinical phenotyping, diagnostic disparities, and biomedical informatics.",
+      "A developing research direction connecting Black women's health equity, longitudinal clinical data, disease recognition, clinical phenotyping, and biomedical informatics.",
     url: "/research",
   },
 };
 
 const researchTopics = [
-  "Women's Health Equity",
-  "Longitudinal Health Data",
-  "Clinical Phenotyping",
-  "Diagnostic Disparities",
-  "Biomedical Informatics",
-  "Precision Medicine",
+  {
+    key: "black-womens-health-equity",
+    label: <>Black Women&apos;s Health Equity</>,
+  },
+  {
+    key: "longitudinal-clinical-data",
+    label: <>Longitudinal Clinical Data</>,
+  },
+  {
+    key: "clinical-phenotyping",
+    label: <>Clinical Phenotyping</>,
+  },
+  {
+    key: "diagnostic-disparities",
+    label: <>Diagnostic Disparities</>,
+  },
+  {
+    key: "biomedical-informatics",
+    label: <>Biomedical Informatics</>,
+  },
+  {
+    key: "precision-medicine",
+    label: <>Precision Medicine</>,
+  },
 ];
 
 const researchInterestAreas = [
   {
-    title: "Women's Health Equity",
-    description:
-      "Studying disparities in recognition, diagnosis, treatment, research representation, and health outcomes across women's whole-body health.",
+    key: "black-womens-health-equity",
+    title: <>Black Women&apos;s Health Equity</>,
+    description: (
+      <>
+        Investigating disparities in disease recognition, diagnosis, treatment, research
+        representation, clinical response, and health outcomes across Black women&apos;s whole-body
+        health.
+      </>
+    ),
   },
   {
-    title: "Longitudinal Health Data",
-    description:
-      "Exploring how information gathered across years of care may reveal patterns, changes, and missed opportunities that are difficult to see in isolated encounters.",
+    key: "longitudinal-clinical-data",
+    title: <>Longitudinal Clinical Data</>,
+    description: (
+      <>
+        Exploring how information gathered across years of care may reveal disease trajectories,
+        changes, and missed opportunities that are difficult to see in isolated encounters.
+      </>
+    ),
   },
   {
-    title: "Clinical Phenotyping",
-    description:
-      "Learning how clinical information can be organized into meaningful representations of symptoms, conditions, disease patterns, and patient trajectories.",
+    key: "clinical-phenotyping",
+    title: <>Clinical Phenotyping</>,
+    description: (
+      <>
+        Learning how clinical information can be organized into meaningful representations of
+        symptoms, conditions, disease patterns, and patient trajectories.
+      </>
+    ),
   },
   {
-    title: "Clinical & Biomedical Informatics",
-    description:
-      "Examining how health information, biomedical knowledge, computational methods, and technology can support research and better-informed care.",
+    key: "clinical-biomedical-informatics",
+    title: <>Clinical & Biomedical Informatics</>,
+    description: (
+      <>
+        Examining how health information, biomedical knowledge, computational methods, and
+        technology can support research, clinical understanding, and better-informed care.
+      </>
+    ),
   },
   {
-    title: "Precision Medicine",
-    description:
-      "Exploring how clinical, biological, environmental, and other health information may contribute to more individualized approaches to prevention, diagnosis, and treatment.",
+    key: "precision-medicine",
+    title: <>Precision Medicine</>,
+    description: (
+      <>
+        Exploring how clinical, biological, environmental, and other health information may
+        contribute to more individualized approaches to prevention, diagnosis, and treatment.
+      </>
+    ),
   },
   {
-    title: "Equitable Clinical Intelligence",
-    description:
-      "Questioning how decision support, algorithms, and artificial intelligence can be developed and evaluated without reproducing disparities already present in healthcare and its data.",
+    key: "equitable-clinical-intelligence",
+    title: <>Equitable Clinical Intelligence</>,
+    description: (
+      <>
+        Questioning how decision support, algorithms, and artificial intelligence can be developed
+        and evaluated without reproducing disparities already present in healthcare systems and
+        their data.
+      </>
+    ),
   },
 ];
 
@@ -97,26 +147,44 @@ const currentResearchActivity = [
   {
     label: "Formal Study",
     title: "Undergraduate healthcare and data education",
-    description:
-      "Pursuing a BS in Health Services Management at UMGC alongside certificates in Health Information Management & Data Analytics and Data Analytics.",
+    description: (
+      <>
+        Pursuing a BS in Health Services Management at UMGC, with certificate pathways in Health
+        Information Management & Data Analytics and Data Analytics.
+      </>
+    ),
   },
   {
     label: "Independent Inquiry",
     title: "Building research literacy",
-    description:
-      "Reading across women's health equity, diagnostic disparities, longitudinal health information, clinical phenotyping, biomedical informatics, and precision medicine while learning how to evaluate evidence and document limitations.",
+    description: (
+      <>
+        Reading across Black women&apos;s health equity, diagnostic disparities, longitudinal
+        clinical information, clinical phenotyping, biomedical informatics, and precision medicine
+        while learning to evaluate evidence and document limitations.
+      </>
+    ),
   },
   {
     label: "Public Learning Archive",
     title: "The Informatics Diary",
-    description:
-      "Documenting what I am studying, questioning, researching, and building while clearly distinguishing established evidence, interpretation, and developing knowledge.",
+    description: (
+      <>
+        Documenting what I am studying, questioning, analyzing, and building while clearly
+        distinguishing established evidence, interpretation, and developing knowledge.
+      </>
+    ),
   },
   {
     label: "Applied Learning",
-    title: "Planned educational projects",
-    description:
-      "Developing project concepts that use synthetic or appropriately sourced public data to explore health-record quality, longitudinal information, care gaps, and women's health equity.",
+    title: "Developing educational project concepts",
+    description: (
+      <>
+        Planning projects that use synthetic or appropriately sourced public data to explore
+        health-record quality, longitudinal information, care gaps, disease recognition, and Black
+        women&apos;s health equity.
+      </>
+    ),
   },
 ];
 
@@ -124,20 +192,20 @@ export default function ResearchPage() {
   return (
     <main className="mx-auto w-full max-w-360 space-y-20 px-6 pb-24 md:px-10">
       <PageHeader
-        eyebrow="Research"
-        heading="Studying how health data can reveal what women's healthcare has missed"
+        eyebrow="Developing Research Direction"
+        heading="Studying how health data can reveal what medicine has missed"
         description={
           <>
-            My developing research interests examine how clinical and biomedical data may help
-            investigate disparities in women&apos;s health, improve clinical understanding, and
-            support more precise and equitable care.
+            My developing research interests examine how clinical and biomedical data could improve
+            disease recognition, expose diagnostic disparities, and support more precise and
+            equitable clinical responses for Black women.
           </>
         }
         supportingText={
           <>
-            I&apos;m particularly interested in longitudinal health data, clinical phenotyping,
-            diagnostic disparities, precision medicine, and the representation of underserved and
-            underrepresented women in healthcare data and research.
+            I&apos;m particularly interested in longitudinal clinical data, clinical phenotyping,
+            diagnostic delay, precision medicine, data quality, and the representation of Black
+            women in healthcare evidence and biomedical research.
           </>
         }
       />
@@ -145,7 +213,7 @@ export default function ResearchPage() {
       <section aria-label="Research interest topics" className="-mt-12">
         <div className="flex flex-wrap gap-2">
           {researchTopics.map((topic) => (
-            <ChipThinBorder key={topic}>{topic}</ChipThinBorder>
+            <ChipThinBorder key={topic.key}>{topic.label}</ChipThinBorder>
           ))}
         </div>
       </section>
@@ -166,24 +234,25 @@ export default function ResearchPage() {
 
             <div className="text-muted max-w-6xl space-y-5 text-base leading-relaxed md:text-lg">
               <p>
-                Women can move through healthcare systems for years before receiving an accurate
-                diagnosis, appropriate treatment, or a complete explanation for their symptoms. For
-                underserved and underrepresented women, these experiences may also intersect with
-                racial disparities, fragmented care, research gaps, and insufficient representation
-                in the evidence used to understand disease.
+                Black women can move through healthcare systems for years before receiving an
+                accurate diagnosis, appropriate treatment, or a complete explanation for their
+                symptoms. These experiences can intersect with racial disparities, fragmented care,
+                incomplete clinical recognition, research gaps, and insufficient representation in
+                the evidence used to understand disease.
               </p>
 
               <p>
                 This raises questions I want to learn how to investigate. What patterns accumulate
                 across a patient&apos;s history before a diagnosis is made? Which symptoms,
                 encounters, laboratory findings, diagnoses, referrals, and treatment decisions might
-                become meaningful when examined longitudinally instead of one visit at a time? Are
-                important patterns being documented but not connected?
+                become meaningful when examined longitudinally instead of one visit at a time? What
+                information is being documented but not connected?
               </p>
 
               <p className="text-foreground font-semibold">
-                My research interests begin with the possibility that information distributed across
-                years of care may contain patterns worth studying.
+                My research direction begins with the possibility that information distributed
+                across years of care may contain patterns that could strengthen disease recognition
+                and the evidence available about Black women&apos;s health.
               </p>
             </div>
           </div>
@@ -202,15 +271,16 @@ export default function ResearchPage() {
           </h2>
 
           <p className="text-muted text-base leading-relaxed md:text-lg">
-            My interests connect women&apos;s health equity with the information, methods, and
-            technologies used to understand health and disease. Together, these areas are shaping
-            the questions I hope to investigate through continued study and future research.
+            My interests connect Black women&apos;s whole-body health equity with the information,
+            evidence, methods, and technologies used to understand health and disease. These areas
+            are guiding what I study now and the questions I hope to investigate through future
+            research.
           </p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {researchInterestAreas.map((interest) => (
-            <article key={interest.title}>
+            <article key={interest.key} className="h-full [&>div]:h-full">
               <Card>
                 <h3 className="font-heading text-primary text-xl leading-tight font-semibold">
                   {interest.title}
@@ -233,34 +303,34 @@ export default function ResearchPage() {
                 id="research-question-heading"
                 className="font-heading text-primary mt-3 text-3xl leading-tight font-bold tracking-tight text-balance md:text-5xl"
               >
-                How can clinical and biomedical informatics use longitudinal phenotyping to help
-                shorten diagnostic delay in women&apos;s health?
+                How can longitudinal clinical data and phenotyping improve disease recognition and
+                shorten diagnostic delay for Black women?
               </h2>
             </div>
 
             <div className="text-muted space-y-5 text-base leading-relaxed md:text-lg">
               <p>
-                This question represents an emerging area of interest rather than a completed
-                research study. I&apos;m using it to guide what I learn about research methods,
-                statistics, clinical data, phenotyping, health disparities, and biomedical
-                informatics.
+                This question represents a developing research direction, not a completed study or a
+                claim of established expertise. I&apos;m using it to guide what I learn about
+                research methods, statistics, clinical data, health disparities, phenotyping, and
+                biomedical informatics.
               </p>
 
               <div>
                 <h3 className="text-foreground font-semibold">Why this question?</h3>
 
                 <p className="mt-3">
-                  Diagnostic delay can emerge across more than a single clinical encounter.
-                  Symptoms, laboratory results, diagnoses, referrals, medications, treatments, and
-                  patterns of care may accumulate across years of a patient&apos;s record.
+                  Disease recognition does not depend on a single clinical encounter. Symptoms,
+                  laboratory results, diagnoses, referrals, medications, treatments, and patterns of
+                  healthcare use can accumulate across years of a patient&apos;s record.
                 </p>
               </div>
 
               <p>
-                I want to understand whether informatics methods can help researchers study those
-                longitudinal patterns, how the patterns should be interpreted responsibly, and
-                whether that work could contribute to earlier and more equitable recognition of
-                disease in women.
+                I want to understand whether informatics methods can help researchers connect and
+                responsibly interpret those longitudinal patterns, strengthen the evidence available
+                about Black women&apos;s health, and support earlier and more equitable clinical
+                recognition.
               </p>
 
               <p className="text-subtle text-sm">
@@ -320,8 +390,10 @@ export default function ResearchPage() {
           </h2>
 
           <p className="text-muted text-base leading-relaxed md:text-lg">
-            My current work brings together formal education, independent inquiry, public
-            documentation, and planned applied projects as I prepare for future research.
+            My current development brings together formal education, independent inquiry, public
+            documentation, and planned applied projects. These activities are helping me build the
+            knowledge and methods required for future research rather than presenting work that has
+            already reached that stage.
           </p>
         </div>
 
@@ -358,9 +430,9 @@ export default function ResearchPage() {
               </h2>
 
               <p className="text-muted mt-5 text-base leading-relaxed md:text-lg">
-                As my education and methods develop, I expect the central question to become
-                narrower, more testable, and better grounded in specific clinical contexts and
-                available evidence.
+                As my education and methods develop, I expect this direction to become narrower,
+                more testable, and better grounded in specific conditions, clinical contexts,
+                populations, datasets, and available evidence.
               </p>
             </div>
 
@@ -392,13 +464,13 @@ export default function ResearchPage() {
 
                 <li className="py-5">
                   <p className="font-heading text-foreground text-xl leading-snug font-semibold">
-                    Whose experiences are represented in the evidence?
+                    How are Black women represented in the evidence and data?
                   </p>
 
                   <p className="text-muted mt-3 text-sm leading-relaxed md:text-base">
                     Examining how research participation, dataset composition, measurement choices,
-                    and clinical assumptions may affect racially underserved and underrepresented
-                    women.
+                    missing information, and clinical assumptions influence what can be understood
+                    about Black women&apos;s health.
                   </p>
                 </li>
 

@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   title: "Curriculum Vitae",
 
   description:
-    "Explore Ariela Israel's professional and academic record across software systems, structured data, health services management, health information, women's health equity, and developing clinical and biomedical informatics interests.",
+    "Explore Ariela Israel's education, professional software experience, completed technical work, developing research direction, and preparation for clinical and biomedical informatics.",
 
   alternates: {
     canonical: "/cv",
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Curriculum Vitae | Ariela Israel",
     description:
-      "Professional experience, education, completed technical work, developing research interests, competencies, and public scholarship from Ariela Israel.",
+      "Professional experience, education, completed software projects, developing research interests, and public scholarship from Ariela Israel.",
     url: "/cv",
     type: "profile",
   },

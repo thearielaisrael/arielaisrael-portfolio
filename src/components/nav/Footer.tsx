@@ -35,7 +35,7 @@ const Footer = () => {
     <footer className="border-default bg-surface-soft/45 border-t">
       <div className="mx-auto w-full max-w-360 px-6 py-10 md:px-10">
         <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">
-          {/* TOP LEFT — Identity */}
+          {/* TOP LEFT: Identity */}
           <div className="max-w-2xl space-y-5">
             <Link
               href="/"
@@ -47,18 +47,18 @@ const Footer = () => {
 
             <div className="space-y-3">
               <p className="text-foreground max-w-xl text-base leading-relaxed font-semibold">
-                Health Services Management student, Women&apos;s Health Equity Advocate, and
-                aspiring Clinical & Biomedical Informaticist.
+                Health Services Management student and former full-stack software developer building
+                toward clinical and biomedical informatics research.
               </p>
 
               <p className="text-muted max-w-xl text-sm leading-relaxed md:text-base">
-                Building toward a research career at the intersection of women&apos;s health equity,
-                clinical and biomedical informatics, health data, and precision medicine.
+                Long-term focus: advancing Black women&apos;s whole-body health equity through
+                better evidence, data, and health information systems.
               </p>
             </div>
           </div>
 
-          {/* TOP RIGHT — Navigation + Socials */}
+          {/* TOP RIGHT: Navigation and Socials */}
           <div className="flex flex-col gap-6 lg:items-end lg:self-center">
             <nav aria-label="Footer navigation">
               <ul className="flex flex-wrap gap-x-5 gap-y-3 lg:justify-end">
@@ -79,9 +79,9 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* BOTTOM — Signature + Opportunity CTA */}
+        {/* BOTTOM: Signature and Opportunity CTA */}
         <div className="border-default mt-10 flex flex-col gap-6 border-t pt-8 md:flex-row md:items-end md:justify-between">
-          <p className="font-heading text-signature-aura-pink max-w-xl text-xl leading-[1.1] font-medium tracking-[0.08em] uppercase italic md:text-2xl">
+          <p className="font-heading text-signature-text max-w-xl text-2xl leading-[1.1] font-medium tracking-[0.08em] uppercase italic md:text-2xl">
             Pink, precise, evidence-driven, and patient-centered.
           </p>
 
@@ -89,7 +89,8 @@ const Footer = () => {
             href="/contact"
             className="ring-brand text-link hover:text-accent inline-flex max-w-md rounded-md text-sm font-bold transition-colors md:text-right"
           >
-            Open to research, internship, collaborative, and aligned professional opportunities →
+            Open to health information, research support, health IT, data-quality, and aligned
+            professional opportunities →
           </Link>
         </div>
 

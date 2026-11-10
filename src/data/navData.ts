@@ -15,20 +15,13 @@ export type MenuItem = {
   subLinks?: MenuItem[];
 };
 
-export type RecruiterAction = {
-  label: string;
-  href: string;
-  available: boolean;
-  download?: boolean;
-};
-
 export type SocialIcon = {
   label: string;
   href: string;
   icon: ComponentType<SVGProps<SVGSVGElement>>;
 };
 
-export const resumeHref = "/resume/Ariela-Israel-Resume-Master.pdf";
+export const resumeHref = "/resume/ariela-israel-resume.pdf";
 
 export const MenuItems: MenuItem[] = [
   {

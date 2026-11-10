@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const alt =
-  "Ariela Israel, software developer and Health Services Management student transitioning into health information and informatics";
+  "Ariela Israel, Health Services Management student and former software developer building toward clinical and biomedical informatics research focused on health equity for Black women";
 
 export const size = {
   width: 1200,
@@ -97,7 +97,7 @@ export default function OpenGraphImage() {
             textTransform: "uppercase",
           }}
         >
-          Software · Health Information · Informatics
+          Health Equity · Research · Informatics
         </div>
 
         <div
@@ -111,7 +111,7 @@ export default function OpenGraphImage() {
             letterSpacing: "-0.04em",
           }}
         >
-          Where software systems meet health information.
+          Building toward clinical & biomedical informatics research.
         </div>
 
         <div
@@ -125,8 +125,8 @@ export default function OpenGraphImage() {
             fontWeight: 600,
           }}
         >
-          Software developer and Health Services Management student bringing a systems-and-data
-          foundation into healthcare.
+          Health Services Management student and former software developer focused on Black
+          women&apos;s health equity.
         </div>
 
         <div
@@ -159,7 +159,7 @@ export default function OpenGraphImage() {
               fontWeight: 600,
             }}
           >
-            Women&apos;s Health Equity Advocate &amp; Informatician in progress
+            Black women&apos;s health equity · Research · Informatics
           </div>
         </div>
       </div>
