@@ -4,15 +4,16 @@ import { useState } from "react";
 import BrandColorPicker from "./BrandColorPicker";
 import { brandColor, type BrandColorToken } from "../../lib/studio/brandColors";
 import type { StudioElement } from "../../lib/studio/types";
+import { canvasPresets, type CanvasPreset } from "../../lib/studio/canvasPresets";
 
 const initialElements: StudioElement[] = [
   {
     id: "card-1",
     type: "card",
-    x: 8,
-    y: 32,
-    width: 84,
-    height: 32,
+    x: 86,
+    y: 432,
+    width: 907,
+    height: 432,
     rotation: 0,
     opacity: 100,
     color: "glass",
@@ -21,9 +22,9 @@ const initialElements: StudioElement[] = [
   {
     id: "text-1",
     type: "text",
-    x: 14,
-    y: 40,
-    width: 72,
+    x: 151,
+    y: 540,
+    width: 778,
     rotation: 0,
     opacity: 100,
     content: "Research meets technology.",
@@ -38,6 +39,17 @@ export default function StudioEditor() {
   const [elements, setElements] = useState<StudioElement[]>(initialElements);
   const [selectedId, setSelectedId] = useState<string | null>("text-1");
   const [backgroundColor, setBackgroundColor] = useState<BrandColorToken>("background");
+  const [canvasPreset, setCanvasPreset] = useState<CanvasPreset>("instagramPortrait");
+
+  const canvasSize = canvasPresets[canvasPreset];
+
+  const previewMaxWidth = 400;
+  const previewMaxHeight = 500;
+
+  const scale = Math.min(previewMaxWidth / canvasSize.width, previewMaxHeight / canvasSize.height);
+
+  const previewWidth = canvasSize.width * scale;
+  const previewHeight = canvasSize.height * scale;
 
   const selected = elements.find((el) => el.id === selectedId);
 
@@ -57,9 +69,9 @@ export default function StudioEditor() {
       {
         id,
         type: "text",
-        x: 12,
-        y: 15,
-        width: 76,
+        x: 130,
+        y: 200,
+        width: 820,
         rotation: 0,
         opacity: 100,
         content: "New text",
@@ -80,10 +92,10 @@ export default function StudioEditor() {
       {
         id,
         type: "card",
-        x: 12,
-        y: 25,
-        width: 76,
-        height: 25,
+        x: 130,
+        y: 340,
+        width: 820,
+        height: 340,
         rotation: 0,
         opacity: 100,
         color: "glass",
@@ -127,11 +139,24 @@ export default function StudioEditor() {
           >
             {mode === "light" ? "Dark Mode" : "Light Mode"}
           </button>
+
+          <select
+            aria-label="Canvas format"
+            value={canvasPreset}
+            onChange={(event) => setCanvasPreset(event.target.value as CanvasPreset)}
+            className="rounded-xl border px-3 py-2 text-sm text-[#241C22]"
+          >
+            {Object.entries(canvasPresets).map(([key, preset]) => (
+              <option key={key} value={key}>
+                {preset.label} ({preset.width} × {preset.height})
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
       <div
-        className="grid gap-4 lg:grid-cols-[220px_minmax(0,1fr)_280px]"
+        className="grid min-h-150 items-start gap-4 lg:grid-cols-[220px_minmax(0,1fr)_280px]"
         style={{ color: brandColor("foreground") }}
       >
         {/* Layers */}
@@ -173,18 +198,24 @@ export default function StudioEditor() {
         </aside>
 
         {/* Canvas */}
-        <section className="flex justify-center overflow-auto rounded-2xl border bg-neutral-200 p-4">
+        <section className="flex h-150 min-w-0 items-center justify-center overflow-auto rounded-2xl border bg-neutral-200 p-6">
           <div
-            className="relative aspect-[4/5] w-full max-w-[400px] overflow-hidden shadow-xl"
-            style={{ background: brandColor(backgroundColor) }}
+            className="relative shrink-0 overflow-hidden shadow-xl"
+            style={{
+              width: previewWidth,
+              height: previewHeight,
+              maxWidth: "100%",
+              background: brandColor(backgroundColor),
+            }}
+
             onClick={() => setSelectedId(null)}
           >
             {elements.map((element) => {
               const commonStyle = {
                 position: "absolute" as const,
-                left: `${element.x}%`,
-                top: `${element.y}%`,
-                width: `${element.width}%`,
+                left: element.x * scale,
+                top: element.y * scale,
+                width: element.width * scale,
                 opacity: element.opacity / 100,
                 transform: `rotate(${element.rotation}deg)`,
                 cursor: "pointer",
@@ -201,9 +232,9 @@ export default function StudioEditor() {
                     }}
                     style={{
                       ...commonStyle,
-                      height: `${element.height}%`,
+                      height: element.height * scale,
                       background: brandColor(element.color),
-                      borderRadius: element.radius,
+                      borderRadius: element.radius * scale,
                       border: `1px solid ${brandColor("glass-border")}`,
                       backdropFilter: "blur(16px)",
                     }}
@@ -221,7 +252,7 @@ export default function StudioEditor() {
                   style={{
                     ...commonStyle,
                     color: brandColor(element.color),
-                    fontSize: element.fontSize / 3,
+                    fontSize: element.fontSize * scale,
                     fontWeight: element.fontWeight,
                     lineHeight: 1.15,
                     overflowWrap: "anywhere",
@@ -236,7 +267,7 @@ export default function StudioEditor() {
 
         {/* Properties */}
         <aside
-          className="rounded-2xl border p-4"
+          className="min-h-0 rounded-2xl border p-4 lg:h-150 lg:overflow-y-auto"
           style={{
             background: brandColor("surface"),
             borderColor: brandColor("border"),
@@ -321,8 +352,8 @@ export default function StudioEditor() {
 
               {(["x", "y", "rotation", "opacity"] as const).map((property) => {
                 const ranges = {
-                  x: [0, 100],
-                  y: [0, 100],
+                  x: [0, canvasSize.width],
+                  y: [0, canvasSize.height],
                   rotation: [-180, 180],
                   opacity: [0, 100],
                 };
