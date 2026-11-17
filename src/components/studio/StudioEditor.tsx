@@ -1,0 +1,378 @@
+"use client";
+
+import { useState } from "react";
+import BrandColorPicker from "./BrandColorPicker";
+import { brandColor, type BrandColorToken } from "../../lib/studio/brandColors";
+import type { StudioElement } from "../../lib/studio/types";
+
+const initialElements: StudioElement[] = [
+  {
+    id: "card-1",
+    type: "card",
+    x: 8,
+    y: 32,
+    width: 84,
+    height: 32,
+    rotation: 0,
+    opacity: 100,
+    color: "glass",
+    radius: 24,
+  },
+  {
+    id: "text-1",
+    type: "text",
+    x: 14,
+    y: 40,
+    width: 72,
+    rotation: 0,
+    opacity: 100,
+    content: "Research meets technology.",
+    color: "deep-plum",
+    fontSize: 48,
+    fontWeight: 700,
+  },
+];
+
+export default function StudioEditor() {
+  const [mode, setMode] = useState<"light" | "dark">("light");
+  const [elements, setElements] = useState<StudioElement[]>(initialElements);
+  const [selectedId, setSelectedId] = useState<string | null>("text-1");
+  const [backgroundColor, setBackgroundColor] = useState<BrandColorToken>("background");
+
+  const selected = elements.find((el) => el.id === selectedId);
+
+  function updateElement(id: string, changes: Partial<StudioElement>) {
+    setElements((previous) =>
+      previous.map((element) =>
+        element.id === id ? ({ ...element, ...changes } as StudioElement) : element,
+      ),
+    );
+  }
+
+  function addText() {
+    const id = crypto.randomUUID();
+
+    setElements((previous) => [
+      ...previous,
+      {
+        id,
+        type: "text",
+        x: 12,
+        y: 15,
+        width: 76,
+        rotation: 0,
+        opacity: 100,
+        content: "New text",
+        color: "deep-plum",
+        fontSize: 40,
+        fontWeight: 700,
+      },
+    ]);
+
+    setSelectedId(id);
+  }
+
+  function addCard() {
+    const id = crypto.randomUUID();
+
+    setElements((previous) => [
+      ...previous,
+      {
+        id,
+        type: "card",
+        x: 12,
+        y: 25,
+        width: 76,
+        height: 25,
+        rotation: 0,
+        opacity: 100,
+        color: "glass",
+        radius: 24,
+      },
+    ]);
+
+    setSelectedId(id);
+  }
+
+  function deleteSelected() {
+    if (!selectedId) return;
+
+    setElements((previous) => previous.filter((el) => el.id !== selectedId));
+    setSelectedId(null);
+  }
+
+  return (
+    <div className={mode === "dark" ? "dark" : ""}>
+      <div
+        className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-4"
+        style={{
+          background: brandColor("surface"),
+          color: brandColor("foreground"),
+          borderColor: brandColor("border"),
+        }}
+      >
+        <span className="font-semibold">Design Editor</span>
+
+        <div className="flex flex-wrap gap-2">
+          <button type="button" onClick={addText} className="rounded-xl border px-3 py-2 text-sm">
+            + Text
+          </button>
+          <button type="button" onClick={addCard} className="rounded-xl border px-3 py-2 text-sm">
+            + Card
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode(mode === "light" ? "dark" : "light")}
+            className="rounded-xl border px-3 py-2 text-sm"
+          >
+            {mode === "light" ? "Dark Mode" : "Light Mode"}
+          </button>
+        </div>
+      </div>
+
+      <div
+        className="grid gap-4 lg:grid-cols-[220px_minmax(0,1fr)_280px]"
+        style={{ color: brandColor("foreground") }}
+      >
+        {/* Layers */}
+        <aside
+          className="rounded-2xl border p-4"
+          style={{
+            background: brandColor("surface"),
+            borderColor: brandColor("border"),
+          }}
+        >
+          <h2 className="mb-4 font-bold">Layers</h2>
+
+          <div className="space-y-2">
+            {[...elements].reverse().map((element) => (
+              <button
+                key={element.id}
+                type="button"
+                onClick={() => setSelectedId(element.id)}
+                className="w-full rounded-xl border p-3 text-left text-sm"
+                style={{
+                  borderColor:
+                    selectedId === element.id ? brandColor("accent") : brandColor("border"),
+                  background:
+                    selectedId === element.id ? brandColor("surface-soft") : "transparent",
+                }}
+              >
+                {element.type === "text" ? element.content.slice(0, 24) : "Glass Card"}
+              </button>
+            ))}
+
+            <button
+              type="button"
+              onClick={() => setSelectedId(null)}
+              className="w-full rounded-xl border p-3 text-left text-sm"
+            >
+              Background
+            </button>
+          </div>
+        </aside>
+
+        {/* Canvas */}
+        <section className="flex justify-center overflow-auto rounded-2xl border bg-neutral-200 p-4">
+          <div
+            className="relative aspect-[4/5] w-full max-w-[400px] overflow-hidden shadow-xl"
+            style={{ background: brandColor(backgroundColor) }}
+            onClick={() => setSelectedId(null)}
+          >
+            {elements.map((element) => {
+              const commonStyle = {
+                position: "absolute" as const,
+                left: `${element.x}%`,
+                top: `${element.y}%`,
+                width: `${element.width}%`,
+                opacity: element.opacity / 100,
+                transform: `rotate(${element.rotation}deg)`,
+                cursor: "pointer",
+                outline: selectedId === element.id ? `2px solid ${brandColor("accent")}` : "none",
+              };
+
+              if (element.type === "card") {
+                return (
+                  <div
+                    key={element.id}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setSelectedId(element.id);
+                    }}
+                    style={{
+                      ...commonStyle,
+                      height: `${element.height}%`,
+                      background: brandColor(element.color),
+                      borderRadius: element.radius,
+                      border: `1px solid ${brandColor("glass-border")}`,
+                      backdropFilter: "blur(16px)",
+                    }}
+                  />
+                );
+              }
+
+              return (
+                <div
+                  key={element.id}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setSelectedId(element.id);
+                  }}
+                  style={{
+                    ...commonStyle,
+                    color: brandColor(element.color),
+                    fontSize: element.fontSize / 3,
+                    fontWeight: element.fontWeight,
+                    lineHeight: 1.15,
+                    overflowWrap: "anywhere",
+                  }}
+                >
+                  {element.content}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Properties */}
+        <aside
+          className="rounded-2xl border p-4"
+          style={{
+            background: brandColor("surface"),
+            borderColor: brandColor("border"),
+          }}
+        >
+          <h2 className="mb-4 font-bold">Properties</h2>
+
+          {selected ? (
+            <div className="space-y-5">
+              <p className="text-sm capitalize">Selected: {selected.type}</p>
+
+              {selected.type === "text" && (
+                <>
+                  <label className="block text-sm">
+                    Text content
+                    <textarea
+                      value={selected.content}
+                      onChange={(e) =>
+                        updateElement(selected.id, {
+                          content: e.target.value,
+                        })
+                      }
+                      className="mt-2 w-full rounded-lg border p-2 text-[#241C22]"
+                      rows={3}
+                    />
+                  </label>
+
+                  <label className="block text-sm">
+                    Font size: {selected.fontSize}px
+                    <input
+                      type="range"
+                      min="16"
+                      max="120"
+                      value={selected.fontSize}
+                      onChange={(e) =>
+                        updateElement(selected.id, {
+                          fontSize: Number(e.target.value),
+                        })
+                      }
+                      className="mt-2 w-full"
+                    />
+                  </label>
+
+                  <label className="block text-sm">
+                    Font weight
+                    <select
+                      value={selected.fontWeight}
+                      onChange={(e) =>
+                        updateElement(selected.id, {
+                          fontWeight: Number(e.target.value),
+                        })
+                      }
+                      className="mt-2 w-full rounded-lg border p-2 text-[#241C22]"
+                    >
+                      {[400, 500, 600, 700, 800].map((weight) => (
+                        <option key={weight} value={weight}>
+                          {weight}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </>
+              )}
+
+              {selected.type === "card" && (
+                <label className="block text-sm">
+                  Corner radius: {selected.radius}px
+                  <input
+                    type="range"
+                    min="0"
+                    max="60"
+                    value={selected.radius}
+                    onChange={(e) =>
+                      updateElement(selected.id, {
+                        radius: Number(e.target.value),
+                      })
+                    }
+                    className="mt-2 w-full"
+                  />
+                </label>
+              )}
+
+              {(["x", "y", "rotation", "opacity"] as const).map((property) => {
+                const ranges = {
+                  x: [0, 100],
+                  y: [0, 100],
+                  rotation: [-180, 180],
+                  opacity: [0, 100],
+                };
+
+                return (
+                  <label key={property} className="block text-sm">
+                    <span className="capitalize">
+                      {property}: {selected[property]}
+                    </span>
+                    <input
+                      type="range"
+                      min={ranges[property][0]}
+                      max={ranges[property][1]}
+                      value={selected[property]}
+                      onChange={(e) =>
+                        updateElement(selected.id, {
+                          [property]: Number(e.target.value),
+                        })
+                      }
+                      className="mt-2 w-full"
+                    />
+                  </label>
+                );
+              })}
+
+              <BrandColorPicker
+                label="Element color"
+                value={selected.color}
+                onChange={(color) => updateElement(selected.id, { color })}
+                mode={mode}
+              />
+
+              <button
+                type="button"
+                onClick={deleteSelected}
+                className="w-full rounded-xl border border-red-400 p-3 text-sm"
+              >
+                Delete Element
+              </button>
+            </div>
+          ) : (
+            <BrandColorPicker
+              label="Background color"
+              value={backgroundColor}
+              onChange={setBackgroundColor}
+              mode={mode}
+            />
+          )}
+        </aside>
+      </div>
+    </div>
+  );
+}
