@@ -66,6 +66,11 @@ type PanSession = {
   startScrollTop: number;
 };
 
+type AlignmentGuides = {
+  vertical: number | null;
+  horizontal: number | null;
+};
+
 export default function StudioEditor() {
   const [mode, setMode] = useState<"light" | "dark">("light");
   const [elements, setElements] = useState<StudioElement[]>(initialElements);
@@ -87,6 +92,11 @@ export default function StudioEditor() {
   const [activeTool, setActiveTool] = useState<"select" | "hand">("select");
 
   const [showCenterlines, setShowCenterlines] = useState(false);
+
+  const [alignmentGuides, setAlignmentGuides] = useState<AlignmentGuides>({
+    vertical: null,
+    horizontal: null,
+  });
 
   const canvasSize = canvasPresets[canvasPreset];
 
@@ -136,6 +146,34 @@ export default function StudioEditor() {
     const deltaX = (event.clientX - session.startClientX) / session.scale;
     const deltaY = (event.clientY - session.startClientY) / session.scale;
 
+    const alignmentThreshold = 8;
+
+    const activeElement = elements.find((element) => element.id === session.elementId);
+
+    if (!activeElement) return;
+
+    const elementHeight =
+      activeElement.type === "card" ? activeElement.height : activeElement.fontSize * 1.2;
+
+    const proposedX = session.startX + deltaX;
+    const proposedY = session.startY + deltaY;
+
+    const elementCenterX = proposedX + activeElement.width / 2;
+
+    const elementCenterY = proposedY + elementHeight / 2;
+
+    const canvasCenterX = canvasSize.width / 2;
+    const canvasCenterY = canvasSize.height / 2;
+
+    const alignedX = Math.abs(elementCenterX - canvasCenterX) <= alignmentThreshold;
+
+    const alignedY = Math.abs(elementCenterY - canvasCenterY) <= alignmentThreshold;
+
+    setAlignmentGuides({
+      vertical: alignedX ? canvasCenterX : null,
+      horizontal: alignedY ? canvasCenterY : null,
+    });
+
     setElements((previous) =>
       previous.map((element) => {
         if (element.id !== session.elementId) return element;
@@ -163,6 +201,11 @@ export default function StudioEditor() {
     if (dragSession.current?.pointerId !== event.pointerId) {
       return;
     }
+    
+    setAlignmentGuides({
+      vertical: null,
+      horizontal: null,
+    });
 
     dragSession.current = null;
 
@@ -788,6 +831,32 @@ export default function StudioEditor() {
                       transform: "translate(-50%, -50%)",
                     }}
                   />
+                </div>
+              )}
+
+              {(alignmentGuides.vertical !== null || alignmentGuides.horizontal !== null) && (
+                <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-40">
+                  {alignmentGuides.vertical !== null && (
+                    <div
+                      className="absolute inset-y-0"
+                      style={{
+                        left: alignmentGuides.vertical * scale,
+                        width: 1,
+                        backgroundColor: "#E11D8A",
+                      }}
+                    />
+                  )}
+
+                  {alignmentGuides.horizontal !== null && (
+                    <div
+                      className="absolute inset-x-0"
+                      style={{
+                        top: alignmentGuides.horizontal * scale,
+                        height: 1,
+                        backgroundColor: "#E11D8A",
+                      }}
+                    />
+                  )}
                 </div>
               )}
 
