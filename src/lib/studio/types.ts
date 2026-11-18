@@ -7,6 +7,8 @@ type BaseElement = {
   width: number;
   rotation: number;
   opacity: number;
+  visible: boolean;
+  locked: boolean;
 };
 
 export type TextElement = BaseElement & {

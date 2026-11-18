@@ -18,6 +18,8 @@ const initialElements: StudioElement[] = [
     opacity: 100,
     color: "glass",
     radius: 24,
+    visible: true,
+    locked: false,
   },
   {
     id: "text-1",
@@ -31,6 +33,8 @@ const initialElements: StudioElement[] = [
     color: "deep-plum",
     fontSize: 48,
     fontWeight: 700,
+    visible: true,
+    locked: false,
   },
 ];
 
@@ -66,6 +70,10 @@ export default function StudioEditor() {
   const dragSession = useRef<DragSession | null>(null);
 
   function handleDragStart(event: React.PointerEvent<HTMLDivElement>, element: StudioElement) {
+    if (element.locked) {
+      return;
+    }
+
     if (event.button !== 0 && event.pointerType === "mouse") {
       return;
     }
@@ -141,6 +149,10 @@ export default function StudioEditor() {
   const resizeSession = useRef<ResizeSession | null>(null);
 
   function handleResizeStart(event: React.PointerEvent<HTMLButtonElement>, element: StudioElement) {
+    if (element.locked) {
+      return;
+    }
+
     if (event.pointerType === "mouse" && event.button !== 0) {
       return;
     }
@@ -230,7 +242,9 @@ export default function StudioEditor() {
   function updateElement(id: string, changes: Partial<StudioElement>) {
     setElements((previous) =>
       previous.map((element) =>
-        element.id === id ? ({ ...element, ...changes } as StudioElement) : element,
+        element.id === id && !element.locked
+          ? ({ ...element, ...changes } as StudioElement)
+          : element,
       ),
     );
   }
@@ -252,6 +266,8 @@ export default function StudioEditor() {
         color: "deep-plum",
         fontSize: 40,
         fontWeight: 700,
+        visible: true,
+        locked: false,
       },
     ]);
 
@@ -274,6 +290,8 @@ export default function StudioEditor() {
         opacity: 100,
         color: "glass",
         radius: 24,
+        visible: true,
+        locked: false,
       },
     ]);
 
@@ -283,8 +301,68 @@ export default function StudioEditor() {
   function deleteSelected() {
     if (!selectedId) return;
 
-    setElements((previous) => previous.filter((el) => el.id !== selectedId));
+    const selectedElement = elements.find((element) => element.id === selectedId);
+
+    if (!selectedElement || selectedElement.locked) {
+      return;
+    }
+
+    setElements((previous) =>
+      previous.filter((element) => element.id !== selectedId || element.locked),
+    );
+
     setSelectedId(null);
+  }
+
+  function toggleVisibility(id: string) {
+    setElements((previous) =>
+      previous.map((element) =>
+        element.id === id ? { ...element, visible: !element.visible } : element,
+      ),
+    );
+  }
+
+  function toggleLock(id: string) {
+    setElements((previous) =>
+      previous.map((element) =>
+        element.id === id ? { ...element, locked: !element.locked } : element,
+      ),
+    );
+  }
+
+  type LayerMove = "front" | "forward" | "backward" | "back";
+
+  function moveLayer(id: string, direction: LayerMove) {
+    setElements((previous) => {
+      const currentIndex = previous.findIndex((element) => element.id === id);
+
+      if (currentIndex === -1) return previous;
+
+      const element = previous[currentIndex];
+
+      // Locked layers cannot be reordered.
+      if (element.locked) return previous;
+
+      const lastIndex = previous.length - 1;
+
+      const targetIndex =
+        direction === "front"
+          ? lastIndex
+          : direction === "forward"
+            ? Math.min(currentIndex + 1, lastIndex)
+            : direction === "backward"
+              ? Math.max(currentIndex - 1, 0)
+              : 0;
+
+      if (targetIndex === currentIndex) return previous;
+
+      const updated = [...previous];
+
+      updated.splice(currentIndex, 1);
+      updated.splice(targetIndex, 0, element);
+
+      return updated;
+    });
   }
 
   return (
@@ -345,20 +423,42 @@ export default function StudioEditor() {
 
           <div className="space-y-2">
             {[...elements].reverse().map((element) => (
-              <button
+              <div
                 key={element.id}
-                type="button"
-                onClick={() => setSelectedId(element.id)}
-                className="w-full rounded-xl border p-3 text-left text-sm"
-                style={{
-                  borderColor:
-                    selectedId === element.id ? brandColor("accent") : brandColor("border"),
-                  background:
-                    selectedId === element.id ? brandColor("surface-soft") : "transparent",
-                }}
+                className={`flex items-center gap-2 rounded-lg border p-2 ${
+                  selectedId === element.id ? "border-pink-400 bg-pink-50" : "border-neutral-200"
+                }`}
               >
-                {element.type === "text" ? element.content.slice(0, 24) : "Glass Card"}
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedId(element.id)}
+                  className={`min-w-0 flex-1 truncate text-left text-sm ${
+                    element.visible ? "" : "opacity-40"
+                  }`}
+                >
+                  {element.type === "text" ? element.content || "Text" : "Glass Card"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => toggleVisibility(element.id)}
+                  title={element.visible ? "Hide layer" : "Show layer"}
+                  aria-label={element.visible ? "Hide layer" : "Show layer"}
+                  className="shrink-0 rounded-md p-1.5 hover:bg-neutral-100"
+                >
+                  {element.visible ? "◉" : "○"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => toggleLock(element.id)}
+                  title={element.locked ? "Unlock layer" : "Lock layer"}
+                  aria-label={element.locked ? "Unlock layer" : "Lock layer"}
+                  className="shrink-0 rounded-md p-1.5 text-xs hover:bg-neutral-100"
+                >
+                  {element.locked ? "🔒" : "🔓"}
+                </button>
+              </div>
             ))}
 
             <button
@@ -384,21 +484,61 @@ export default function StudioEditor() {
             data-studio-canvas="true"
             onClick={() => setSelectedId(null)}
           >
-            {elements.map((element) => {
-              const commonStyle = {
-                position: "absolute" as const,
-                left: element.x * scale,
-                top: element.y * scale,
-                width: element.width * scale,
-                opacity: element.opacity / 100,
-                transform: `rotate(${element.rotation}deg)`,
-                cursor: "pointer",
-                outline: selectedId === element.id ? `2px solid ${brandColor("accent")}` : "none",
-                touchAction: "none" as const,
-                userSelect: "none" as const,
-              };
+            {elements
+              .filter((element) => element.visible)
+              .map((element) => {
+                const commonStyle = {
+                  position: "absolute" as const,
+                  left: element.x * scale,
+                  top: element.y * scale,
+                  width: element.width * scale,
+                  opacity: element.opacity / 100,
+                  transform: `rotate(${element.rotation}deg)`,
+                  cursor: "pointer",
+                  outline: selectedId === element.id ? `2px solid ${brandColor("accent")}` : "none",
+                  touchAction: "none" as const,
+                  userSelect: "none" as const,
+                };
 
-              if (element.type === "card") {
+                if (element.type === "card") {
+                  return (
+                    <div
+                      key={element.id}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setSelectedId(element.id);
+                      }}
+                      style={{
+                        ...commonStyle,
+                        height: element.height * scale,
+                        background: brandColor(element.color),
+                        borderRadius: element.radius * scale,
+                        border: `1px solid ${brandColor("glass-border")}`,
+                        backdropFilter: "blur(16px)",
+                      }}
+                      onPointerDown={(event) => handleDragStart(event, element)}
+                      onPointerMove={handleDragMove}
+                      onPointerUp={handleDragEnd}
+                      onPointerCancel={handleDragEnd}
+                    >
+                      {selectedId === element.id && !element.locked && (
+                        <button
+                          type="button"
+                          aria-label={`Resize ${element.type}`}
+                          title="Drag to resize"
+                          onClick={(event) => event.stopPropagation()}
+                          onPointerDown={(event) => handleResizeStart(event, element)}
+                          onPointerMove={handleResizeMove}
+                          onPointerUp={handleResizeEnd}
+                          onPointerCancel={handleResizeEnd}
+                          className="absolute -right-1.5 -bottom-1.5 z-10 size-3 cursor-nwse-resize rounded-sm border-2 border-white bg-[#C42B70] shadow-sm"
+                          style={{ touchAction: "none" }}
+                        />
+                      )}
+                    </div>
+                  );
+                }
+
                 return (
                   <div
                     key={element.id}
@@ -408,18 +548,20 @@ export default function StudioEditor() {
                     }}
                     style={{
                       ...commonStyle,
-                      height: element.height * scale,
-                      background: brandColor(element.color),
-                      borderRadius: element.radius * scale,
-                      border: `1px solid ${brandColor("glass-border")}`,
-                      backdropFilter: "blur(16px)",
+                      color: brandColor(element.color),
+                      fontSize: element.fontSize * scale,
+                      fontWeight: element.fontWeight,
+                      lineHeight: 1.15,
+                      overflowWrap: "anywhere",
                     }}
                     onPointerDown={(event) => handleDragStart(event, element)}
                     onPointerMove={handleDragMove}
                     onPointerUp={handleDragEnd}
                     onPointerCancel={handleDragEnd}
                   >
-                    {selectedId === element.id && (
+                    {element.content}
+
+                    {selectedId === element.id && !element.locked && (
                       <button
                         type="button"
                         aria-label={`Resize ${element.type}`}
@@ -435,47 +577,7 @@ export default function StudioEditor() {
                     )}
                   </div>
                 );
-              }
-
-              return (
-                <div
-                  key={element.id}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setSelectedId(element.id);
-                  }}
-                  style={{
-                    ...commonStyle,
-                    color: brandColor(element.color),
-                    fontSize: element.fontSize * scale,
-                    fontWeight: element.fontWeight,
-                    lineHeight: 1.15,
-                    overflowWrap: "anywhere",
-                  }}
-                  onPointerDown={(event) => handleDragStart(event, element)}
-                  onPointerMove={handleDragMove}
-                  onPointerUp={handleDragEnd}
-                  onPointerCancel={handleDragEnd}
-                >
-                  {element.content}
-
-                  {selectedId === element.id && (
-                    <button
-                      type="button"
-                      aria-label={`Resize ${element.type}`}
-                      title="Drag to resize"
-                      onClick={(event) => event.stopPropagation()}
-                      onPointerDown={(event) => handleResizeStart(event, element)}
-                      onPointerMove={handleResizeMove}
-                      onPointerUp={handleResizeEnd}
-                      onPointerCancel={handleResizeEnd}
-                      className="absolute -right-1.5 -bottom-1.5 z-10 size-3 cursor-nwse-resize rounded-sm border-2 border-white bg-[#C42B70] shadow-sm"
-                      style={{ touchAction: "none" }}
-                    />
-                  )}
-                </div>
-              );
-            })}
+              })}
           </div>
         </section>
 
@@ -492,6 +594,31 @@ export default function StudioEditor() {
           {selected ? (
             <div className="space-y-5">
               <p className="text-sm capitalize">Selected: {selected.type}</p>
+
+              <div className="space-y-2">
+                <p className="text-sm font-semibold">Layer order</p>
+
+                <div className="grid grid-cols-2 gap-2">
+                  {(
+                    [
+                      ["front", "To Front"],
+                      ["forward", "Forward"],
+                      ["backward", "Backward"],
+                      ["back", "To Back"],
+                    ] as const
+                  ).map(([direction, label]) => (
+                    <button
+                      key={direction}
+                      type="button"
+                      disabled={selected.locked}
+                      onClick={() => moveLayer(selected.id, direction)}
+                      className="rounded-lg border px-2 py-2 text-xs transition-colors hover:bg-pink-50 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               {selected.type === "text" && (
                 <>
@@ -646,9 +773,15 @@ export default function StudioEditor() {
               <button
                 type="button"
                 onClick={deleteSelected}
-                className="w-full rounded-xl border border-red-400 p-3 text-sm"
+                disabled={selected.locked}
+                title={
+                  selected.locked
+                    ? "Unlock this layer before deleting it"
+                    : "Delete selected element"
+                }
+                className="w-full rounded-xl border border-red-400 p-3 text-sm disabled:cursor-not-allowed disabled:opacity-40"
               >
-                Delete Element
+                {selected.locked ? "Layer Locked" : "Delete Element"}
               </button>
             </div>
           ) : (
