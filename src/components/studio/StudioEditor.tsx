@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import BrandColorPicker from "./BrandColorPicker";
 import { brandColor, type BrandColorToken } from "../../lib/studio/brandColors";
 import type { StudioElement } from "../../lib/studio/types";
@@ -34,6 +34,26 @@ const initialElements: StudioElement[] = [
   },
 ];
 
+type DragSession = {
+  pointerId: number;
+  elementId: string;
+  startClientX: number;
+  startClientY: number;
+  startX: number;
+  startY: number;
+  scale: number;
+};
+
+type ResizeSession = {
+  pointerId: number;
+  elementId: string;
+  startClientX: number;
+  startClientY: number;
+  startWidth: number;
+  startHeight: number;
+  scale: number;
+};
+
 export default function StudioEditor() {
   const [mode, setMode] = useState<"light" | "dark">("light");
   const [elements, setElements] = useState<StudioElement[]>(initialElements);
@@ -42,6 +62,160 @@ export default function StudioEditor() {
   const [canvasPreset, setCanvasPreset] = useState<CanvasPreset>("instagramPortrait");
 
   const canvasSize = canvasPresets[canvasPreset];
+
+  const dragSession = useRef<DragSession | null>(null);
+
+  function handleDragStart(event: React.PointerEvent<HTMLDivElement>, element: StudioElement) {
+    if (event.button !== 0 && event.pointerType === "mouse") {
+      return;
+    }
+
+    event.stopPropagation();
+    event.preventDefault();
+
+    setSelectedId(element.id);
+
+    const canvas = event.currentTarget.parentElement;
+    if (!canvas) return;
+
+    const actualScale = canvas.getBoundingClientRect().width / canvasSize.width;
+
+    dragSession.current = {
+      pointerId: event.pointerId,
+      elementId: element.id,
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+      startX: element.x,
+      startY: element.y,
+      scale: actualScale,
+    };
+
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function handleDragMove(event: React.PointerEvent<HTMLDivElement>) {
+    const session = dragSession.current;
+
+    if (!session || session.pointerId !== event.pointerId) {
+      return;
+    }
+
+    const deltaX = (event.clientX - session.startClientX) / session.scale;
+    const deltaY = (event.clientY - session.startClientY) / session.scale;
+
+    setElements((previous) =>
+      previous.map((element) => {
+        if (element.id !== session.elementId) return element;
+
+        return {
+          ...element,
+          x: Math.round(
+            Math.max(0, Math.min(canvasSize.width - element.width, session.startX + deltaX)),
+          ),
+          y: Math.round(
+            Math.max(
+              0,
+              Math.min(
+                canvasSize.height - (element.type === "card" ? element.height : 0),
+                session.startY + deltaY,
+              ),
+            ),
+          ),
+        };
+      }),
+    );
+  }
+
+  function handleDragEnd(event: React.PointerEvent<HTMLDivElement>) {
+    if (dragSession.current?.pointerId !== event.pointerId) {
+      return;
+    }
+
+    dragSession.current = null;
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  }
+
+  const resizeSession = useRef<ResizeSession | null>(null);
+
+  function handleResizeStart(event: React.PointerEvent<HTMLButtonElement>, element: StudioElement) {
+    if (event.pointerType === "mouse" && event.button !== 0) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const canvas = event.currentTarget.closest('[data-studio-canvas="true"]');
+
+    if (!canvas) return;
+
+    const actualScale = canvas.getBoundingClientRect().width / canvasSize.width;
+
+    resizeSession.current = {
+      pointerId: event.pointerId,
+      elementId: element.id,
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+      startWidth: element.width,
+      startHeight: element.type === "card" ? element.height : 0,
+      scale: actualScale,
+    };
+
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function handleResizeMove(event: React.PointerEvent<HTMLButtonElement>) {
+    const session = resizeSession.current;
+
+    if (!session || session.pointerId !== event.pointerId) {
+      return;
+    }
+
+    const deltaX = (event.clientX - session.startClientX) / session.scale;
+    const deltaY = (event.clientY - session.startClientY) / session.scale;
+
+    setElements((previous) =>
+      previous.map((element) => {
+        if (element.id !== session.elementId) return element;
+
+        const newWidth = Math.round(
+          Math.max(80, Math.min(canvasSize.width - element.x, session.startWidth + deltaX)),
+        );
+
+        if (element.type === "card") {
+          const newHeight = Math.round(
+            Math.max(60, Math.min(canvasSize.height - element.y, session.startHeight + deltaY)),
+          );
+
+          return {
+            ...element,
+            width: newWidth,
+            height: newHeight,
+          };
+        }
+
+        return {
+          ...element,
+          width: newWidth,
+        };
+      }),
+    );
+  }
+
+  function handleResizeEnd(event: React.PointerEvent<HTMLButtonElement>) {
+    if (resizeSession.current?.pointerId !== event.pointerId) {
+      return;
+    }
+
+    resizeSession.current = null;
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  }
 
   const previewMaxWidth = 400;
   const previewMaxHeight = 500;
@@ -207,7 +381,7 @@ export default function StudioEditor() {
               maxWidth: "100%",
               background: brandColor(backgroundColor),
             }}
-
+            data-studio-canvas="true"
             onClick={() => setSelectedId(null)}
           >
             {elements.map((element) => {
@@ -220,6 +394,8 @@ export default function StudioEditor() {
                 transform: `rotate(${element.rotation}deg)`,
                 cursor: "pointer",
                 outline: selectedId === element.id ? `2px solid ${brandColor("accent")}` : "none",
+                touchAction: "none" as const,
+                userSelect: "none" as const,
               };
 
               if (element.type === "card") {
@@ -238,7 +414,26 @@ export default function StudioEditor() {
                       border: `1px solid ${brandColor("glass-border")}`,
                       backdropFilter: "blur(16px)",
                     }}
-                  />
+                    onPointerDown={(event) => handleDragStart(event, element)}
+                    onPointerMove={handleDragMove}
+                    onPointerUp={handleDragEnd}
+                    onPointerCancel={handleDragEnd}
+                  >
+                    {selectedId === element.id && (
+                      <button
+                        type="button"
+                        aria-label={`Resize ${element.type}`}
+                        title="Drag to resize"
+                        onClick={(event) => event.stopPropagation()}
+                        onPointerDown={(event) => handleResizeStart(event, element)}
+                        onPointerMove={handleResizeMove}
+                        onPointerUp={handleResizeEnd}
+                        onPointerCancel={handleResizeEnd}
+                        className="absolute -right-1.5 -bottom-1.5 z-10 size-3 cursor-nwse-resize rounded-sm border-2 border-white bg-[#C42B70] shadow-sm"
+                        style={{ touchAction: "none" }}
+                      />
+                    )}
+                  </div>
                 );
               }
 
@@ -257,8 +452,27 @@ export default function StudioEditor() {
                     lineHeight: 1.15,
                     overflowWrap: "anywhere",
                   }}
+                  onPointerDown={(event) => handleDragStart(event, element)}
+                  onPointerMove={handleDragMove}
+                  onPointerUp={handleDragEnd}
+                  onPointerCancel={handleDragEnd}
                 >
                   {element.content}
+
+                  {selectedId === element.id && (
+                    <button
+                      type="button"
+                      aria-label={`Resize ${element.type}`}
+                      title="Drag to resize"
+                      onClick={(event) => event.stopPropagation()}
+                      onPointerDown={(event) => handleResizeStart(event, element)}
+                      onPointerMove={handleResizeMove}
+                      onPointerUp={handleResizeEnd}
+                      onPointerCancel={handleResizeEnd}
+                      className="absolute -right-1.5 -bottom-1.5 z-10 size-3 cursor-nwse-resize rounded-sm border-2 border-white bg-[#C42B70] shadow-sm"
+                      style={{ touchAction: "none" }}
+                    />
+                  )}
                 </div>
               );
             })}
@@ -346,6 +560,49 @@ export default function StudioEditor() {
                       })
                     }
                     className="mt-2 w-full"
+                  />
+                </label>
+              )}
+
+              <label className="block text-sm">
+                Width: {selected.width}px
+                <input
+                  type="number"
+                  min={80}
+                  max={canvasSize.width}
+                  value={selected.width}
+                  onChange={(event) =>
+                    updateElement(selected.id, {
+                      width: Math.max(
+                        80,
+                        Math.min(canvasSize.width - selected.x, Number(event.target.value) || 80),
+                      ),
+                    })
+                  }
+                  className="mt-2 w-full rounded-lg border p-2"
+                />
+              </label>
+
+              {selected.type === "card" && (
+                <label className="block text-sm">
+                  Height: {selected.height}px
+                  <input
+                    type="number"
+                    min={60}
+                    max={canvasSize.height}
+                    value={selected.height}
+                    onChange={(event) =>
+                      updateElement(selected.id, {
+                        height: Math.max(
+                          60,
+                          Math.min(
+                            canvasSize.height - selected.y,
+                            Number(event.target.value) || 60,
+                          ),
+                        ),
+                      })
+                    }
+                    className="mt-2 w-full rounded-lg border p-2"
                   />
                 </label>
               )}
