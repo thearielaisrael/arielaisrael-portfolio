@@ -6,49 +6,42 @@ type BrandColorPickerProps = {
   label: string;
   value: BrandColorToken;
   onChange: (color: BrandColorToken) => void;
-  mode: "light" | "dark";
 };
 
-export default function BrandColorPicker({ label, value, onChange, mode }: BrandColorPickerProps) {
+export default function BrandColorPicker({ label, value, onChange }: BrandColorPickerProps) {
   return (
     <div className="space-y-3">
       <p className="text-sm font-semibold">{label}</p>
 
-      <div className="max-h-72 space-y-4 overflow-y-auto pr-2">
-        {brandColors.map((group) => {
-          if (group.group === "Dark Mode" && mode === "light") {
-            return null;
-          }
+      <div className="space-y-4 pr-2">
+        {brandColors.map((group) => (
+          <div key={group.group}>
+            <p className="mb-2 text-xs font-medium opacity-65">{group.group}</p>
 
-          return (
-            <div key={group.group}>
-              <p className="mb-2 text-xs font-medium opacity-65">{group.group}</p>
+            <div className="grid grid-cols-6 gap-2 pl-2">
+              {group.colors.map(([name, token]) => {
+                const selected = value === token;
 
-              <div className="grid grid-cols-6 gap-2">
-                {group.colors.map(([name, token]) => {
-                  const selected = value === token;
-
-                  return (
-                    <button
-                      key={token}
-                      type="button"
-                      title={name}
-                      aria-label={`${name} color`}
-                      aria-pressed={selected}
-                      onClick={() => onChange(token)}
-                      className="aspect-square rounded-full border-2 border-black/10"
-                      style={{
-                        backgroundColor: brandColor(token),
-                        outline: selected ? "2px solid var(--color-accent)" : "none",
-                        outlineOffset: "2px",
-                      }}
-                    />
-                  );
-                })}
-              </div>
+                return (
+                  <button
+                    key={token}
+                    type="button"
+                    title={name}
+                    aria-label={`${name} color`}
+                    aria-pressed={selected}
+                    onClick={() => onChange(token)}
+                    className="aspect-square cursor-pointer rounded-full border-2 border-black/10 transition-transform hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2"
+                    style={{
+                      backgroundColor: brandColor(token),
+                      outline: selected ? "2px solid var(--color-accent)" : "none",
+                      outlineOffset: "2px",
+                    }}
+                  />
+                );
+              })}
             </div>
-          );
-        })}
+          </div>
+        ))}
       </div>
     </div>
   );

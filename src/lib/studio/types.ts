@@ -1,4 +1,5 @@
 import type { BrandColorToken } from "./brandColors";
+import type { StudioFont } from "./fonts";
 
 type BaseElement = {
   id: string;
@@ -15,8 +16,10 @@ export type TextElement = BaseElement & {
   type: "text";
   content: string;
   color: BrandColorToken;
+  fontFamily: StudioFont;
   fontSize: number;
   fontWeight: number;
+  textAlign: "left" | "center" | "right" | "justify";
 };
 
 export type CardElement = BaseElement & {

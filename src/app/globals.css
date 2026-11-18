@@ -577,3 +577,168 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ============================================================
+   Social Design Studio
+   Reusable panels, buttons, fields, and layer controls
+============================================================ */
+
+@layer components {
+  .studio-panel {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 1rem;
+  }
+
+  /* Standard Studio buttons */
+  .studio-control {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+
+    background-color: var(--color-surface);
+    color: var(--color-foreground);
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+
+    transition:
+      background-color 150ms ease,
+      border-color 150ms ease;
+  }
+
+  .studio-control:hover:not(:disabled) {
+    background-color: var(--color-surface-soft);
+    border-color: var(--color-border-strong);
+  }
+
+  .studio-control:active:not(:disabled) {
+    background-color: var(--color-aura-petal);
+  }
+
+  .studio-control[aria-pressed="true"],
+  .studio-control[data-active="true"] {
+    background-color: var(--color-aura-blush);
+    border-color: var(--color-accessible-rose);
+    color: var(--color-deep-plum);
+  }
+
+  .studio-control:focus-visible {
+    outline: 2px solid var(--color-focus-brand);
+    outline-offset: 2px;
+  }
+
+  .studio-control:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* Text and icon button variations */
+  .studio-button {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .studio-icon-button {
+    padding: 0.5rem;
+  }
+
+  .studio-field {
+    width: 100%;
+    background-color: var(--color-surface);
+    color: var(--color-foreground);
+    border: 1px solid var(--color-border);
+    border-radius: 0.75rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .studio-field:hover:not(:disabled) {
+    border-color: var(--color-signature-aura-pink);
+  }
+
+  .studio-field:focus-visible {
+    outline: 2px solid var(--color-focus-brand);
+    outline-offset: 2px;
+  }
+
+  /* Individual layer rows */
+  .studio-layer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 0.75rem;
+
+    transition:
+      background-color 150ms ease,
+      border-color 150ms ease;
+  }
+
+  .studio-layer:hover {
+    background-color: var(--color-surface-soft);
+    border-color: var(--color-border-strong);
+  }
+
+  .studio-layer[data-selected="true"]:hover {
+    background-color: var(--color-aura-blush);
+    border-color: var(--color-accessible-rose);
+  }
+
+  .studio-layer[data-selected="true"] {
+    background-color: var(--color-aura-blush);
+    border-color: var(--color-accessible-rose);
+    color: var(--color-deep-plum);
+  }
+
+  /* Small utility icons inside layer rows */
+  .studio-layer-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    padding: 0.375rem;
+    border: none;
+    border-radius: 0.375rem;
+    background: transparent;
+    color: var(--color-foreground);
+    cursor: pointer;
+
+    transition:
+      background-color 150ms ease,
+      color 150ms ease;
+  }
+
+  .studio-layer-icon:hover {
+    background-color: var(--color-aura-mist);
+    color: var(--color-accessible-rose);
+  }
+
+  .studio-layer-icon:focus-visible {
+    outline: 2px solid var(--color-focus-brand);
+    outline-offset: 2px;
+  }
+
+  /* Grouped toolbar controls */
+  .studio-control-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.75rem;
+    background-color: var(--color-surface);
+  }
+
+  /* Canvas workspace */
+  .studio-workspace {
+    border: 1px solid var(--color-border);
+    border-radius: 1.25rem;
+    background-color: var(--color-aura-mist);
+  }
+}

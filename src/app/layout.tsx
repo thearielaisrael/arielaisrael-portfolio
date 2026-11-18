@@ -1,5 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { Geist_Mono, Nunito_Sans, Plus_Jakarta_Sans } from "next/font/google";
+
+import {
+  Cormorant_Garamond,
+  DM_Sans,
+  Geist_Mono,
+  Great_Vibes,
+  Nunito_Sans,
+  Playfair_Display,
+  Plus_Jakarta_Sans,
+} from "next/font/google";
 
 import "./globals.css";
 
@@ -23,6 +32,31 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
   weight: ["400", "500", "600"],
+});
+
+const cormorantGaramond = Cormorant_Garamond({
+  variable: "--font-cormorant-garamond",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const playfairDisplay = Playfair_Display({
+  variable: "--font-playfair-display",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const greatVibes = Great_Vibes({
+  variable: "--font-great-vibes",
+  subsets: ["latin"],
+  weight: "400",
+  display: "swap",
 });
 
 const siteUrl = "https://www.thearielaisrael.com";
@@ -167,7 +201,7 @@ export default function RootLayout({
       </head>
 
       <body
-        className={`${plusJakartaSans.variable} ${nunitoSans.variable} ${geistMono.variable} bg-background text-foreground overflow-x-hidden overflow-y-scroll antialiased`}
+        className={`${plusJakartaSans.variable} ${nunitoSans.variable} ${geistMono.variable} ${cormorantGaramond.variable} ${playfairDisplay.variable} ${dmSans.variable} ${greatVibes.variable} bg-background text-foreground overflow-x-hidden overflow-y-scroll antialiased`}
       >
         <script
           type="application/ld+json"

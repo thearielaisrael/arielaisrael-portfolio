@@ -5,6 +5,24 @@ import BrandColorPicker from "./BrandColorPicker";
 import { brandColor, type BrandColorToken } from "../../lib/studio/brandColors";
 import type { StudioElement } from "../../lib/studio/types";
 import { canvasPresets, type CanvasPreset } from "../../lib/studio/canvasPresets";
+import { studioFonts } from "../../lib/studio/fonts";
+import {
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlignJustify,
+  Lock,
+  LockOpen,
+  Type,
+  SquarePlus,
+  BringToFront,
+  ArrowUp,
+  ArrowDown,
+  SendToBack,
+  Eye,
+  EyeOff,
+  Trash2,
+} from "lucide-react";
 
 const initialElements: StudioElement[] = [
   {
@@ -16,7 +34,7 @@ const initialElements: StudioElement[] = [
     height: 432,
     rotation: 0,
     opacity: 100,
-    color: "glass",
+    color: "blush-paper",
     radius: 24,
     visible: true,
     locked: false,
@@ -35,6 +53,8 @@ const initialElements: StudioElement[] = [
     fontWeight: 700,
     visible: true,
     locked: false,
+    fontFamily: "plus-jakarta-sans",
+    textAlign: "left",
   },
 ];
 
@@ -100,10 +120,9 @@ function findClosestAlignment(
 }
 
 export default function StudioEditor() {
-  const [mode, setMode] = useState<"light" | "dark">("light");
   const [elements, setElements] = useState<StudioElement[]>(initialElements);
   const [selectedId, setSelectedId] = useState<string | null>("text-1");
-  const [backgroundColor, setBackgroundColor] = useState<BrandColorToken>("background");
+  const [backgroundColor, setBackgroundColor] = useState<BrandColorToken>("blush-paper");
   const [canvasPreset, setCanvasPreset] = useState<CanvasPreset>("instagramPortrait");
 
   const [showGrid, setShowGrid] = useState(false);
@@ -457,6 +476,8 @@ export default function StudioEditor() {
         fontWeight: 700,
         visible: true,
         locked: false,
+        fontFamily: "plus-jakarta-sans",
+        textAlign: "left",
       },
     ]);
 
@@ -477,7 +498,7 @@ export default function StudioEditor() {
         height: 340,
         rotation: 0,
         opacity: 100,
-        color: "glass",
+        color: "blush-paper",
         radius: 24,
         visible: true,
         locked: false,
@@ -582,7 +603,7 @@ export default function StudioEditor() {
   }, []);
 
   return (
-    <div className={mode === "dark" ? "dark" : ""}>
+    <div>
       <div
         className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-4"
         style={{
@@ -594,25 +615,21 @@ export default function StudioEditor() {
         <span className="font-semibold">Design Editor</span>
 
         <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={addText} className="rounded-xl border px-3 py-2 text-sm">
-            + Text
+          <button type="button" onClick={addText} className="studio-control studio-button">
+            <Type size={17} strokeWidth={1.8} />
+            <span>Add Text</span>
           </button>
-          <button type="button" onClick={addCard} className="rounded-xl border px-3 py-2 text-sm">
-            + Card
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode(mode === "light" ? "dark" : "light")}
-            className="rounded-xl border px-3 py-2 text-sm"
-          >
-            {mode === "light" ? "Dark Mode" : "Light Mode"}
+
+          <button type="button" onClick={addCard} className="studio-control studio-button">
+            <SquarePlus size={17} strokeWidth={1.8} />
+            <span>Add Card</span>
           </button>
 
           <select
             aria-label="Canvas format"
             value={canvasPreset}
             onChange={(event) => setCanvasPreset(event.target.value as CanvasPreset)}
-            className="rounded-xl border px-3 py-2 text-sm text-[#241C22]"
+            className="studio-field w-auto px-3 py-2 text-sm"
           >
             {Object.entries(canvasPresets).map(([key, preset]) => (
               <option key={key} value={key}>
@@ -621,7 +638,7 @@ export default function StudioEditor() {
             ))}
           </select>
 
-          <div className="flex flex-wrap items-center gap-3 rounded-xl border px-3 py-2">
+          <div className="studio-control-group flex-wrap gap-3 px-3 py-2">
             <label className="flex cursor-pointer items-center gap-2 text-sm">
               <input
                 type="checkbox"
@@ -657,7 +674,7 @@ export default function StudioEditor() {
                 aria-label="Grid spacing"
                 value={gridSize}
                 onChange={(event) => setGridSize(Number(event.target.value))}
-                className="rounded-lg border px-2 py-1 text-[#241C22]"
+                className="studio-field w-auto px-2 py-1 text-sm"
               >
                 {[10, 20, 25, 40, 50, 100].map((size) => (
                   <option key={size} value={size}>
@@ -668,13 +685,13 @@ export default function StudioEditor() {
             </label>
           </div>
 
-          <div className="flex items-center gap-2 rounded-xl border p-1">
+          <div className="studio-control-group p-1">
             <button
               type="button"
               onClick={() => setActiveTool("select")}
               aria-pressed={activeTool === "select"}
-              className={`rounded-lg px-3 py-2 text-sm ${
-                activeTool === "select" ? "bg-pink-500 text-white" : "hover:bg-pink-50"
+              className={`cursor-pointer rounded-lg px-3 py-2 text-sm ${
+                activeTool === "select" && "studio-control studio-button"
               }`}
             >
               Select
@@ -684,20 +701,20 @@ export default function StudioEditor() {
               type="button"
               onClick={() => setActiveTool("hand")}
               aria-pressed={activeTool === "hand"}
-              className={`rounded-lg px-3 py-2 text-sm ${
-                activeTool === "hand" ? "bg-pink-500 text-white" : "hover:bg-pink-50"
+              className={`cursor-pointer rounded-lg px-3 py-2 text-sm ${
+                activeTool === "hand" && "studio-control studio-button"
               }`}
             >
               Hand
             </button>
           </div>
 
-          <div className="flex items-center gap-2 rounded-xl border px-3 py-2">
+          <div className="studio-control-group px-3 py-2">
             <button
               type="button"
               onClick={() => changeZoom(displayedZoom - 25)}
               aria-label="Zoom out"
-              className="rounded-lg border px-2 py-1 text-sm"
+              className="studio-control px-2 py-1"
             >
               −
             </button>
@@ -708,7 +725,7 @@ export default function StudioEditor() {
               type="button"
               onClick={() => changeZoom(displayedZoom + 25)}
               aria-label="Zoom in"
-              className="rounded-lg border px-2 py-1 text-sm"
+              className="studio-control px-2 py-1"
             >
               +
             </button>
@@ -716,16 +733,12 @@ export default function StudioEditor() {
             <button
               type="button"
               onClick={() => setZoom("fit")}
-              className="rounded-lg border px-2 py-1 text-sm"
+              className="studio-control px-2 py-1"
             >
               Fit
             </button>
 
-            <button
-              type="button"
-              onClick={() => setZoom(100)}
-              className="rounded-lg border px-2 py-1 text-sm"
-            >
+            <button type="button" onClick={() => setZoom(100)} className="studio-control px-2 py-1">
               100%
             </button>
           </div>
@@ -737,27 +750,20 @@ export default function StudioEditor() {
         style={{ color: brandColor("foreground") }}
       >
         {/* Layers */}
-        <aside
-          className="rounded-2xl border p-4"
-          style={{
-            background: brandColor("surface"),
-            borderColor: brandColor("border"),
-          }}
-        >
+        <aside className="studio-panel p-4">
           <h2 className="mb-4 font-bold">Layers</h2>
 
           <div className="space-y-2">
             {[...elements].reverse().map((element) => (
               <div
                 key={element.id}
-                className={`flex items-center gap-2 rounded-lg border p-2 ${
-                  selectedId === element.id ? "border-pink-400 bg-pink-50" : "border-neutral-200"
-                }`}
+                className="studio-layer"
+                data-selected={selectedId === element.id}
               >
                 <button
                   type="button"
                   onClick={() => setSelectedId(element.id)}
-                  className={`min-w-0 flex-1 truncate text-left text-sm ${
+                  className={`min-w-0 flex-1 cursor-pointer truncate text-left text-sm ${
                     element.visible ? "" : "opacity-40"
                   }`}
                 >
@@ -769,9 +775,14 @@ export default function StudioEditor() {
                   onClick={() => toggleVisibility(element.id)}
                   title={element.visible ? "Hide layer" : "Show layer"}
                   aria-label={element.visible ? "Hide layer" : "Show layer"}
-                  className="shrink-0 rounded-md p-1.5 hover:bg-neutral-100"
+                  aria-pressed={element.visible}
+                  className="studio-layer-icon"
                 >
-                  {element.visible ? "◉" : "○"}
+                  {element.visible ? (
+                    <Eye size={16} strokeWidth={1.8} />
+                  ) : (
+                    <EyeOff size={16} strokeWidth={1.8} />
+                  )}
                 </button>
 
                 <button
@@ -779,9 +790,14 @@ export default function StudioEditor() {
                   onClick={() => toggleLock(element.id)}
                   title={element.locked ? "Unlock layer" : "Lock layer"}
                   aria-label={element.locked ? "Unlock layer" : "Lock layer"}
-                  className="shrink-0 rounded-md p-1.5 text-xs hover:bg-neutral-100"
+                  aria-pressed={element.locked}
+                  className="studio-layer-icon"
                 >
-                  {element.locked ? "🔒" : "🔓"}
+                  {element.locked ? (
+                    <Lock size={16} strokeWidth={1.8} />
+                  ) : (
+                    <LockOpen size={16} strokeWidth={1.8} />
+                  )}
                 </button>
               </div>
             ))}
@@ -789,7 +805,8 @@ export default function StudioEditor() {
             <button
               type="button"
               onClick={() => setSelectedId(null)}
-              className="w-full rounded-xl border p-3 text-left text-sm"
+              className="studio-control w-full justify-start p-3 text-left"
+              aria-pressed={selectedId === null}
             >
               Background
             </button>
@@ -799,7 +816,7 @@ export default function StudioEditor() {
         {/* Canvas */}
         <section
           ref={workspaceRef}
-          className="h-150 min-w-0 overflow-auto rounded-2xl border bg-neutral-200 p-6"
+          className="studio-workspace h-150 min-w-0 overflow-auto p-6"
           onPointerDownCapture={(event) => {
             if (activeTool === "hand") {
               handlePanStart(event);
@@ -984,10 +1001,12 @@ export default function StudioEditor() {
                       style={{
                         ...commonStyle,
                         color: brandColor(element.color),
+                        fontFamily: studioFonts[element.fontFamily].family,
                         fontSize: element.fontSize * scale,
                         fontWeight: element.fontWeight,
                         lineHeight: 1.15,
                         overflowWrap: "anywhere",
+                        textAlign: element.textAlign,
                       }}
                       onPointerDown={(event) => handleDragStart(event, element)}
                       onPointerMove={handleDragMove}
@@ -1018,13 +1037,7 @@ export default function StudioEditor() {
         </section>
 
         {/* Properties */}
-        <aside
-          className="min-h-0 rounded-2xl border p-4 lg:h-150 lg:overflow-y-auto"
-          style={{
-            background: brandColor("surface"),
-            borderColor: brandColor("border"),
-          }}
-        >
+        <aside className="studio-panel min-h-0 p-4 lg:h-150 lg:overflow-y-auto">
           <h2 className="mb-4 font-bold">Properties</h2>
 
           {selected ? (
@@ -1032,31 +1045,47 @@ export default function StudioEditor() {
               <p className="text-sm capitalize">Selected: {selected.type}</p>
 
               <div className="space-y-2">
-                <p className="text-sm font-semibold">Layer order</p>
+                <span className="block text-sm font-medium">Layer Order</span>
 
-                <div className="grid grid-cols-2 gap-2">
-                  {(
-                    [
-                      ["front", "To Front"],
-                      ["forward", "Forward"],
-                      ["backward", "Backward"],
-                      ["back", "To Back"],
-                    ] as const
-                  ).map(([direction, label]) => (
+                <div className="grid grid-cols-4 gap-2">
+                  {[
+                    {
+                      direction: "front",
+                      label: "Bring to Front",
+                      Icon: BringToFront,
+                    },
+                    {
+                      direction: "forward",
+                      label: "Move Forward",
+                      Icon: ArrowUp,
+                    },
+                    {
+                      direction: "backward",
+                      label: "Move Backward",
+                      Icon: ArrowDown,
+                    },
+                    {
+                      direction: "back",
+                      label: "Send to Back",
+                      Icon: SendToBack,
+                    },
+                  ].map(({ direction, label, Icon }) => (
                     <button
                       key={direction}
                       type="button"
+                      onClick={() => moveLayer(selected.id, direction as LayerMove)}
                       disabled={selected.locked}
-                      onClick={() => moveLayer(selected.id, direction)}
-                      className="rounded-lg border px-2 py-2 text-xs transition-colors hover:bg-pink-50 disabled:cursor-not-allowed disabled:opacity-40"
+                      title={label}
+                      aria-label={label}
+                      className="studio-control studio-icon-button"
                     >
-                      {label}
+                      <Icon size={18} strokeWidth={1.8} />
                     </button>
                   ))}
                 </div>
               </div>
 
-              {selected.type === "text" && (
+              {selected?.type === "text" && (
                 <>
                   <label className="block text-sm">
                     Text content
@@ -1067,26 +1096,113 @@ export default function StudioEditor() {
                           content: e.target.value,
                         })
                       }
-                      className="mt-2 w-full rounded-lg border p-2 text-[#241C22]"
+                      className="studio-field mt-2"
                       rows={3}
                     />
                   </label>
 
-                  <label className="block text-sm">
-                    Font size: {selected.fontSize}px
-                    <input
-                      type="range"
-                      min="16"
-                      max="120"
-                      value={selected.fontSize}
-                      onChange={(e) =>
+                  <label className="block space-y-1 text-sm">
+                    <span className="font-medium">Font Family</span>
+
+                    <select
+                      value={selected.fontFamily}
+                      onChange={(event) =>
                         updateElement(selected.id, {
-                          fontSize: Number(e.target.value),
+                          fontFamily: event.target.value as typeof selected.fontFamily,
                         })
                       }
-                      className="mt-2 w-full"
-                    />
+                      disabled={selected.locked}
+                      className="studio-field"
+                    >
+                      {Object.entries(studioFonts).map(([key, font]) => (
+                        <option key={key} value={key}>
+                          {font.category} · {font.label}
+                        </option>
+                      ))}
+                    </select>
                   </label>
+
+                  <div className="space-y-2">
+                    <label htmlFor="studio-font-size" className="block text-sm font-medium">
+                      Font Size
+                    </label>
+
+                    <div className="flex items-center gap-3">
+                      <input
+                        id="studio-font-size"
+                        type="number"
+                        min={8}
+                        max={500}
+                        step={1}
+                        value={selected.fontSize}
+                        disabled={selected.locked}
+                        onChange={(event) => {
+                          const value = Number(event.target.value);
+
+                          if (!Number.isFinite(value)) return;
+
+                          updateElement(selected.id, {
+                            fontSize: Math.max(8, Math.min(500, value)),
+                          });
+                        }}
+                        className="studio-field w-24 text-sm"
+                      />
+
+                      <input
+                        type="range"
+                        min={8}
+                        max={500}
+                        step={1}
+                        value={selected.fontSize}
+                        disabled={selected.locked}
+                        onChange={(event) =>
+                          updateElement(selected.id, {
+                            fontSize: Number(event.target.value),
+                          })
+                        }
+                        aria-label="Adjust font size"
+                        className="min-w-0 flex-1 accent-pink-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <span className="block text-sm font-medium">Text Alignment</span>
+
+                    <div className="grid grid-cols-4 gap-2">
+                      {(
+                        [
+                          { value: "left", label: "Left", Icon: AlignLeft },
+                          { value: "center", label: "Center", Icon: AlignCenter },
+                          { value: "right", label: "Right", Icon: AlignRight },
+                          {
+                            value: "justify",
+                            label: "Justify",
+                            Icon: AlignJustify,
+                          },
+                        ] as const
+                      ).map(({ value, label, Icon }) => (
+                        <button
+                          key={value}
+                          type="button"
+                          title={`Align ${label.toLowerCase()}`}
+                          aria-label={`Align ${label.toLowerCase()}`}
+                          aria-pressed={selected.textAlign === value}
+                          disabled={selected.locked}
+                          onClick={() =>
+                            updateElement(selected.id, {
+                              textAlign: value,
+                            })
+                          }
+                          className={`flex cursor-pointer items-center justify-center transition-colors disabled:opacity-50 ${
+                            selected.textAlign === value && "studio-control studio-icon-button"
+                          }`}
+                        >
+                          <Icon size={18} strokeWidth={1.8} />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
                   <label className="block text-sm">
                     Font weight
@@ -1097,7 +1213,7 @@ export default function StudioEditor() {
                           fontWeight: Number(e.target.value),
                         })
                       }
-                      className="mt-2 w-full rounded-lg border p-2 text-[#241C22]"
+                      className="studio-field mt-2"
                     >
                       {[400, 500, 600, 700, 800].map((weight) => (
                         <option key={weight} value={weight}>
@@ -1122,7 +1238,7 @@ export default function StudioEditor() {
                         radius: Number(e.target.value),
                       })
                     }
-                    className="mt-2 w-full"
+                    className="mt-2 w-full accent-pink-500"
                   />
                 </label>
               )}
@@ -1142,7 +1258,7 @@ export default function StudioEditor() {
                       ),
                     })
                   }
-                  className="mt-2 w-full rounded-lg border p-2"
+                  className="studio-field"
                 />
               </label>
 
@@ -1165,7 +1281,7 @@ export default function StudioEditor() {
                         ),
                       })
                     }
-                    className="mt-2 w-full rounded-lg border p-2"
+                    className="studio-field"
                   />
                 </label>
               )}
@@ -1193,7 +1309,7 @@ export default function StudioEditor() {
                           [property]: Number(e.target.value),
                         })
                       }
-                      className="mt-2 w-full"
+                      className="mt-2 w-full accent-pink-500"
                     />
                   </label>
                 );
@@ -1203,7 +1319,6 @@ export default function StudioEditor() {
                 label="Element color"
                 value={selected.color}
                 onChange={(color) => updateElement(selected.id, { color })}
-                mode={mode}
               />
 
               <button
@@ -1215,9 +1330,10 @@ export default function StudioEditor() {
                     ? "Unlock this layer before deleting it"
                     : "Delete selected element"
                 }
-                className="w-full rounded-xl border border-red-400 p-3 text-sm disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-400 p-3 text-sm disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {selected.locked ? "Layer Locked" : "Delete Element"}
+                <Trash2 size={16} strokeWidth={1.8} />
               </button>
             </div>
           ) : (
@@ -1225,7 +1341,6 @@ export default function StudioEditor() {
               label="Background color"
               value={backgroundColor}
               onChange={setBackgroundColor}
-              mode={mode}
             />
           )}
         </aside>
