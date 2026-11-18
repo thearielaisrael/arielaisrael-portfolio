@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import BrandColorPicker from "./BrandColorPicker";
 import { brandColor, type BrandColorToken } from "../../lib/studio/brandColors";
 import type { StudioElement } from "../../lib/studio/types";
@@ -58,6 +58,14 @@ type ResizeSession = {
   scale: number;
 };
 
+type PanSession = {
+  pointerId: number;
+  startClientX: number;
+  startClientY: number;
+  startScrollLeft: number;
+  startScrollTop: number;
+};
+
 export default function StudioEditor() {
   const [mode, setMode] = useState<"light" | "dark">("light");
   const [elements, setElements] = useState<StudioElement[]>(initialElements);
@@ -65,11 +73,28 @@ export default function StudioEditor() {
   const [backgroundColor, setBackgroundColor] = useState<BrandColorToken>("background");
   const [canvasPreset, setCanvasPreset] = useState<CanvasPreset>("instagramPortrait");
 
+  const [showGrid, setShowGrid] = useState(false);
+  const [snapToGrid, setSnapToGrid] = useState(false);
+  const [gridSize, setGridSize] = useState(20);
+
+  const [zoom, setZoom] = useState<number | "fit">("fit");
+  const workspaceRef = useRef<HTMLElement | null>(null);
+  const [workspaceSize, setWorkspaceSize] = useState({
+    width: 448,
+    height: 548,
+  });
+
+  const [activeTool, setActiveTool] = useState<"select" | "hand">("select");
+
+  const [showCenterlines, setShowCenterlines] = useState(false);
+
   const canvasSize = canvasPresets[canvasPreset];
 
   const dragSession = useRef<DragSession | null>(null);
 
   function handleDragStart(event: React.PointerEvent<HTMLDivElement>, element: StudioElement) {
+    if (activeTool === "hand") return;
+
     if (element.locked) {
       return;
     }
@@ -115,20 +140,20 @@ export default function StudioEditor() {
       previous.map((element) => {
         if (element.id !== session.elementId) return element;
 
+        const maxX = Math.max(0, canvasSize.width - element.width);
+
+        const maxY = Math.max(
+          0,
+          canvasSize.height - (element.type === "card" ? element.height : 0),
+        );
+
+        const nextX = snapValue(session.startX + deltaX);
+        const nextY = snapValue(session.startY + deltaY);
+
         return {
           ...element,
-          x: Math.round(
-            Math.max(0, Math.min(canvasSize.width - element.width, session.startX + deltaX)),
-          ),
-          y: Math.round(
-            Math.max(
-              0,
-              Math.min(
-                canvasSize.height - (element.type === "card" ? element.height : 0),
-                session.startY + deltaY,
-              ),
-            ),
-          ),
+          x: Math.max(0, Math.min(maxX, nextX)),
+          y: Math.max(0, Math.min(maxY, nextY)),
         };
       }),
     );
@@ -149,6 +174,8 @@ export default function StudioEditor() {
   const resizeSession = useRef<ResizeSession | null>(null);
 
   function handleResizeStart(event: React.PointerEvent<HTMLButtonElement>, element: StudioElement) {
+    if (activeTool === "hand") return;
+
     if (element.locked) {
       return;
     }
@@ -193,13 +220,19 @@ export default function StudioEditor() {
       previous.map((element) => {
         if (element.id !== session.elementId) return element;
 
-        const newWidth = Math.round(
-          Math.max(80, Math.min(canvasSize.width - element.x, session.startWidth + deltaX)),
+        const maxWidth = Math.max(80, canvasSize.width - element.x);
+
+        const newWidth = Math.max(
+          80,
+          Math.min(maxWidth, snapValue(element.x + session.startWidth + deltaX) - element.x),
         );
 
         if (element.type === "card") {
-          const newHeight = Math.round(
-            Math.max(60, Math.min(canvasSize.height - element.y, session.startHeight + deltaY)),
+          const maxHeight = Math.max(60, canvasSize.height - element.y);
+
+          const newHeight = Math.max(
+            60,
+            Math.min(maxHeight, snapValue(element.y + session.startHeight + deltaY) - element.y),
           );
 
           return {
@@ -229,13 +262,74 @@ export default function StudioEditor() {
     }
   }
 
-  const previewMaxWidth = 400;
-  const previewMaxHeight = 500;
+  const panSession = useRef<PanSession | null>(null);
 
-  const scale = Math.min(previewMaxWidth / canvasSize.width, previewMaxHeight / canvasSize.height);
+  function handlePanStart(event: React.PointerEvent<HTMLElement>) {
+    if (activeTool !== "hand") return;
+
+    if (event.pointerType === "mouse" && event.button !== 0) {
+      return;
+    }
+
+    const workspace = workspaceRef.current;
+    if (!workspace) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    panSession.current = {
+      pointerId: event.pointerId,
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+      startScrollLeft: workspace.scrollLeft,
+      startScrollTop: workspace.scrollTop,
+    };
+
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function handlePanMove(event: React.PointerEvent<HTMLElement>) {
+    const session = panSession.current;
+    const workspace = workspaceRef.current;
+
+    if (!session || !workspace) return;
+    if (session.pointerId !== event.pointerId) return;
+
+    workspace.scrollLeft = session.startScrollLeft - (event.clientX - session.startClientX);
+
+    workspace.scrollTop = session.startScrollTop - (event.clientY - session.startClientY);
+  }
+
+  function handlePanEnd(event: React.PointerEvent<HTMLElement>) {
+    if (panSession.current?.pointerId !== event.pointerId) {
+      return;
+    }
+
+    panSession.current = null;
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  }
+
+  const workspacePadding = 48;
+
+  const availableWidth = Math.max(1, workspaceSize.width - workspacePadding);
+
+  const availableHeight = Math.max(1, workspaceSize.height - workspacePadding);
+
+  const fitScale = Math.min(availableWidth / canvasSize.width, availableHeight / canvasSize.height);
+
+  const scale = zoom === "fit" ? fitScale : zoom / 100;
 
   const previewWidth = canvasSize.width * scale;
   const previewHeight = canvasSize.height * scale;
+
+  const displayedZoom = Math.round(scale * 100);
+
+  function changeZoom(nextZoom: number) {
+    setZoom(Math.max(25, Math.min(400, nextZoom)));
+  }
 
   const selected = elements.find((el) => el.id === selectedId);
 
@@ -365,6 +459,33 @@ export default function StudioEditor() {
     });
   }
 
+  function snapValue(value: number) {
+    if (!snapToGrid) {
+      return Math.round(value);
+    }
+
+    return Math.round(value / gridSize) * gridSize;
+  }
+
+  useEffect(() => {
+    const workspace = workspaceRef.current;
+    if (!workspace) return;
+
+    const measureWorkspace = () => {
+      setWorkspaceSize({
+        width: workspace.clientWidth,
+        height: workspace.clientHeight,
+      });
+    };
+
+    measureWorkspace();
+
+    const observer = new ResizeObserver(measureWorkspace);
+    observer.observe(workspace);
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div className={mode === "dark" ? "dark" : ""}>
       <div
@@ -404,6 +525,115 @@ export default function StudioEditor() {
               </option>
             ))}
           </select>
+
+          <div className="flex flex-wrap items-center gap-3 rounded-xl border px-3 py-2">
+            <label className="flex cursor-pointer items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={showGrid}
+                onChange={(event) => setShowGrid(event.target.checked)}
+                className="accent-pink-500"
+              />
+              Show Grid
+            </label>
+
+            <label className="flex cursor-pointer items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={snapToGrid}
+                onChange={(event) => setSnapToGrid(event.target.checked)}
+                className="accent-pink-500"
+              />
+              Snap
+            </label>
+
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={showCenterlines}
+                onChange={(event) => setShowCenterlines(event.target.checked)}
+              />
+              Centerlines
+            </label>
+
+            <label className="flex items-center gap-2 text-sm">
+              Spacing
+              <select
+                aria-label="Grid spacing"
+                value={gridSize}
+                onChange={(event) => setGridSize(Number(event.target.value))}
+                className="rounded-lg border px-2 py-1 text-[#241C22]"
+              >
+                {[10, 20, 25, 40, 50, 100].map((size) => (
+                  <option key={size} value={size}>
+                    {size}px
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <div className="flex items-center gap-2 rounded-xl border p-1">
+            <button
+              type="button"
+              onClick={() => setActiveTool("select")}
+              aria-pressed={activeTool === "select"}
+              className={`rounded-lg px-3 py-2 text-sm ${
+                activeTool === "select" ? "bg-pink-500 text-white" : "hover:bg-pink-50"
+              }`}
+            >
+              Select
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTool("hand")}
+              aria-pressed={activeTool === "hand"}
+              className={`rounded-lg px-3 py-2 text-sm ${
+                activeTool === "hand" ? "bg-pink-500 text-white" : "hover:bg-pink-50"
+              }`}
+            >
+              Hand
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2 rounded-xl border px-3 py-2">
+            <button
+              type="button"
+              onClick={() => changeZoom(displayedZoom - 25)}
+              aria-label="Zoom out"
+              className="rounded-lg border px-2 py-1 text-sm"
+            >
+              −
+            </button>
+
+            <span className="min-w-12 text-center text-sm tabular-nums">{displayedZoom}%</span>
+
+            <button
+              type="button"
+              onClick={() => changeZoom(displayedZoom + 25)}
+              aria-label="Zoom in"
+              className="rounded-lg border px-2 py-1 text-sm"
+            >
+              +
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setZoom("fit")}
+              className="rounded-lg border px-2 py-1 text-sm"
+            >
+              Fit
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setZoom(100)}
+              className="rounded-lg border px-2 py-1 text-sm"
+            >
+              100%
+            </button>
+          </div>
         </div>
       </div>
 
@@ -472,55 +702,179 @@ export default function StudioEditor() {
         </aside>
 
         {/* Canvas */}
-        <section className="flex h-150 min-w-0 items-center justify-center overflow-auto rounded-2xl border bg-neutral-200 p-6">
-          <div
-            className="relative shrink-0 overflow-hidden shadow-xl"
-            style={{
-              width: previewWidth,
-              height: previewHeight,
-              maxWidth: "100%",
-              background: brandColor(backgroundColor),
-            }}
-            data-studio-canvas="true"
-            onClick={() => setSelectedId(null)}
-          >
-            {elements
-              .filter((element) => element.visible)
-              .map((element) => {
-                const commonStyle = {
-                  position: "absolute" as const,
-                  left: element.x * scale,
-                  top: element.y * scale,
-                  width: element.width * scale,
-                  opacity: element.opacity / 100,
-                  transform: `rotate(${element.rotation}deg)`,
-                  cursor: "pointer",
-                  outline: selectedId === element.id ? `2px solid ${brandColor("accent")}` : "none",
-                  touchAction: "none" as const,
-                  userSelect: "none" as const,
-                };
+        <section
+          ref={workspaceRef}
+          className="h-150 min-w-0 overflow-auto rounded-2xl border bg-neutral-200 p-6"
+          onPointerDownCapture={(event) => {
+            if (activeTool === "hand") {
+              handlePanStart(event);
+            }
+          }}
+          onPointerMove={handlePanMove}
+          onPointerUp={handlePanEnd}
+          onPointerCancel={handlePanEnd}
+          style={{
+            cursor: activeTool === "hand" ? "grab" : "default",
+            touchAction: activeTool === "hand" ? "none" : "auto",
+          }}
+        >
+          <div className="flex min-h-full w-max min-w-full items-center justify-center">
+            <div
+              className="relative shrink-0 overflow-hidden shadow-xl"
+              style={{
+                width: previewWidth,
+                height: previewHeight,
 
-                if (element.type === "card") {
+                background: brandColor(backgroundColor),
+              }}
+              data-studio-canvas="true"
+              onClick={() => {
+                if (activeTool === "select") {
+                  setSelectedId(null);
+                }
+              }}
+            >
+              {showGrid && (
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 z-20"
+                  style={{
+                    backgroundImage: `
+                  linear-gradient(
+                  to right,
+                rgba(180, 75, 125, 0.25) 1px,
+                  transparent 1px
+                  ),
+                  linear-gradient(
+                  to bottom,
+                  rgba(180, 75, 125, 0.25) 1px,
+                  transparent 1px
+                  )
+                  `,
+                    backgroundSize: `${gridSize * scale}px ${gridSize * scale}px`,
+                  }}
+                />
+              )}
+
+              {showCenterlines && (
+                <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-30">
+                  {/* Vertical centerline */}
+                  <div
+                    className="absolute inset-y-0"
+                    style={{
+                      left: "50%",
+                      width: 1,
+                      backgroundColor: "#00B8D9",
+                    }}
+                  />
+
+                  {/* Horizontal centerline */}
+                  <div
+                    className="absolute inset-x-0"
+                    style={{
+                      top: "50%",
+                      height: 1,
+                      backgroundColor: "#00B8D9",
+                    }}
+                  />
+
+                  {/* Center intersection */}
+                  <div
+                    className="absolute size-2 rounded-full"
+                    style={{
+                      left: "50%",
+                      top: "50%",
+                      backgroundColor: "#00B8D9",
+                      transform: "translate(-50%, -50%)",
+                    }}
+                  />
+                </div>
+              )}
+
+              {elements
+                .filter((element) => element.visible)
+                .map((element) => {
+                  const commonStyle = {
+                    position: "absolute" as const,
+                    left: element.x * scale,
+                    top: element.y * scale,
+                    width: element.width * scale,
+                    opacity: element.opacity / 100,
+                    transform: `rotate(${element.rotation}deg)`,
+                    cursor: "pointer",
+                    outline:
+                      selectedId === element.id ? `2px solid ${brandColor("accent")}` : "none",
+                    touchAction: "none" as const,
+                    userSelect: "none" as const,
+                  };
+
+                  if (element.type === "card") {
+                    return (
+                      <div
+                        key={element.id}
+                        onClick={(event) => {
+                          event.stopPropagation();
+
+                          if (activeTool === "select") {
+                            setSelectedId(element.id);
+                          }
+                        }}
+                        style={{
+                          ...commonStyle,
+                          height: element.height * scale,
+                          background: brandColor(element.color),
+                          borderRadius: element.radius * scale,
+                          border: `1px solid ${brandColor("glass-border")}`,
+                          backdropFilter: "blur(16px)",
+                        }}
+                        onPointerDown={(event) => handleDragStart(event, element)}
+                        onPointerMove={handleDragMove}
+                        onPointerUp={handleDragEnd}
+                        onPointerCancel={handleDragEnd}
+                      >
+                        {selectedId === element.id && !element.locked && (
+                          <button
+                            type="button"
+                            aria-label={`Resize ${element.type}`}
+                            title="Drag to resize"
+                            onClick={(event) => event.stopPropagation()}
+                            onPointerDown={(event) => handleResizeStart(event, element)}
+                            onPointerMove={handleResizeMove}
+                            onPointerUp={handleResizeEnd}
+                            onPointerCancel={handleResizeEnd}
+                            className="absolute -right-1.5 -bottom-1.5 z-10 size-3 cursor-nwse-resize rounded-sm border-2 border-white bg-[#C42B70] shadow-sm"
+                            style={{ touchAction: "none" }}
+                          />
+                        )}
+                      </div>
+                    );
+                  }
+
                   return (
                     <div
                       key={element.id}
                       onClick={(event) => {
                         event.stopPropagation();
-                        setSelectedId(element.id);
+
+                        if (activeTool === "select") {
+                          setSelectedId(element.id);
+                        }
                       }}
                       style={{
                         ...commonStyle,
-                        height: element.height * scale,
-                        background: brandColor(element.color),
-                        borderRadius: element.radius * scale,
-                        border: `1px solid ${brandColor("glass-border")}`,
-                        backdropFilter: "blur(16px)",
+                        color: brandColor(element.color),
+                        fontSize: element.fontSize * scale,
+                        fontWeight: element.fontWeight,
+                        lineHeight: 1.15,
+                        overflowWrap: "anywhere",
                       }}
                       onPointerDown={(event) => handleDragStart(event, element)}
                       onPointerMove={handleDragMove}
                       onPointerUp={handleDragEnd}
                       onPointerCancel={handleDragEnd}
                     >
+                      {element.content}
+
                       {selectedId === element.id && !element.locked && (
                         <button
                           type="button"
@@ -537,47 +891,8 @@ export default function StudioEditor() {
                       )}
                     </div>
                   );
-                }
-
-                return (
-                  <div
-                    key={element.id}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      setSelectedId(element.id);
-                    }}
-                    style={{
-                      ...commonStyle,
-                      color: brandColor(element.color),
-                      fontSize: element.fontSize * scale,
-                      fontWeight: element.fontWeight,
-                      lineHeight: 1.15,
-                      overflowWrap: "anywhere",
-                    }}
-                    onPointerDown={(event) => handleDragStart(event, element)}
-                    onPointerMove={handleDragMove}
-                    onPointerUp={handleDragEnd}
-                    onPointerCancel={handleDragEnd}
-                  >
-                    {element.content}
-
-                    {selectedId === element.id && !element.locked && (
-                      <button
-                        type="button"
-                        aria-label={`Resize ${element.type}`}
-                        title="Drag to resize"
-                        onClick={(event) => event.stopPropagation()}
-                        onPointerDown={(event) => handleResizeStart(event, element)}
-                        onPointerMove={handleResizeMove}
-                        onPointerUp={handleResizeEnd}
-                        onPointerCancel={handleResizeEnd}
-                        className="absolute -right-1.5 -bottom-1.5 z-10 size-3 cursor-nwse-resize rounded-sm border-2 border-white bg-[#C42B70] shadow-sm"
-                        style={{ touchAction: "none" }}
-                      />
-                    )}
-                  </div>
-                );
-              })}
+                })}
+            </div>
           </div>
         </section>
 
