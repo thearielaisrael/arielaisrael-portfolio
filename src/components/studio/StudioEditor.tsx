@@ -71,6 +71,34 @@ type AlignmentGuides = {
   horizontal: number | null;
 };
 
+type AlignmentMatch = {
+  position: number;
+  distance: number;
+};
+
+function findClosestAlignment(
+  movingPositions: number[],
+  targetPositions: number[],
+  threshold: number,
+): number | null {
+  let closest: AlignmentMatch | null = null;
+
+  for (const movingPosition of movingPositions) {
+    for (const targetPosition of targetPositions) {
+      const distance = Math.abs(movingPosition - targetPosition);
+
+      if (distance <= threshold && (closest === null || distance < closest.distance)) {
+        closest = {
+          position: targetPosition,
+          distance,
+        };
+      }
+    }
+  }
+
+  return closest?.position ?? null;
+}
+
 export default function StudioEditor() {
   const [mode, setMode] = useState<"light" | "dark">("light");
   const [elements, setElements] = useState<StudioElement[]>(initialElements);
@@ -158,20 +186,44 @@ export default function StudioEditor() {
     const proposedX = session.startX + deltaX;
     const proposedY = session.startY + deltaY;
 
-    const elementCenterX = proposedX + activeElement.width / 2;
+    const movingXPositions = [
+      proposedX,
+      proposedX + activeElement.width / 2,
+      proposedX + activeElement.width,
+    ];
 
-    const elementCenterY = proposedY + elementHeight / 2;
+    const movingYPositions = [proposedY, proposedY + elementHeight / 2, proposedY + elementHeight];
 
-    const canvasCenterX = canvasSize.width / 2;
-    const canvasCenterY = canvasSize.height / 2;
+    const targetXPositions = [canvasSize.width / 2];
 
-    const alignedX = Math.abs(elementCenterX - canvasCenterX) <= alignmentThreshold;
+    const targetYPositions = [canvasSize.height / 2];
 
-    const alignedY = Math.abs(elementCenterY - canvasCenterY) <= alignmentThreshold;
+    for (const element of elements) {
+      if (element.id === session.elementId) continue;
+      if (!element.visible) continue;
+
+      const targetHeight = element.type === "card" ? element.height : element.fontSize * 1.2;
+
+      targetXPositions.push(element.x, element.x + element.width / 2, element.x + element.width);
+
+      targetYPositions.push(element.y, element.y + targetHeight / 2, element.y + targetHeight);
+    }
+
+    const verticalGuide = findClosestAlignment(
+      movingXPositions,
+      targetXPositions,
+      alignmentThreshold,
+    );
+
+    const horizontalGuide = findClosestAlignment(
+      movingYPositions,
+      targetYPositions,
+      alignmentThreshold,
+    );
 
     setAlignmentGuides({
-      vertical: alignedX ? canvasCenterX : null,
-      horizontal: alignedY ? canvasCenterY : null,
+      vertical: verticalGuide,
+      horizontal: horizontalGuide,
     });
 
     setElements((previous) =>
@@ -201,7 +253,7 @@ export default function StudioEditor() {
     if (dragSession.current?.pointerId !== event.pointerId) {
       return;
     }
-    
+
     setAlignmentGuides({
       vertical: null,
       horizontal: null,
