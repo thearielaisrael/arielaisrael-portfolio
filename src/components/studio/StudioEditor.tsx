@@ -190,15 +190,6 @@ export default function StudioEditor() {
 
   const dragSession = useRef<DragSession | null>(null);
 
-  function commitElements(nextElements: StudioElement[]) {
-    setPast((previous) => [...previous.slice(-49), elements]);
-    setFuture([]);
-
-    latestElementsRef.current = nextElements;
-    setElements(nextElements);
-    syncActiveSlide(nextElements);
-  }
-
   const syncActiveSlide = useCallback((nextElements: StudioElement[]) => {
     setProject((currentProject) => ({
       ...currentProject,
@@ -212,6 +203,62 @@ export default function StudioEditor() {
       ),
     }));
   }, []);
+
+  function addSlide() {
+    const newSlideId = crypto.randomUUID();
+
+    setProject((currentProject) => ({
+      ...currentProject,
+      activeSlideId: newSlideId,
+      slides: [
+        ...currentProject.slides,
+        {
+          id: newSlideId,
+          name: `Slide ${currentProject.slides.length + 1}`,
+          backgroundColor: "blush-paper",
+          elements: [],
+        },
+      ],
+    }));
+
+    setElements([]);
+    latestElementsRef.current = [];
+    setBackgroundColor("blush-paper");
+    setSelectedId(null);
+    setEditingTextId(null);
+    setPast([]);
+    setFuture([]);
+  }
+
+  function selectSlide(slideId: string) {
+    if (slideId === project.activeSlideId) return;
+
+    const nextSlide = project.slides.find((slide) => slide.id === slideId);
+
+    if (!nextSlide) return;
+
+    setProject((currentProject) => ({
+      ...currentProject,
+      activeSlideId: slideId,
+    }));
+
+    setElements(nextSlide.elements);
+    latestElementsRef.current = nextSlide.elements;
+    setBackgroundColor(nextSlide.backgroundColor);
+    setSelectedId(null);
+    setEditingTextId(null);
+    setPast([]);
+    setFuture([]);
+  }
+
+  function commitElements(nextElements: StudioElement[]) {
+    setPast((previous) => [...previous.slice(-49), elements]);
+    setFuture([]);
+
+    latestElementsRef.current = nextElements;
+    setElements(nextElements);
+    syncActiveSlide(nextElements);
+  }
 
   function undo() {
     if (past.length === 0) return;
@@ -1247,10 +1294,10 @@ export default function StudioEditor() {
         style={{ color: brandColor("foreground") }}
       >
         {/* Layers */}
-        <aside className="studio-panel p-4">
-          <h2 className="mb-4 font-bold">Layers</h2>
+        <aside className="studio-panel flex h-150 min-h-0 flex-col p-4">
+          <h2 className="mb-4 shrink-0 font-bold">Layers</h2>
 
-          <div className="space-y-2">
+          <div className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain pr-1">
             {[...elements].reverse().map((element) => (
               <div
                 key={element.id}
@@ -2218,6 +2265,62 @@ export default function StudioEditor() {
           )}
         </aside>
       </div>
+      {/* Slides Filmstrip */}
+      <aside className="studio-panel mt-4 min-w-0 p-4">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <h2 className="font-bold">Slides</h2>
+
+            <span className="text-muted text-xs">
+              {project.slides.length} {project.slides.length === 1 ? "slide" : "slides"}
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={addSlide}
+            className="studio-control studio-button"
+            title="Add slide"
+            aria-label="Add slide"
+          >
+            <span className="text-lg leading-none">+</span>
+            <span>Add Slide</span>
+          </button>
+        </div>
+
+        <div className="flex min-w-0 gap-3 overflow-x-auto overscroll-x-contain pb-3">
+          {project.slides.map((slide, index) => {
+            const isActive = project.activeSlideId === slide.id;
+
+            return (
+              <button
+                key={slide.id}
+                type="button"
+                onClick={() => selectSlide(slide.id)}
+                className="studio-layer w-32 shrink-0 flex-col items-stretch text-left"
+                data-selected={isActive}
+                aria-current={isActive ? "true" : undefined}
+                title={`Open ${slide.name}`}
+              >
+                <div
+                  className="border-default flex aspect-4/5 w-full items-center justify-center rounded-lg border"
+                  style={{
+                    backgroundColor: brandColor(slide.backgroundColor),
+                  }}
+                >
+                  <span className="text-muted text-xs">
+                    {slide.elements.length} {slide.elements.length === 1 ? "element" : "elements"}
+                  </span>
+                </div>
+
+                <span className="block w-full truncate text-xs font-medium">
+                  {index + 1}. {slide.name}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </aside>
     </div>
   );
 }
