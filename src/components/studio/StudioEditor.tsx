@@ -3,7 +3,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import BrandColorPicker from "./BrandColorPicker";
 import { brandColor, type BrandColorToken } from "../../lib/studio/brandColors";
-import type { StudioElement, StudioProject } from "../../lib/studio/types";
+import type {
+  StudioElement,
+  StudioProject,
+  StudioBackgroundEffect,
+  StudioGradient,
+} from "../../lib/studio/types";
 import { canvasPresets, type CanvasPreset } from "../../lib/studio/canvasPresets";
 import { studioFonts, type StudioFont } from "../../lib/studio/fonts";
 import {
@@ -33,6 +38,10 @@ import {
   GripVertical,
 } from "lucide-react";
 import StudioTextContent from "./StudioTextContent";
+import StudioBackgroundEffects from "./StudioBackgroundEffects";
+import { studioGradientPresets, studioGradientToCSS } from "../../lib/studio/gradientPresets";
+import StudioGradientPresets from "./StudioGradientPresets";
+import StudioGradientEditor from "./StudioGradientEditor";
 
 const initialElements: StudioElement[] = [
   {
@@ -82,6 +91,7 @@ const initialProject: StudioProject = {
       id: "slide-1",
       name: "Slide 1",
       backgroundColor: "blush-paper",
+      backgroundEffects: [],
       elements: initialElements,
     },
   ],
@@ -204,6 +214,8 @@ export default function StudioEditor() {
     horizontal: null,
   });
 
+  const activeSlide = project.slides.find((slide) => slide.id === project.activeSlideId);
+
   const canvasSize = canvasPresets[canvasPreset];
 
   const dragSession = useRef<DragSession | null>(null);
@@ -233,6 +245,129 @@ export default function StudioEditor() {
     }));
   }
 
+  function updateBackgroundEffect(effectId: string, changes: Partial<StudioBackgroundEffect>) {
+    setProject((currentProject) => ({
+      ...currentProject,
+      slides: currentProject.slides.map((slide) =>
+        slide.id === currentProject.activeSlideId
+          ? {
+              ...slide,
+              backgroundEffects: slide.backgroundEffects.map((effect) =>
+                effect.id === effectId ? { ...effect, ...changes } : effect,
+              ),
+            }
+          : slide,
+      ),
+    }));
+  }
+
+  function getBackgroundGradient(effect: StudioBackgroundEffect): StudioGradient {
+    return (
+      effect.gradient ?? {
+        type: "linear",
+        angle: 135,
+        opacity: effect.opacity,
+        stops: [
+          {
+            id: `${effect.id}-start`,
+            color: effect.color,
+            position: 0,
+          },
+          {
+            id: `${effect.id}-end`,
+            color: effect.secondaryColor ?? "#FFFFFF",
+            position: 100,
+          },
+        ],
+      }
+    );
+  }
+
+  function updateBackgroundGradient(effect: StudioBackgroundEffect, gradient: StudioGradient) {
+    const sortedStops = [...gradient.stops].sort((a, b) => a.position - b.position);
+
+    updateBackgroundEffect(effect.id, {
+      gradient,
+      opacity: gradient.opacity,
+      color: sortedStops[0]?.color ?? effect.color,
+      secondaryColor: sortedStops[sortedStops.length - 1]?.color ?? effect.secondaryColor,
+    });
+  }
+
+  function addGradientPreset(gradient: StudioGradient) {
+    const sortedStops = [...gradient.stops].sort((a, b) => a.position - b.position);
+
+    const firstStop = sortedStops[0];
+    const lastStop = sortedStops[sortedStops.length - 1];
+
+    if (!firstStop || !lastStop) return;
+
+    const newEffect: StudioBackgroundEffect = {
+      id: crypto.randomUUID(),
+      type: "gradient",
+      enabled: true,
+      seed: 1,
+      opacity: gradient.opacity,
+      color: firstStop.color,
+      secondaryColor: lastStop.color,
+      intensity: 50,
+      scale: 100,
+      gradient: structuredClone(gradient),
+    };
+
+    setProject((currentProject) => ({
+      ...currentProject,
+      slides: currentProject.slides.map((slide) =>
+        slide.id === currentProject.activeSlideId
+          ? {
+              ...slide,
+              backgroundEffects: [...slide.backgroundEffects, newEffect],
+            }
+          : slide,
+      ),
+    }));
+  }
+
+  function addGradientEffect() {
+    const newEffect: StudioBackgroundEffect = {
+      id: crypto.randomUUID(),
+      type: "gradient",
+      enabled: true,
+      seed: 1,
+      opacity: 100,
+      color: "#F8BBD9",
+      secondaryColor: "#FFF0F7",
+      intensity: 50,
+      scale: 100,
+    };
+
+    setProject((currentProject) => ({
+      ...currentProject,
+      slides: currentProject.slides.map((slide) =>
+        slide.id === currentProject.activeSlideId
+          ? {
+              ...slide,
+              backgroundEffects: [...slide.backgroundEffects, newEffect],
+            }
+          : slide,
+      ),
+    }));
+  }
+
+  function removeBackgroundEffect(effectId: string) {
+    setProject((currentProject) => ({
+      ...currentProject,
+      slides: currentProject.slides.map((slide) =>
+        slide.id === currentProject.activeSlideId
+          ? {
+              ...slide,
+              backgroundEffects: slide.backgroundEffects.filter((effect) => effect.id !== effectId),
+            }
+          : slide,
+      ),
+    }));
+  }
+
   function updateCanvasPreset(preset: CanvasPreset) {
     setCanvasPreset(preset);
 
@@ -254,6 +389,7 @@ export default function StudioEditor() {
           id: newSlideId,
           name: `Slide ${currentProject.slides.length + 1}`,
           backgroundColor: "blush-paper",
+          backgroundEffects: [],
           elements: [],
         },
       ],
@@ -1658,6 +1794,7 @@ export default function StudioEditor() {
                 }
               }}
             >
+              <StudioBackgroundEffects effects={activeSlide?.backgroundEffects ?? []} />
               {showGrid && (
                 <div
                   aria-hidden="true"
@@ -1772,7 +1909,10 @@ export default function StudioEditor() {
                         style={{
                           ...commonStyle,
                           height: element.height * scale,
-                          background: brandColor(element.color),
+                          background:
+                            element.fillType === "gradient" && element.gradient
+                              ? studioGradientToCSS(element.gradient)
+                              : brandColor(element.color),
                           borderRadius: element.radius * scale,
                           border: `1px solid ${brandColor("glass-border")}`,
                           backdropFilter: "blur(16px)",
@@ -2483,11 +2623,69 @@ export default function StudioEditor() {
                 );
               })}
 
-              <BrandColorPicker
-                label="Element color"
-                value={selected.color}
-                onChange={(color) => commitElementUpdate(selected.id, { color })}
-              />
+              {selected.type === "card" && (
+                <div className="space-y-3">
+                  <label className="block text-sm font-semibold">Card Fill</label>
+
+                  <select
+                    value={selected.fillType ?? "solid"}
+                    disabled={selected.locked}
+                    onChange={(event) => {
+                      const fillType = event.target.value as "solid" | "gradient";
+
+                      commitElementUpdate(selected.id, {
+                        fillType,
+                        ...(fillType === "gradient" && !selected.gradient
+                          ? {
+                              gradient: structuredClone(studioGradientPresets[0].gradient),
+                            }
+                          : {}),
+                      });
+                    }}
+                    className="studio-field w-full"
+                  >
+                    <option value="solid">Solid Color</option>
+                    <option value="gradient">Gradient</option>
+                  </select>
+
+                  {(selected.fillType ?? "solid") === "solid" ? (
+                    <BrandColorPicker
+                      label="Card Color"
+                      value={selected.color}
+                      onChange={(color) => commitElementUpdate(selected.id, { color })}
+                    />
+                  ) : (
+                    <div className="space-y-4">
+                      <StudioGradientPresets
+                        disabled={selected.locked}
+                        selectedGradient={selected.gradient}
+                        onSelect={(gradient) =>
+                          commitElementUpdate(selected.id, {
+                            gradient,
+                            fillType: "gradient",
+                          })
+                        }
+                      />
+
+                      {selected.gradient && (
+                        <StudioGradientEditor
+                          gradient={selected.gradient}
+                          disabled={selected.locked}
+                          onChange={(gradient) => commitElementUpdate(selected.id, { gradient })}
+                        />
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {selected.type === "text" && (
+                <BrandColorPicker
+                  label="Text Color"
+                  value={selected.color}
+                  onChange={(color) => commitElementUpdate(selected.id, { color })}
+                />
+              )}
 
               <button
                 type="button"
@@ -2505,11 +2703,67 @@ export default function StudioEditor() {
               </button>
             </div>
           ) : (
-            <BrandColorPicker
-              label="Background color"
-              value={backgroundColor}
-              onChange={updateBackgroundColor}
-            />
+            <div className="space-y-5">
+              <BrandColorPicker
+                label="Background color"
+                value={backgroundColor}
+                onChange={updateBackgroundColor}
+              />
+
+              <StudioGradientPresets onSelect={addGradientPreset} />
+
+              <div className="mt-5 space-y-4">
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="text-sm font-semibold">Gradient Effects</h3>
+
+                  <button
+                    type="button"
+                    onClick={addGradientEffect}
+                    className="studio-control studio-button text-xs"
+                  >
+                    + Add Gradient
+                  </button>
+                </div>
+
+                {activeSlide?.backgroundEffects
+                  .filter((effect) => effect.type === "gradient")
+                  .map((effect) => (
+                    <div
+                      key={effect.id}
+                      className="space-y-3 rounded-xl border p-3"
+                      style={{ borderColor: brandColor("border") }}
+                    >
+                      <label className="flex items-center justify-between text-sm">
+                        <span>Enabled</span>
+                        <input
+                          type="checkbox"
+                          checked={effect.enabled}
+                          onChange={(event) =>
+                            updateBackgroundEffect(effect.id, {
+                              enabled: event.target.checked,
+                            })
+                          }
+                          className="accent-pink-500"
+                        />
+                      </label>
+
+                      <StudioGradientEditor
+                        gradient={getBackgroundGradient(effect)}
+                        onChange={(gradient) => updateBackgroundGradient(effect, gradient)}
+                      />
+
+                      <button
+                        type="button"
+                        onClick={() => removeBackgroundEffect(effect.id)}
+                        className="studio-control w-full justify-center text-xs"
+                      >
+                        <Trash2 size={14} strokeWidth={1.8} />
+                        Remove Gradient
+                      </button>
+                    </div>
+                  ))}
+              </div>
+            </div>
           )}
         </aside>
       </div>

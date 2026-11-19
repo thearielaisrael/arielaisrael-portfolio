@@ -741,4 +741,25 @@
     border-radius: 1.25rem;
     background-color: var(--color-aura-mist);
   }
+  /* Color Swatch */
+  .studio-color-swatch {
+    appearance: none;
+    -webkit-appearance: none;
+    overflow: hidden;
+  }
+
+  .studio-color-swatch::-webkit-color-swatch-wrapper {
+    padding: 0;
+    border-radius: 50%;
+  }
+
+  .studio-color-swatch::-webkit-color-swatch {
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+  }
+
+  .studio-color-swatch::-moz-color-swatch {
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+  }
 }

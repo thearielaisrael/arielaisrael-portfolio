@@ -32,14 +32,46 @@ export type CardElement = BaseElement & {
   height: number;
   color: BrandColorToken;
   radius: number;
+  fillType?: "solid" | "gradient";
+  gradient?: StudioGradient;
 };
 
 export type StudioElement = TextElement | CardElement;
+
+export type StudioBackgroundEffectType =
+  "gradient" | "ambient-glow" | "particles" | "connections" | "grid" | "pattern";
+
+export type StudioBackgroundEffect = {
+  id: string;
+  type: StudioBackgroundEffectType;
+  enabled: boolean;
+  seed: number;
+  opacity: number;
+  color: string;
+  secondaryColor?: string;
+  intensity: number;
+  scale: number;
+  gradient?: StudioGradient;
+};
+
+export type StudioGradientStop = {
+  id: string;
+  color: string;
+  position: number;
+};
+
+export type StudioGradient = {
+  type: "linear" | "radial";
+  angle: number;
+  stops: StudioGradientStop[];
+  opacity: number;
+};
 
 export type StudioSlide = {
   id: string;
   name: string;
   backgroundColor: BrandColorToken;
+  backgroundEffects: StudioBackgroundEffect[];
   elements: StudioElement[];
 };
 
