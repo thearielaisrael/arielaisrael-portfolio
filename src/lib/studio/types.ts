@@ -20,6 +20,10 @@ export type TextElement = BaseElement & {
   fontSize: number;
   fontWeight: number;
   textAlign: "left" | "center" | "right" | "justify";
+  italic: boolean;
+  lineHeight: number;
+  letterSpacing: number;
+  height: number;
 };
 
 export type CardElement = BaseElement & {

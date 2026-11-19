@@ -5,12 +5,13 @@ import BrandColorPicker from "./BrandColorPicker";
 import { brandColor, type BrandColorToken } from "../../lib/studio/brandColors";
 import type { StudioElement } from "../../lib/studio/types";
 import { canvasPresets, type CanvasPreset } from "../../lib/studio/canvasPresets";
-import { studioFonts } from "../../lib/studio/fonts";
+import { studioFonts, type StudioFont } from "../../lib/studio/fonts";
 import {
   AlignLeft,
   AlignCenter,
   AlignRight,
   AlignJustify,
+  AlertTriangle,
   Lock,
   LockOpen,
   Type,
@@ -22,7 +23,13 @@ import {
   Eye,
   EyeOff,
   Trash2,
+  Italic,
+  Undo2,
+  Redo2,
+  Copy,
+  ClipboardPaste,
 } from "lucide-react";
+import StudioTextContent from "./StudioTextContent";
 
 const initialElements: StudioElement[] = [
   {
@@ -45,6 +52,7 @@ const initialElements: StudioElement[] = [
     x: 151,
     y: 540,
     width: 778,
+    height: 58,
     rotation: 0,
     opacity: 100,
     content: "Research meets technology.",
@@ -55,6 +63,9 @@ const initialElements: StudioElement[] = [
     locked: false,
     fontFamily: "plus-jakarta-sans",
     textAlign: "left",
+    italic: false,
+    lineHeight: 1.2,
+    letterSpacing: 0,
   },
 ];
 
@@ -121,7 +132,21 @@ function findClosestAlignment(
 
 export default function StudioEditor() {
   const [elements, setElements] = useState<StudioElement[]>(initialElements);
+
+  const latestElementsRef = useRef(elements);
+
+  const [past, setPast] = useState<StudioElement[][]>([]);
+  const [future, setFuture] = useState<StudioElement[][]>([]);
+  const sliderStartRef = useRef<StudioElement[] | null>(null);
+  const canvasInteractionStartRef = useRef<StudioElement[] | null>(null);
+  const copiedElementRef = useRef<StudioElement | null>(null);
+  const pasteCountRef = useRef(0);
+  const [hasCopiedElement, setHasCopiedElement] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>("text-1");
+  const [editingTextId, setEditingTextId] = useState<string | null>(null);
+  const [editingDraft, setEditingDraft] = useState("");
+  const [overflowingTextIds, setOverflowingTextIds] = useState<string[]>([]);
+  const inlineEditorRef = useRef<HTMLTextAreaElement | null>(null);
   const [backgroundColor, setBackgroundColor] = useState<BrandColorToken>("blush-paper");
   const [canvasPreset, setCanvasPreset] = useState<CanvasPreset>("instagramPortrait");
 
@@ -149,8 +174,42 @@ export default function StudioEditor() {
 
   const dragSession = useRef<DragSession | null>(null);
 
+  function commitElements(nextElements: StudioElement[]) {
+    setPast((previous) => [...previous.slice(-49), elements]);
+    setFuture([]);
+
+    latestElementsRef.current = nextElements;
+    setElements(nextElements);
+  }
+
+  function undo() {
+    if (past.length === 0) return;
+
+    const previousElements = past[past.length - 1];
+
+    setFuture((previous) => [elements, ...previous]);
+    setPast((previous) => previous.slice(0, -1));
+    latestElementsRef.current = previousElements;
+    setElements(previousElements);
+    setSelectedId(null);
+  }
+
+  function redo() {
+    if (future.length === 0) return;
+
+    const nextElements = future[0];
+
+    setPast((previous) => [...previous, elements]);
+    setFuture((previous) => previous.slice(1));
+    latestElementsRef.current = nextElements;
+    setElements(nextElements);
+    setSelectedId(null);
+  }
+
   function handleDragStart(event: React.PointerEvent<HTMLDivElement>, element: StudioElement) {
     if (activeTool === "hand") return;
+
+    if (editingTextId === element.id) return;
 
     if (element.locked) {
       return;
@@ -161,6 +220,12 @@ export default function StudioEditor() {
     }
 
     event.stopPropagation();
+
+    if (element.type === "text" && event.detail >= 2) {
+      startTextEditing(element);
+      return;
+    }
+
     event.preventDefault();
 
     setSelectedId(element.id);
@@ -169,6 +234,8 @@ export default function StudioEditor() {
     if (!canvas) return;
 
     const actualScale = canvas.getBoundingClientRect().width / canvasSize.width;
+
+    startCanvasInteractionHistory();
 
     dragSession.current = {
       pointerId: event.pointerId,
@@ -199,8 +266,7 @@ export default function StudioEditor() {
 
     if (!activeElement) return;
 
-    const elementHeight =
-      activeElement.type === "card" ? activeElement.height : activeElement.fontSize * 1.2;
+    const elementHeight = activeElement.height;
 
     const proposedX = session.startX + deltaX;
     const proposedY = session.startY + deltaY;
@@ -221,7 +287,7 @@ export default function StudioEditor() {
       if (element.id === session.elementId) continue;
       if (!element.visible) continue;
 
-      const targetHeight = element.type === "card" ? element.height : element.fontSize * 1.2;
+      const targetHeight = element.height;
 
       targetXPositions.push(element.x, element.x + element.width / 2, element.x + element.width);
 
@@ -245,27 +311,24 @@ export default function StudioEditor() {
       horizontal: horizontalGuide,
     });
 
-    setElements((previous) =>
-      previous.map((element) => {
-        if (element.id !== session.elementId) return element;
+    const updated = latestElementsRef.current.map((element) => {
+      if (element.id !== session.elementId) return element;
 
-        const maxX = Math.max(0, canvasSize.width - element.width);
+      const maxX = Math.max(0, canvasSize.width - element.width);
+      const maxY = Math.max(0, canvasSize.height - element.height);
 
-        const maxY = Math.max(
-          0,
-          canvasSize.height - (element.type === "card" ? element.height : 0),
-        );
+      const nextX = snapValue(session.startX + deltaX);
+      const nextY = snapValue(session.startY + deltaY);
 
-        const nextX = snapValue(session.startX + deltaX);
-        const nextY = snapValue(session.startY + deltaY);
+      return {
+        ...element,
+        x: Math.max(0, Math.min(maxX, nextX)),
+        y: Math.max(0, Math.min(maxY, nextY)),
+      };
+    });
 
-        return {
-          ...element,
-          x: Math.max(0, Math.min(maxX, nextX)),
-          y: Math.max(0, Math.min(maxY, nextY)),
-        };
-      }),
-    );
+    latestElementsRef.current = updated;
+    setElements(updated);
   }
 
   function handleDragEnd(event: React.PointerEvent<HTMLDivElement>) {
@@ -277,6 +340,8 @@ export default function StudioEditor() {
       vertical: null,
       horizontal: null,
     });
+
+    finishCanvasInteractionHistory();
 
     dragSession.current = null;
 
@@ -307,13 +372,15 @@ export default function StudioEditor() {
 
     const actualScale = canvas.getBoundingClientRect().width / canvasSize.width;
 
+    startCanvasInteractionHistory();
+
     resizeSession.current = {
       pointerId: event.pointerId,
       elementId: element.id,
       startClientX: event.clientX,
       startClientY: event.clientY,
       startWidth: element.width,
-      startHeight: element.type === "card" ? element.height : 0,
+      startHeight: element.height,
       scale: actualScale,
     };
 
@@ -327,47 +394,50 @@ export default function StudioEditor() {
       return;
     }
 
+    // Only resize during an active pointer drag.
+    if (!event.currentTarget.hasPointerCapture(event.pointerId)) {
+      return;
+    }
+
     const deltaX = (event.clientX - session.startClientX) / session.scale;
+
     const deltaY = (event.clientY - session.startClientY) / session.scale;
 
-    setElements((previous) =>
-      previous.map((element) => {
-        if (element.id !== session.elementId) return element;
+    const updated = latestElementsRef.current.map((element) => {
+      if (element.id !== session.elementId || element.locked) {
+        return element;
+      }
 
-        const maxWidth = Math.max(80, canvasSize.width - element.x);
+      const maxWidth = Math.max(80, canvasSize.width - element.x);
+      const maxHeight = Math.max(40, canvasSize.height - element.y);
 
-        const newWidth = Math.max(
-          80,
-          Math.min(maxWidth, snapValue(element.x + session.startWidth + deltaX) - element.x),
-        );
+      const newWidth = Math.max(
+        80,
+        Math.min(maxWidth, snapValue(element.x + session.startWidth + deltaX) - element.x),
+      );
 
-        if (element.type === "card") {
-          const maxHeight = Math.max(60, canvasSize.height - element.y);
+      const newHeight = Math.max(
+        element.type === "card" ? 60 : 40,
+        Math.min(maxHeight, snapValue(element.y + session.startHeight + deltaY) - element.y),
+      );
 
-          const newHeight = Math.max(
-            60,
-            Math.min(maxHeight, snapValue(element.y + session.startHeight + deltaY) - element.y),
-          );
+      return {
+        ...element,
+        width: newWidth,
+        height: newHeight,
+      };
+    });
 
-          return {
-            ...element,
-            width: newWidth,
-            height: newHeight,
-          };
-        }
-
-        return {
-          ...element,
-          width: newWidth,
-        };
-      }),
-    );
+    latestElementsRef.current = updated;
+    setElements(updated);
   }
 
   function handleResizeEnd(event: React.PointerEvent<HTMLButtonElement>) {
     if (resizeSession.current?.pointerId !== event.pointerId) {
       return;
     }
+
+    finishCanvasInteractionHistory();
 
     resizeSession.current = null;
 
@@ -448,26 +518,75 @@ export default function StudioEditor() {
   const selected = elements.find((el) => el.id === selectedId);
 
   function updateElement(id: string, changes: Partial<StudioElement>) {
-    setElements((previous) =>
-      previous.map((element) =>
-        element.id === id && !element.locked
-          ? ({ ...element, ...changes } as StudioElement)
-          : element,
+    const updated = latestElementsRef.current.map((element) =>
+      element.id === id && !element.locked
+        ? ({ ...element, ...changes } as StudioElement)
+        : element,
+    );
+
+    latestElementsRef.current = updated;
+    setElements(updated);
+  }
+
+  function commitElementUpdate(id: string, changes: Partial<StudioElement>) {
+    const target = elements.find((element) => element.id === id);
+
+    if (!target || target.locked) return;
+
+    const hasChanges = Object.entries(changes).some(
+      ([key, value]) => target[key as keyof StudioElement] !== value,
+    );
+
+    if (!hasChanges) return;
+
+    commitElements(
+      elements.map((element) =>
+        element.id === id ? ({ ...element, ...changes } as StudioElement) : element,
       ),
     );
   }
 
+  function startTextEditing(element: StudioElement) {
+    if (element.type !== "text" || element.locked) return;
+    if (activeTool !== "select") return;
+
+    setEditingDraft(element.content);
+    setEditingTextId(element.id);
+    setSelectedId(element.id);
+  }
+
+  function finishTextEditing(save: boolean) {
+    if (!editingTextId) return;
+
+    if (save) {
+      commitElementUpdate(editingTextId, {
+        content: editingDraft,
+      });
+    }
+
+    setEditingTextId(null);
+    setEditingDraft("");
+  }
+
+  useEffect(() => {
+    if (editingTextId) {
+      inlineEditorRef.current?.focus();
+      inlineEditorRef.current?.select();
+    }
+  }, [editingTextId]);
+
   function addText() {
     const id = crypto.randomUUID();
 
-    setElements((previous) => [
-      ...previous,
+    commitElements([
+      ...elements,
       {
         id,
         type: "text",
         x: 130,
         y: 200,
         width: 820,
+        height: 48,
         rotation: 0,
         opacity: 100,
         content: "New text",
@@ -478,6 +597,9 @@ export default function StudioEditor() {
         locked: false,
         fontFamily: "plus-jakarta-sans",
         textAlign: "left",
+        italic: false,
+        lineHeight: 1.2,
+        letterSpacing: 0,
       },
     ]);
 
@@ -487,8 +609,8 @@ export default function StudioEditor() {
   function addCard() {
     const id = crypto.randomUUID();
 
-    setElements((previous) => [
-      ...previous,
+    commitElements([
+      ...elements,
       {
         id,
         type: "card",
@@ -508,6 +630,65 @@ export default function StudioEditor() {
     setSelectedId(id);
   }
 
+  function duplicateSelected() {
+    if (!selectedId) return;
+
+    const source = elements.find((element) => element.id === selectedId);
+
+    if (!source || source.locked) return;
+
+    const offset = 24;
+
+    const duplicate: StudioElement = {
+      ...source,
+      id: crypto.randomUUID(),
+      x: Math.max(0, Math.min(canvasSize.width - source.width, source.x + offset)),
+      y: Math.max(0, Math.min(canvasSize.height - source.height, source.y + offset)),
+    };
+
+    const sourceIndex = elements.findIndex((element) => element.id === selectedId);
+
+    const updated = [...elements];
+
+    updated.splice(sourceIndex + 1, 0, duplicate);
+
+    commitElements(updated);
+    setSelectedId(duplicate.id);
+  }
+
+  function copySelected() {
+    if (!selectedId) return;
+
+    const source = elements.find((element) => element.id === selectedId);
+
+    if (!source) return;
+
+    copiedElementRef.current = { ...source };
+    pasteCountRef.current = 0;
+    setHasCopiedElement(true);
+  }
+
+  function pasteCopied() {
+    const source = copiedElementRef.current;
+    if (!source) return;
+
+    pasteCountRef.current += 1;
+
+    const offset = pasteCountRef.current * 24;
+
+    const duplicate: StudioElement = {
+      ...source,
+      id: crypto.randomUUID(),
+      locked: false,
+      visible: true,
+      x: Math.max(0, Math.min(canvasSize.width - source.width, source.x + offset)),
+      y: Math.max(0, Math.min(canvasSize.height - source.height, source.y + offset)),
+    };
+
+    commitElements([...elements, duplicate]);
+    setSelectedId(duplicate.id);
+  }
+
   function deleteSelected() {
     if (!selectedId) return;
 
@@ -517,24 +698,28 @@ export default function StudioEditor() {
       return;
     }
 
-    setElements((previous) =>
-      previous.filter((element) => element.id !== selectedId || element.locked),
-    );
+    commitElements(elements.filter((element) => element.id !== selectedId));
 
     setSelectedId(null);
   }
 
   function toggleVisibility(id: string) {
-    setElements((previous) =>
-      previous.map((element) =>
+    const target = elements.find((element) => element.id === id);
+    if (!target) return;
+
+    commitElements(
+      elements.map((element) =>
         element.id === id ? { ...element, visible: !element.visible } : element,
       ),
     );
   }
 
   function toggleLock(id: string) {
-    setElements((previous) =>
-      previous.map((element) =>
+    const target = elements.find((element) => element.id === id);
+    if (!target) return;
+
+    commitElements(
+      elements.map((element) =>
         element.id === id ? { ...element, locked: !element.locked } : element,
       ),
     );
@@ -543,36 +728,78 @@ export default function StudioEditor() {
   type LayerMove = "front" | "forward" | "backward" | "back";
 
   function moveLayer(id: string, direction: LayerMove) {
-    setElements((previous) => {
-      const currentIndex = previous.findIndex((element) => element.id === id);
+    const currentIndex = elements.findIndex((element) => element.id === id);
 
-      if (currentIndex === -1) return previous;
+    if (currentIndex === -1) return;
 
-      const element = previous[currentIndex];
+    const element = elements[currentIndex];
 
-      // Locked layers cannot be reordered.
-      if (element.locked) return previous;
+    // Locked layers cannot be reordered.
+    if (element.locked) return;
 
-      const lastIndex = previous.length - 1;
+    const lastIndex = elements.length - 1;
 
-      const targetIndex =
-        direction === "front"
-          ? lastIndex
-          : direction === "forward"
-            ? Math.min(currentIndex + 1, lastIndex)
-            : direction === "backward"
-              ? Math.max(currentIndex - 1, 0)
-              : 0;
+    const targetIndex =
+      direction === "front"
+        ? lastIndex
+        : direction === "forward"
+          ? Math.min(currentIndex + 1, lastIndex)
+          : direction === "backward"
+            ? Math.max(currentIndex - 1, 0)
+            : 0;
 
-      if (targetIndex === currentIndex) return previous;
+    // Avoid creating history when the layer cannot move.
+    if (targetIndex === currentIndex) return;
 
-      const updated = [...previous];
+    const updated = [...elements];
 
-      updated.splice(currentIndex, 1);
-      updated.splice(targetIndex, 0, element);
+    updated.splice(currentIndex, 1);
+    updated.splice(targetIndex, 0, element);
 
-      return updated;
-    });
+    commitElements(updated);
+  }
+
+  function startSliderHistory() {
+    if (sliderStartRef.current !== null) return;
+
+    sliderStartRef.current = elements;
+  }
+
+  function finishSliderHistory() {
+    const startingElements = sliderStartRef.current;
+    if (!startingElements) return;
+
+    sliderStartRef.current = null;
+
+    if (JSON.stringify(startingElements) === JSON.stringify(latestElementsRef.current)) {
+      return;
+    }
+
+    setPast((previous) => [...previous.slice(-49), startingElements]);
+    setFuture([]);
+  }
+
+  function cancelSliderHistory() {
+    sliderStartRef.current = null;
+  }
+
+  function startCanvasInteractionHistory() {
+    canvasInteractionStartRef.current = latestElementsRef.current;
+  }
+
+  function finishCanvasInteractionHistory() {
+    const startingElements = canvasInteractionStartRef.current;
+    if (!startingElements) return;
+
+    canvasInteractionStartRef.current = null;
+
+    if (JSON.stringify(startingElements) === JSON.stringify(latestElementsRef.current)) {
+      return;
+    }
+
+    setPast((previous) => [...previous.slice(-49), startingElements]);
+
+    setFuture([]);
   }
 
   function snapValue(value: number) {
@@ -582,6 +809,163 @@ export default function StudioEditor() {
 
     return Math.round(value / gridSize) * gridSize;
   }
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      const target = event.target;
+
+      if (
+        target instanceof HTMLElement &&
+        (target.closest("input, textarea, select") || target.isContentEditable)
+      ) {
+        return;
+      }
+
+      if (editingTextId !== null) return;
+
+      // Delete or Backspace removes the selected canvas element.
+      if (
+        (event.key === "Delete" || event.key === "Backspace") &&
+        !event.metaKey &&
+        !event.ctrlKey &&
+        !event.altKey &&
+        !event.shiftKey
+      ) {
+        if (!selectedId) return;
+
+        const selectedElement = elements.find((element) => element.id === selectedId);
+
+        if (!selectedElement || selectedElement.locked) return;
+
+        event.preventDefault();
+
+        const updated = elements.filter((element) => element.id !== selectedId);
+
+        setPast((previous) => [...previous.slice(-49), elements]);
+        setFuture([]);
+
+        latestElementsRef.current = updated;
+        setElements(updated);
+        setSelectedId(null);
+
+        return;
+      }
+
+      if (!(event.metaKey || event.ctrlKey)) return;
+      if (event.altKey) return;
+
+      const key = event.key.toLowerCase();
+
+      if (key === "c" && !event.shiftKey) {
+        if (!selectedId) return;
+
+        const source = elements.find((element) => element.id === selectedId);
+
+        if (!source) return;
+
+        event.preventDefault();
+
+        copiedElementRef.current = { ...source };
+        pasteCountRef.current = 0;
+        setHasCopiedElement(true);
+
+        return;
+      }
+
+      if (key === "v" && !event.shiftKey) {
+        const source = copiedElementRef.current;
+        if (!source) return;
+
+        event.preventDefault();
+
+        pasteCountRef.current += 1;
+
+        const offset = pasteCountRef.current * 24;
+
+        const duplicate: StudioElement = {
+          ...source,
+          id: crypto.randomUUID(),
+          locked: false,
+          visible: true,
+          x: Math.max(0, Math.min(canvasSize.width - source.width, source.x + offset)),
+          y: Math.max(0, Math.min(canvasSize.height - source.height, source.y + offset)),
+        };
+
+        const updated = [...elements, duplicate];
+
+        setPast((previous) => [...previous.slice(-49), elements]);
+        setFuture([]);
+        latestElementsRef.current = updated;
+        setElements(updated);
+        setSelectedId(duplicate.id);
+
+        return;
+      }
+
+      if (key === "d" && !event.shiftKey) {
+        if (!selectedId) return;
+
+        const source = elements.find((element) => element.id === selectedId);
+
+        if (!source || source.locked) return;
+
+        event.preventDefault();
+
+        const duplicate: StudioElement = {
+          ...source,
+          id: crypto.randomUUID(),
+          x: Math.max(0, Math.min(canvasSize.width - source.width, source.x + 24)),
+          y: Math.max(0, Math.min(canvasSize.height - source.height, source.y + 24)),
+        };
+
+        const sourceIndex = elements.findIndex((element) => element.id === selectedId);
+
+        const updated = [...elements];
+        updated.splice(sourceIndex + 1, 0, duplicate);
+
+        setPast((previous) => [...previous.slice(-49), elements]);
+        setFuture([]);
+        latestElementsRef.current = updated;
+        setElements(updated);
+        setSelectedId(duplicate.id);
+
+        return;
+      }
+
+      if (key !== "z") return;
+
+      if (event.shiftKey) {
+        if (future.length === 0) return;
+
+        event.preventDefault();
+
+        const nextElements = future[0];
+
+        setPast((previous) => [...previous, elements]);
+        setFuture((previous) => previous.slice(1));
+        latestElementsRef.current = nextElements;
+        setElements(nextElements);
+        setSelectedId(null);
+      } else {
+        if (past.length === 0) return;
+
+        event.preventDefault();
+
+        const previousElements = past[past.length - 1];
+
+        setFuture((previous) => [elements, ...previous]);
+        setPast((previous) => previous.slice(0, -1));
+        latestElementsRef.current = previousElements;
+        setElements(previousElements);
+        setSelectedId(null);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [elements, past, future, editingTextId, selectedId, canvasSize.width, canvasSize.height]);
 
   useEffect(() => {
     const workspace = workspaceRef.current;
@@ -623,6 +1007,39 @@ export default function StudioEditor() {
           <button type="button" onClick={addCard} className="studio-control studio-button">
             <SquarePlus size={17} strokeWidth={1.8} />
             <span>Add Card</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={duplicateSelected}
+            disabled={!selected || selected.locked}
+            className="studio-control studio-button disabled:cursor-not-allowed disabled:opacity-40"
+            title="Duplicate selected element"
+          >
+            <Copy size={17} strokeWidth={1.8} />
+            <span>Duplicate</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={copySelected}
+            disabled={!selected}
+            className="studio-control studio-button disabled:cursor-not-allowed disabled:opacity-40"
+            title="Copy selected element"
+          >
+            <Copy size={17} strokeWidth={1.8} />
+            <span>Copy</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={pasteCopied}
+            disabled={!hasCopiedElement}
+            className="studio-control studio-button disabled:cursor-not-allowed disabled:opacity-40"
+            title="Paste copied element"
+          >
+            <ClipboardPaste size={17} strokeWidth={1.8} />
+            <span>Paste</span>
           </button>
 
           <select
@@ -742,6 +1159,30 @@ export default function StudioEditor() {
               100%
             </button>
           </div>
+
+          <div className="studio-control-group gap-1 p-1">
+            <button
+              type="button"
+              onClick={undo}
+              disabled={past.length === 0}
+              aria-label="Undo"
+              title="Undo"
+              className="studio-control studio-icon-button disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <Undo2 size={17} strokeWidth={1.8} />
+            </button>
+
+            <button
+              type="button"
+              onClick={redo}
+              disabled={future.length === 0}
+              aria-label="Redo"
+              title="Redo"
+              className="studio-control studio-icon-button disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <Redo2 size={17} strokeWidth={1.8} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -817,6 +1258,15 @@ export default function StudioEditor() {
         <section
           ref={workspaceRef}
           className="studio-workspace h-150 min-w-0 overflow-auto p-6"
+          onClick={(event) => {
+            if (activeTool !== "select") return;
+
+            const target = event.target as HTMLElement;
+
+            if (!target.closest('[data-studio-canvas="true"]')) {
+              setSelectedId(null);
+            }
+          }}
           onPointerDownCapture={(event) => {
             if (activeTool === "hand") {
               handlePanStart(event);
@@ -969,6 +1419,12 @@ export default function StudioEditor() {
                         onPointerMove={handleDragMove}
                         onPointerUp={handleDragEnd}
                         onPointerCancel={handleDragEnd}
+                        onLostPointerCapture={(event) => {
+                          if (dragSession.current?.pointerId === event.pointerId) {
+                            finishCanvasInteractionHistory();
+                            dragSession.current = null;
+                          }
+                        }}
                       >
                         {selectedId === element.id && !element.locked && (
                           <button
@@ -977,9 +1433,21 @@ export default function StudioEditor() {
                             title="Drag to resize"
                             onClick={(event) => event.stopPropagation()}
                             onPointerDown={(event) => handleResizeStart(event, element)}
-                            onPointerMove={handleResizeMove}
+                            onPointerMove={(event) => {
+                              if (event.buttons === 0 && event.pointerType === "mouse") {
+                                return;
+                              }
+
+                              handleResizeMove(event);
+                            }}
                             onPointerUp={handleResizeEnd}
                             onPointerCancel={handleResizeEnd}
+                            onLostPointerCapture={(event) => {
+                              if (resizeSession.current?.pointerId === event.pointerId) {
+                                finishCanvasInteractionHistory();
+                                resizeSession.current = null;
+                              }
+                            }}
                             className="absolute -right-1.5 -bottom-1.5 z-10 size-3 cursor-nwse-resize rounded-sm border-2 border-white bg-[#C42B70] shadow-sm"
                             style={{ touchAction: "none" }}
                           />
@@ -991,6 +1459,11 @@ export default function StudioEditor() {
                   return (
                     <div
                       key={element.id}
+                      data-studio-text-id={element.id}
+                      onDoubleClick={(event) => {
+                        event.stopPropagation();
+                        startTextEditing(element);
+                      }}
                       onClick={(event) => {
                         event.stopPropagation();
 
@@ -1000,20 +1473,83 @@ export default function StudioEditor() {
                       }}
                       style={{
                         ...commonStyle,
+                        height: element.height * scale,
+                        overflow: "hidden",
                         color: brandColor(element.color),
                         fontFamily: studioFonts[element.fontFamily].family,
                         fontSize: element.fontSize * scale,
                         fontWeight: element.fontWeight,
-                        lineHeight: 1.15,
-                        overflowWrap: "anywhere",
+                        fontStyle: element.italic ? "italic" : "normal",
+                        lineHeight: element.lineHeight,
+                        letterSpacing: `${element.letterSpacing * scale}px`,
                         textAlign: element.textAlign,
+                        whiteSpace: "pre-wrap",
+                        overflowWrap: "break-word",
                       }}
                       onPointerDown={(event) => handleDragStart(event, element)}
                       onPointerMove={handleDragMove}
                       onPointerUp={handleDragEnd}
                       onPointerCancel={handleDragEnd}
                     >
-                      {element.content}
+                      {editingTextId === element.id ? (
+                        <textarea
+                          ref={inlineEditorRef}
+                          value={editingDraft}
+                          onChange={(event) => setEditingDraft(event.target.value)}
+                          onPointerDown={(event) => event.stopPropagation()}
+                          onClick={(event) => event.stopPropagation()}
+                          onDoubleClick={(event) => event.stopPropagation()}
+                          onBlur={() => finishTextEditing(true)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Escape") {
+                              event.preventDefault();
+                              finishTextEditing(false);
+                            }
+                          }}
+                          spellCheck={false}
+                          className="block h-full w-full resize-none border-0 bg-transparent p-0 outline-none"
+                          style={{
+                            color: "inherit",
+                            font: "inherit",
+                            fontStyle: "inherit",
+                            fontWeight: "inherit",
+                            lineHeight: "inherit",
+                            letterSpacing: "inherit",
+                            textAlign: "inherit",
+                            overflowWrap: "break-word",
+                            whiteSpace: "pre-wrap",
+                            touchAction: "auto",
+                            userSelect: "text",
+                          }}
+                        />
+                      ) : (
+                        <StudioTextContent
+                          content={element.content}
+                          onOverflowChange={(overflowing) => {
+                            setOverflowingTextIds((previous) => {
+                              const exists = previous.includes(element.id);
+
+                              if (exists === overflowing) return previous;
+
+                              return overflowing
+                                ? [...previous, element.id]
+                                : previous.filter((id) => id !== element.id);
+                            });
+                          }}
+                        />
+                      )}
+
+                      {selectedId === element.id &&
+                        editingTextId !== element.id &&
+                        overflowingTextIds.includes(element.id) && (
+                          <div
+                            title="Text is overflowing. Resize the box or reduce the font size."
+                            aria-label="Text overflow warning"
+                            className="pointer-events-none absolute top-2 right-2 z-20 flex size-5 items-center justify-center rounded-full bg-amber-500 text-white shadow-sm"
+                          >
+                            <AlertTriangle size={12} strokeWidth={2.2} />
+                          </div>
+                        )}
 
                       {selectedId === element.id && !element.locked && (
                         <button
@@ -1022,9 +1558,21 @@ export default function StudioEditor() {
                           title="Drag to resize"
                           onClick={(event) => event.stopPropagation()}
                           onPointerDown={(event) => handleResizeStart(event, element)}
-                          onPointerMove={handleResizeMove}
+                          onPointerMove={(event) => {
+                            if (event.buttons === 0 && event.pointerType === "mouse") {
+                              return;
+                            }
+
+                            handleResizeMove(event);
+                          }}
                           onPointerUp={handleResizeEnd}
                           onPointerCancel={handleResizeEnd}
+                          onLostPointerCapture={(event) => {
+                            if (resizeSession.current?.pointerId === event.pointerId) {
+                              finishCanvasInteractionHistory();
+                              resizeSession.current = null;
+                            }
+                          }}
                           className="absolute -right-1.5 -bottom-1.5 z-10 size-3 cursor-nwse-resize rounded-sm border-2 border-white bg-[#C42B70] shadow-sm"
                           style={{ touchAction: "none" }}
                         />
@@ -1085,32 +1633,43 @@ export default function StudioEditor() {
                 </div>
               </div>
 
-              {selected?.type === "text" && (
+              {selected.type === "text" && (
                 <>
-                  <label className="block text-sm">
-                    Text content
-                    <textarea
-                      value={selected.content}
-                      onChange={(e) =>
-                        updateElement(selected.id, {
-                          content: e.target.value,
-                        })
-                      }
-                      className="studio-field mt-2"
-                      rows={3}
-                    />
-                  </label>
+                  {overflowingTextIds.includes(selected.id) && (
+                    <p
+                      role="status"
+                      className="rounded-lg border border-amber-300/60 bg-amber-50 px-3 py-2 text-xs text-amber-900"
+                    >
+                      Some text is hidden because it exceeds the text box. Increase the box size or
+                      reduce the font size.
+                    </p>
+                  )}
 
                   <label className="block space-y-1 text-sm">
                     <span className="font-medium">Font Family</span>
 
                     <select
                       value={selected.fontFamily}
-                      onChange={(event) =>
-                        updateElement(selected.id, {
-                          fontFamily: event.target.value as typeof selected.fontFamily,
-                        })
-                      }
+
+                      onChange={(event) => {
+                        const fontFamily = event.target.value as StudioFont;
+                        const availableWeights = studioFonts[fontFamily].weights;
+
+                        const fontWeight = availableWeights.includes(selected.fontWeight as never)
+                          ? selected.fontWeight
+                          : availableWeights.reduce((closest, weight) =>
+                              Math.abs(weight - selected.fontWeight) <
+                              Math.abs(closest - selected.fontWeight)
+                                ? weight
+                                : closest,
+                            );
+
+                        commitElementUpdate(selected.id, {
+                          fontFamily,
+                          fontWeight,
+                        });
+                      }}
+
                       disabled={selected.locked}
                       className="studio-field"
                     >
@@ -1141,7 +1700,7 @@ export default function StudioEditor() {
 
                           if (!Number.isFinite(value)) return;
 
-                          updateElement(selected.id, {
+                          commitElementUpdate(selected.id, {
                             fontSize: Math.max(8, Math.min(500, value)),
                           });
                         }}
@@ -1162,6 +1721,32 @@ export default function StudioEditor() {
                         }
                         aria-label="Adjust font size"
                         className="min-w-0 flex-1 accent-pink-500"
+                        onPointerDown={startSliderHistory}
+                        onPointerUp={finishSliderHistory}
+                        onPointerCancel={cancelSliderHistory}
+                        onBlur={finishSliderHistory}
+                        onKeyDown={(event) => {
+                          if (
+                            event.key.startsWith("Arrow") ||
+                            event.key === "Home" ||
+                            event.key === "End" ||
+                            event.key === "PageUp" ||
+                            event.key === "PageDown"
+                          ) {
+                            startSliderHistory();
+                          }
+                        }}
+                        onKeyUp={(event) => {
+                          if (
+                            event.key.startsWith("Arrow") ||
+                            event.key === "Home" ||
+                            event.key === "End" ||
+                            event.key === "PageUp" ||
+                            event.key === "PageDown"
+                          ) {
+                            finishSliderHistory();
+                          }
+                        }}
                       />
                     </div>
                   </div>
@@ -1190,7 +1775,7 @@ export default function StudioEditor() {
                           aria-pressed={selected.textAlign === value}
                           disabled={selected.locked}
                           onClick={() =>
-                            updateElement(selected.id, {
+                            commitElementUpdate(selected.id, {
                               textAlign: value,
                             })
                           }
@@ -1209,19 +1794,188 @@ export default function StudioEditor() {
                     <select
                       value={selected.fontWeight}
                       onChange={(e) =>
-                        updateElement(selected.id, {
+                        commitElementUpdate(selected.id, {
                           fontWeight: Number(e.target.value),
                         })
                       }
                       className="studio-field mt-2"
                     >
-                      {[400, 500, 600, 700, 800].map((weight) => (
+                      {studioFonts[selected.fontFamily].weights.map((weight) => (
                         <option key={weight} value={weight}>
-                          {weight}
+                          {
+                            (
+                              {
+                                100: "Thin",
+                                200: "Extra Light",
+                                300: "Light",
+                                400: "Regular",
+                                500: "Medium",
+                                600: "Semi Bold",
+                                700: "Bold",
+                                800: "Extra Bold",
+                                900: "Black",
+                              } as Record<number, string>
+                            )[weight]
+                          }{" "}
+                          ({weight})
                         </option>
                       ))}
                     </select>
                   </label>
+
+                  <div className="space-y-2">
+                    <span className="block text-sm font-medium">Font Style</span>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        commitElementUpdate(selected.id, {
+                          italic: !selected.italic,
+                        })
+                      }
+                      aria-label="Toggle italic"
+                      aria-pressed={selected.italic}
+                      title="Italic"
+                      disabled={selected.locked}
+                      className="studio-control studio-icon-button"
+                    >
+                      <Italic size={17} strokeWidth={1.8} />
+                    </button>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="studio-line-height" className="block text-sm font-medium">
+                      Line Height
+                    </label>
+
+                    <div className="flex items-center gap-3">
+                      <input
+                        id="studio-line-height"
+                        type="range"
+                        min="0.8"
+                        max="2.5"
+                        step="0.05"
+                        value={selected.lineHeight}
+                        onChange={(event) =>
+                          updateElement(selected.id, {
+                            lineHeight: Number(event.target.value),
+                          })
+                        }
+                        disabled={selected.locked}
+                        className="min-w-0 flex-1 accent-pink-500"
+                        onPointerDown={startSliderHistory}
+                        onPointerUp={finishSliderHistory}
+                        onPointerCancel={cancelSliderHistory}
+                        onBlur={finishSliderHistory}
+                        onKeyDown={(event) => {
+                          if (
+                            event.key.startsWith("Arrow") ||
+                            event.key === "Home" ||
+                            event.key === "End" ||
+                            event.key === "PageUp" ||
+                            event.key === "PageDown"
+                          ) {
+                            startSliderHistory();
+                          }
+                        }}
+                        onKeyUp={(event) => {
+                          if (
+                            event.key.startsWith("Arrow") ||
+                            event.key === "Home" ||
+                            event.key === "End" ||
+                            event.key === "PageUp" ||
+                            event.key === "PageDown"
+                          ) {
+                            finishSliderHistory();
+                          }
+                        }}
+                      />
+
+                      <input
+                        type="number"
+                        min="0.8"
+                        max="2.5"
+                        step="0.05"
+                        value={selected.lineHeight}
+                        onChange={(event) =>
+                          commitElementUpdate(selected.id, {
+                            lineHeight: Number(event.target.value),
+                          })
+                        }
+                        disabled={selected.locked}
+                        aria-label="Line height value"
+                        className="studio-field w-20 text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="studio-letter-spacing" className="block text-sm font-medium">
+                      Letter Spacing
+                    </label>
+
+                    <div className="flex items-center gap-3">
+                      <input
+                        id="studio-letter-spacing"
+                        type="range"
+                        min="-5"
+                        max="20"
+                        step="0.5"
+                        value={selected.letterSpacing}
+                        onChange={(event) =>
+                          updateElement(selected.id, {
+                            letterSpacing: Number(event.target.value),
+                          })
+                        }
+                        disabled={selected.locked}
+                        className="min-w-0 flex-1 accent-pink-500"
+                        onPointerDown={startSliderHistory}
+                        onPointerUp={finishSliderHistory}
+                        onPointerCancel={cancelSliderHistory}
+                        onBlur={finishSliderHistory}
+                        onKeyDown={(event) => {
+                          if (
+                            event.key.startsWith("Arrow") ||
+                            event.key === "Home" ||
+                            event.key === "End" ||
+                            event.key === "PageUp" ||
+                            event.key === "PageDown"
+                          ) {
+                            startSliderHistory();
+                          }
+                        }}
+                        onKeyUp={(event) => {
+                          if (
+                            event.key.startsWith("Arrow") ||
+                            event.key === "Home" ||
+                            event.key === "End" ||
+                            event.key === "PageUp" ||
+                            event.key === "PageDown"
+                          ) {
+                            finishSliderHistory();
+                          }
+                        }}
+                      />
+
+                      <input
+                        type="number"
+                        min="-5"
+                        max="20"
+                        step="0.5"
+                        value={selected.letterSpacing}
+                        onChange={(event) =>
+                          commitElementUpdate(selected.id, {
+                            letterSpacing: Number(event.target.value),
+                          })
+                        }
+                        disabled={selected.locked}
+                        aria-label="Letter spacing value"
+                        className="studio-field w-20 text-sm"
+                      />
+                    </div>
+
+                    <p className="text-foreground/60 text-xs">Spacing in canvas pixels.</p>
+                  </div>
                 </>
               )}
 
@@ -1239,6 +1993,32 @@ export default function StudioEditor() {
                       })
                     }
                     className="mt-2 w-full accent-pink-500"
+                    onPointerDown={startSliderHistory}
+                    onPointerUp={finishSliderHistory}
+                    onPointerCancel={cancelSliderHistory}
+                    onBlur={finishSliderHistory}
+                    onKeyDown={(event) => {
+                      if (
+                        event.key.startsWith("Arrow") ||
+                        event.key === "Home" ||
+                        event.key === "End" ||
+                        event.key === "PageUp" ||
+                        event.key === "PageDown"
+                      ) {
+                        startSliderHistory();
+                      }
+                    }}
+                    onKeyUp={(event) => {
+                      if (
+                        event.key.startsWith("Arrow") ||
+                        event.key === "Home" ||
+                        event.key === "End" ||
+                        event.key === "PageUp" ||
+                        event.key === "PageDown"
+                      ) {
+                        finishSliderHistory();
+                      }
+                    }}
                   />
                 </label>
               )}
@@ -1251,7 +2031,7 @@ export default function StudioEditor() {
                   max={canvasSize.width}
                   value={selected.width}
                   onChange={(event) =>
-                    updateElement(selected.id, {
+                    commitElementUpdate(selected.id, {
                       width: Math.max(
                         80,
                         Math.min(canvasSize.width - selected.x, Number(event.target.value) || 80),
@@ -1271,7 +2051,7 @@ export default function StudioEditor() {
                     max={canvasSize.height}
                     value={selected.height}
                     onChange={(event) =>
-                      updateElement(selected.id, {
+                      commitElementUpdate(selected.id, {
                         height: Math.max(
                           60,
                           Math.min(
@@ -1310,6 +2090,32 @@ export default function StudioEditor() {
                         })
                       }
                       className="mt-2 w-full accent-pink-500"
+                      onPointerDown={startSliderHistory}
+                      onPointerUp={finishSliderHistory}
+                      onPointerCancel={cancelSliderHistory}
+                      onBlur={finishSliderHistory}
+                      onKeyDown={(event) => {
+                        if (
+                          event.key.startsWith("Arrow") ||
+                          event.key === "Home" ||
+                          event.key === "End" ||
+                          event.key === "PageUp" ||
+                          event.key === "PageDown"
+                        ) {
+                          startSliderHistory();
+                        }
+                      }}
+                      onKeyUp={(event) => {
+                        if (
+                          event.key.startsWith("Arrow") ||
+                          event.key === "Home" ||
+                          event.key === "End" ||
+                          event.key === "PageUp" ||
+                          event.key === "PageDown"
+                        ) {
+                          finishSliderHistory();
+                        }
+                      }}
                     />
                   </label>
                 );
@@ -1318,7 +2124,7 @@ export default function StudioEditor() {
               <BrandColorPicker
                 label="Element color"
                 value={selected.color}
-                onChange={(color) => updateElement(selected.id, { color })}
+                onChange={(color) => commitElementUpdate(selected.id, { color })}
               />
 
               <button
