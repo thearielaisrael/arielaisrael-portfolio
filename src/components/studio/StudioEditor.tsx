@@ -251,6 +251,80 @@ export default function StudioEditor() {
     setFuture([]);
   }
 
+  function duplicateSlide(slideId: string) {
+    const sourceSlide = project.slides.find((slide) => slide.id === slideId);
+
+    if (!sourceSlide) return;
+
+    const newSlideId = crypto.randomUUID();
+
+    const duplicatedSlide = {
+      ...sourceSlide,
+      id: newSlideId,
+      name: `${sourceSlide.name} Copy`,
+      elements: sourceSlide.elements.map((element) => ({
+        ...element,
+        id: crypto.randomUUID(),
+      })),
+    };
+
+    const sourceIndex = project.slides.findIndex((slide) => slide.id === slideId);
+
+    setProject((currentProject) => {
+      const updatedSlides = [...currentProject.slides];
+
+      updatedSlides.splice(sourceIndex + 1, 0, duplicatedSlide);
+
+      return {
+        ...currentProject,
+        slides: updatedSlides,
+        activeSlideId: newSlideId,
+      };
+    });
+
+    setElements(duplicatedSlide.elements);
+    latestElementsRef.current = duplicatedSlide.elements;
+    setBackgroundColor(duplicatedSlide.backgroundColor);
+
+    setSelectedId(null);
+    setEditingTextId(null);
+    setPast([]);
+    setFuture([]);
+  }
+
+  function deleteSlide(slideId: string) {
+    if (project.slides.length <= 1) return;
+
+    const slideIndex = project.slides.findIndex((slide) => slide.id === slideId);
+
+    if (slideIndex === -1) return;
+
+    const deletingActiveSlide = project.activeSlideId === slideId;
+
+    const remainingSlides = project.slides.filter((slide) => slide.id !== slideId);
+
+    const nextSlide = deletingActiveSlide
+      ? remainingSlides[Math.min(slideIndex, remainingSlides.length - 1)]
+      : null;
+
+    setProject((currentProject) => ({
+      ...currentProject,
+      slides: remainingSlides,
+      activeSlideId: nextSlide?.id ?? currentProject.activeSlideId,
+    }));
+
+    if (nextSlide) {
+      setElements(nextSlide.elements);
+      latestElementsRef.current = nextSlide.elements;
+      setBackgroundColor(nextSlide.backgroundColor);
+
+      setSelectedId(null);
+      setEditingTextId(null);
+      setPast([]);
+      setFuture([]);
+    }
+  }
+
   function commitElements(nextElements: StudioElement[]) {
     setPast((previous) => [...previous.slice(-49), elements]);
     setFuture([]);
@@ -2293,30 +2367,63 @@ export default function StudioEditor() {
             const isActive = project.activeSlideId === slide.id;
 
             return (
-              <button
+              <div
                 key={slide.id}
-                type="button"
-                onClick={() => selectSlide(slide.id)}
-                className="studio-layer w-32 shrink-0 flex-col items-stretch text-left"
+                className="studio-layer w-36 shrink-0 flex-col items-stretch gap-2"
                 data-selected={isActive}
-                aria-current={isActive ? "true" : undefined}
-                title={`Open ${slide.name}`}
               >
-                <div
-                  className="border-default flex aspect-4/5 w-full items-center justify-center rounded-lg border"
-                  style={{
-                    backgroundColor: brandColor(slide.backgroundColor),
-                  }}
+                <button
+                  type="button"
+                  onClick={() => selectSlide(slide.id)}
+                  className="w-full cursor-pointer text-left"
+                  aria-current={isActive ? "true" : undefined}
+                  title={`Open ${slide.name}`}
                 >
-                  <span className="text-muted text-xs">
-                    {slide.elements.length} {slide.elements.length === 1 ? "element" : "elements"}
-                  </span>
-                </div>
+                  <div
+                    className="border-default flex aspect-4/5 w-full items-center justify-center rounded-lg border"
+                    style={{
+                      backgroundColor: brandColor(slide.backgroundColor),
+                    }}
+                  >
+                    <span className="text-muted text-xs">
+                      {slide.elements.length} {slide.elements.length === 1 ? "element" : "elements"}
+                    </span>
+                  </div>
+                </button>
 
-                <span className="block w-full truncate text-xs font-medium">
-                  {index + 1}. {slide.name}
-                </span>
-              </button>
+                <div className="flex w-full items-center justify-between gap-1">
+                  <span className="min-w-0 flex-1 truncate text-xs font-medium">
+                    {index + 1}. {slide.name}
+                  </span>
+
+                  <div className="flex shrink-0 items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => duplicateSlide(slide.id)}
+                      className="studio-layer-icon"
+                      aria-label={`Duplicate ${slide.name}`}
+                      title={`Duplicate ${slide.name}`}
+                    >
+                      <Copy size={14} strokeWidth={1.8} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => deleteSlide(slide.id)}
+                      disabled={project.slides.length === 1}
+                      className="studio-layer-icon disabled:cursor-not-allowed disabled:opacity-30"
+                      aria-label={`Delete ${slide.name}`}
+                      title={
+                        project.slides.length === 1
+                          ? "At least one slide is required"
+                          : `Delete ${slide.name}`
+                      }
+                    >
+                      <Trash2 size={14} strokeWidth={1.8} />
+                    </button>
+                  </div>
+                </div>
+              </div>
             );
           })}
         </div>
