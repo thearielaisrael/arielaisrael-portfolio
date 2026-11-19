@@ -28,6 +28,9 @@ import {
   Redo2,
   Copy,
   ClipboardPaste,
+  ArrowLeft,
+  ArrowRight,
+  GripVertical,
 } from "lucide-react";
 import StudioTextContent from "./StudioTextContent";
 
@@ -147,6 +150,21 @@ function findClosestAlignment(
 
 export default function StudioEditor() {
   const [project, setProject] = useState<StudioProject>(initialProject);
+
+  const [draggedSlideId, setDraggedSlideId] = useState<string | null>(null);
+
+  const [slideDropTarget, setSlideDropTarget] = useState<{
+    slideId: string;
+    position: "before" | "after";
+  } | null>(null);
+
+  const [draggedLayerId, setDraggedLayerId] = useState<string | null>(null);
+
+  const [layerDropTarget, setLayerDropTarget] = useState<{
+    layerId: string;
+    position: "before" | "after";
+  } | null>(null);
+
   const [elements, setElements] = useState<StudioElement[]>(initialElements);
 
   const latestElementsRef = useRef(elements);
@@ -203,6 +221,26 @@ export default function StudioEditor() {
       ),
     }));
   }, []);
+
+  function updateBackgroundColor(color: BrandColorToken) {
+    setBackgroundColor(color);
+
+    setProject((currentProject) => ({
+      ...currentProject,
+      slides: currentProject.slides.map((slide) =>
+        slide.id === currentProject.activeSlideId ? { ...slide, backgroundColor: color } : slide,
+      ),
+    }));
+  }
+
+  function updateCanvasPreset(preset: CanvasPreset) {
+    setCanvasPreset(preset);
+
+    setProject((currentProject) => ({
+      ...currentProject,
+      canvasPreset: preset,
+    }));
+  }
 
   function addSlide() {
     const newSlideId = crypto.randomUUID();
@@ -323,6 +361,81 @@ export default function StudioEditor() {
       setPast([]);
       setFuture([]);
     }
+  }
+
+  function moveSlide(slideId: string, direction: "left" | "right") {
+    setProject((currentProject) => {
+      const currentIndex = currentProject.slides.findIndex((slide) => slide.id === slideId);
+
+      if (currentIndex === -1) return currentProject;
+
+      const targetIndex = direction === "left" ? currentIndex - 1 : currentIndex + 1;
+
+      if (targetIndex < 0 || targetIndex >= currentProject.slides.length) {
+        return currentProject;
+      }
+
+      const updatedSlides = [...currentProject.slides];
+
+      [updatedSlides[currentIndex], updatedSlides[targetIndex]] = [
+        updatedSlides[targetIndex],
+        updatedSlides[currentIndex],
+      ];
+
+      return {
+        ...currentProject,
+        slides: updatedSlides,
+      };
+    });
+  }
+
+  function reorderSlide(draggedId: string, targetId: string, position: "before" | "after") {
+    if (draggedId === targetId) return;
+
+    setProject((currentProject) => {
+      const draggedSlide = currentProject.slides.find((slide) => slide.id === draggedId);
+
+      if (!draggedSlide) return currentProject;
+
+      const updatedSlides = currentProject.slides.filter((slide) => slide.id !== draggedId);
+
+      const targetIndex = updatedSlides.findIndex((slide) => slide.id === targetId);
+
+      if (targetIndex === -1) return currentProject;
+
+      updatedSlides.splice(position === "before" ? targetIndex : targetIndex + 1, 0, draggedSlide);
+
+      return {
+        ...currentProject,
+        slides: updatedSlides,
+      };
+    });
+  }
+
+  function reorderLayer(draggedId: string, targetId: string, position: "before" | "after") {
+    if (draggedId === targetId) return;
+
+    const displayOrder = [...elements].reverse();
+
+    const draggedLayer = displayOrder.find((element) => element.id === draggedId);
+
+    if (!draggedLayer) return;
+
+    const reorderedLayers = displayOrder.filter((element) => element.id !== draggedId);
+
+    const targetIndex = reorderedLayers.findIndex((element) => element.id === targetId);
+
+    if (targetIndex === -1) return;
+
+    reorderedLayers.splice(position === "before" ? targetIndex : targetIndex + 1, 0, draggedLayer);
+
+    const updatedElements = reorderedLayers.reverse();
+
+    if (updatedElements.every((element, index) => element.id === elements[index].id)) {
+      return;
+    }
+
+    commitElements(updatedElements);
   }
 
   function commitElements(nextElements: StudioElement[]) {
@@ -1056,6 +1169,7 @@ export default function StudioEditor() {
         setFuture([]);
         latestElementsRef.current = updated;
         setElements(updated);
+        syncActiveSlide(updated);
         setSelectedId(duplicate.id);
 
         return;
@@ -1086,6 +1200,7 @@ export default function StudioEditor() {
         setFuture([]);
         latestElementsRef.current = updated;
         setElements(updated);
+        syncActiveSlide(updated);
         setSelectedId(duplicate.id);
 
         return;
@@ -1222,7 +1337,7 @@ export default function StudioEditor() {
           <select
             aria-label="Canvas format"
             value={canvasPreset}
-            onChange={(event) => setCanvasPreset(event.target.value as CanvasPreset)}
+            onChange={(event) => updateCanvasPreset(event.target.value as CanvasPreset)}
             className="studio-field w-auto px-3 py-2 text-sm"
           >
             {Object.entries(canvasPresets).map(([key, preset]) => (
@@ -1375,9 +1490,79 @@ export default function StudioEditor() {
             {[...elements].reverse().map((element) => (
               <div
                 key={element.id}
-                className="studio-layer"
+                className={`studio-layer relative ${
+                  draggedLayerId === element.id ? "opacity-40" : ""
+                }`}
                 data-selected={selectedId === element.id}
+                onDragOver={(event) => {
+                  if (!draggedLayerId || draggedLayerId === element.id) return;
+
+                  event.preventDefault();
+                  event.dataTransfer.dropEffect = "move";
+
+                  const bounds = event.currentTarget.getBoundingClientRect();
+                  const midpoint = bounds.top + bounds.height / 2;
+
+                  setLayerDropTarget({
+                    layerId: element.id,
+                    position: event.clientY < midpoint ? "before" : "after",
+                  });
+                }}
+                onDrop={(event) => {
+                  event.preventDefault();
+
+                  if (draggedLayerId && draggedLayerId !== element.id) {
+                    const bounds = event.currentTarget.getBoundingClientRect();
+                    const midpoint = bounds.top + bounds.height / 2;
+
+                    reorderLayer(
+                      draggedLayerId,
+                      element.id,
+                      event.clientY < midpoint ? "before" : "after",
+                    );
+                  }
+
+                  setDraggedLayerId(null);
+                  setLayerDropTarget(null);
+                }}
               >
+                {layerDropTarget?.layerId === element.id && (
+                  <div
+                    className={`pointer-events-none absolute right-0 left-0 z-10 h-1 rounded-full bg-pink-500 ${
+                      layerDropTarget.position === "before" ? "-top-1" : "-bottom-1"
+                    }`}
+                  />
+                )}
+                <span
+                  draggable={!element.locked}
+                  title={
+                    element.locked ? "Unlock this layer to reorder it" : "Drag to reorder layer"
+                  }
+                  aria-label={`Drag ${element.type} layer to reorder`}
+                  className={`studio-layer-icon shrink-0 ${
+                    element.locked
+                      ? "cursor-not-allowed opacity-30"
+                      : "cursor-grab active:cursor-grabbing"
+                  }`}
+                  onDragStart={(event) => {
+                    if (element.locked) {
+                      event.preventDefault();
+                      return;
+                    }
+
+                    event.dataTransfer.effectAllowed = "move";
+                    event.dataTransfer.setData("text/plain", element.id);
+
+                    setDraggedLayerId(element.id);
+                    setLayerDropTarget(null);
+                  }}
+                  onDragEnd={() => {
+                    setDraggedLayerId(null);
+                    setLayerDropTarget(null);
+                  }}
+                >
+                  <GripVertical size={15} strokeWidth={1.8} />
+                </span>
                 <button
                   type="button"
                   onClick={() => setSelectedId(element.id)}
@@ -2323,18 +2508,7 @@ export default function StudioEditor() {
             <BrandColorPicker
               label="Background color"
               value={backgroundColor}
-              onChange={(color) => {
-                setBackgroundColor(color);
-
-                setProject((currentProject) => ({
-                  ...currentProject,
-                  slides: currentProject.slides.map((slide) =>
-                    slide.id === currentProject.activeSlideId
-                      ? { ...slide, backgroundColor: color }
-                      : slide,
-                  ),
-                }));
-              }}
+              onChange={updateBackgroundColor}
             />
           )}
         </aside>
@@ -2369,13 +2543,59 @@ export default function StudioEditor() {
             return (
               <div
                 key={slide.id}
-                className="studio-layer w-36 shrink-0 flex-col items-stretch gap-2"
+                className="studio-layer relative w-40 shrink-0 flex-col items-stretch gap-2"
                 data-selected={isActive}
+                onDragOver={(event) => {
+                  if (!draggedSlideId || draggedSlideId === slide.id) return;
+
+                  event.preventDefault();
+                  event.dataTransfer.dropEffect = "move";
+
+                  const bounds = event.currentTarget.getBoundingClientRect();
+                  const midpoint = bounds.left + bounds.width / 2;
+
+                  setSlideDropTarget({
+                    slideId: slide.id,
+                    position: event.clientX < midpoint ? "before" : "after",
+                  });
+                }}
+                onDrop={(event) => {
+                  event.preventDefault();
+
+                  if (draggedSlideId && slideDropTarget?.slideId === slide.id) {
+                    reorderSlide(draggedSlideId, slide.id, slideDropTarget.position);
+                  }
+
+                  setDraggedSlideId(null);
+                  setSlideDropTarget(null);
+                }}
               >
+                {slideDropTarget?.slideId === slide.id && (
+                  <div
+                    className={`pointer-events-none absolute top-0 bottom-0 z-10 w-1 rounded-full bg-pink-500 ${
+                      slideDropTarget.position === "before" ? "-left-2" : "-right-2"
+                    }`}
+                  />
+                )}
+
                 <button
                   type="button"
+                  draggable
+                  onDragStart={(event) => {
+                    event.dataTransfer.effectAllowed = "move";
+                    event.dataTransfer.setData("text/plain", slide.id);
+
+                    setDraggedSlideId(slide.id);
+                    setSlideDropTarget(null);
+                  }}
+                  onDragEnd={() => {
+                    setDraggedSlideId(null);
+                    setSlideDropTarget(null);
+                  }}
                   onClick={() => selectSlide(slide.id)}
-                  className="w-full cursor-pointer text-left"
+                  className={`w-full cursor-grab text-left active:cursor-grabbing ${
+                    draggedSlideId === slide.id ? "opacity-40" : ""
+                  }`}
                   aria-current={isActive ? "true" : undefined}
                   title={`Open ${slide.name}`}
                 >
@@ -2397,6 +2617,28 @@ export default function StudioEditor() {
                   </span>
 
                   <div className="flex shrink-0 items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => moveSlide(slide.id, "left")}
+                      disabled={index === 0}
+                      className="studio-layer-icon disabled:cursor-not-allowed disabled:opacity-30"
+                      aria-label={`Move ${slide.name} left`}
+                      title="Move slide left"
+                    >
+                      <ArrowLeft size={14} strokeWidth={1.8} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => moveSlide(slide.id, "right")}
+                      disabled={index === project.slides.length - 1}
+                      className="studio-layer-icon disabled:cursor-not-allowed disabled:opacity-30"
+                      aria-label={`Move ${slide.name} right`}
+                      title="Move slide right"
+                    >
+                      <ArrowRight size={14} strokeWidth={1.8} />
+                    </button>
+
                     <button
                       type="button"
                       onClick={() => duplicateSlide(slide.id)}
