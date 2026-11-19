@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import BrandColorPicker from "./BrandColorPicker";
 import { brandColor, type BrandColorToken } from "../../lib/studio/brandColors";
-import type { StudioElement } from "../../lib/studio/types";
+import type { StudioElement, StudioProject } from "../../lib/studio/types";
 import { canvasPresets, type CanvasPreset } from "../../lib/studio/canvasPresets";
 import { studioFonts, type StudioFont } from "../../lib/studio/fonts";
 import {
@@ -69,6 +69,21 @@ const initialElements: StudioElement[] = [
   },
 ];
 
+const initialProject: StudioProject = {
+  id: "project-1",
+  name: "Untitled Design",
+  canvasPreset: "instagramPortrait",
+  activeSlideId: "slide-1",
+  slides: [
+    {
+      id: "slide-1",
+      name: "Slide 1",
+      backgroundColor: "blush-paper",
+      elements: initialElements,
+    },
+  ],
+};
+
 type DragSession = {
   pointerId: number;
   elementId: string;
@@ -131,6 +146,7 @@ function findClosestAlignment(
 }
 
 export default function StudioEditor() {
+  const [project, setProject] = useState<StudioProject>(initialProject);
   const [elements, setElements] = useState<StudioElement[]>(initialElements);
 
   const latestElementsRef = useRef(elements);
@@ -180,7 +196,22 @@ export default function StudioEditor() {
 
     latestElementsRef.current = nextElements;
     setElements(nextElements);
+    syncActiveSlide(nextElements);
   }
+
+  const syncActiveSlide = useCallback((nextElements: StudioElement[]) => {
+    setProject((currentProject) => ({
+      ...currentProject,
+      slides: currentProject.slides.map((slide) =>
+        slide.id === currentProject.activeSlideId
+          ? {
+              ...slide,
+              elements: nextElements,
+            }
+          : slide,
+      ),
+    }));
+  }, []);
 
   function undo() {
     if (past.length === 0) return;
@@ -189,8 +220,10 @@ export default function StudioEditor() {
 
     setFuture((previous) => [elements, ...previous]);
     setPast((previous) => previous.slice(0, -1));
+
     latestElementsRef.current = previousElements;
     setElements(previousElements);
+    syncActiveSlide(previousElements);
     setSelectedId(null);
   }
 
@@ -201,8 +234,10 @@ export default function StudioEditor() {
 
     setPast((previous) => [...previous, elements]);
     setFuture((previous) => previous.slice(1));
+
     latestElementsRef.current = nextElements;
     setElements(nextElements);
+    syncActiveSlide(nextElements);
     setSelectedId(null);
   }
 
@@ -329,6 +364,7 @@ export default function StudioEditor() {
 
     latestElementsRef.current = updated;
     setElements(updated);
+    syncActiveSlide(updated);
   }
 
   function handleDragEnd(event: React.PointerEvent<HTMLDivElement>) {
@@ -430,6 +466,7 @@ export default function StudioEditor() {
 
     latestElementsRef.current = updated;
     setElements(updated);
+    syncActiveSlide(updated);
   }
 
   function handleResizeEnd(event: React.PointerEvent<HTMLButtonElement>) {
@@ -526,6 +563,7 @@ export default function StudioEditor() {
 
     latestElementsRef.current = updated;
     setElements(updated);
+    syncActiveSlide(updated);
   }
 
   function commitElementUpdate(id: string, changes: Partial<StudioElement>) {
@@ -845,6 +883,7 @@ export default function StudioEditor() {
 
         latestElementsRef.current = updated;
         setElements(updated);
+        syncActiveSlide(updated);
         setSelectedId(null);
 
         return;
@@ -944,6 +983,7 @@ export default function StudioEditor() {
         setFuture((previous) => previous.slice(1));
         latestElementsRef.current = nextElements;
         setElements(nextElements);
+        syncActiveSlide(nextElements);
         setSelectedId(null);
       } else {
         if (past.length === 0) return;
@@ -956,6 +996,7 @@ export default function StudioEditor() {
         setPast((previous) => previous.slice(0, -1));
         latestElementsRef.current = previousElements;
         setElements(previousElements);
+        syncActiveSlide(previousElements);
         setSelectedId(null);
       }
     }
@@ -965,7 +1006,16 @@ export default function StudioEditor() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [elements, past, future, editingTextId, selectedId, canvasSize.width, canvasSize.height]);
+  }, [
+    elements,
+    past,
+    future,
+    editingTextId,
+    selectedId,
+    canvasSize.width,
+    canvasSize.height,
+    syncActiveSlide,
+  ]);
 
   useEffect(() => {
     const workspace = workspaceRef.current;
@@ -996,7 +1046,13 @@ export default function StudioEditor() {
           borderColor: brandColor("border"),
         }}
       >
-        <span className="font-semibold">Design Editor</span>
+        <div className="flex flex-col">
+          <span className="font-semibold">Design Editor</span>
+          <span className="text-xs opacity-60">
+            {project.name} · {project.slides.length} slide
+            {project.slides.length === 1 ? "" : "s"}
+          </span>
+        </div>
 
         <div className="flex flex-wrap gap-2">
           <button type="button" onClick={addText} className="studio-control studio-button">
@@ -2146,7 +2202,18 @@ export default function StudioEditor() {
             <BrandColorPicker
               label="Background color"
               value={backgroundColor}
-              onChange={setBackgroundColor}
+              onChange={(color) => {
+                setBackgroundColor(color);
+
+                setProject((currentProject) => ({
+                  ...currentProject,
+                  slides: currentProject.slides.map((slide) =>
+                    slide.id === currentProject.activeSlideId
+                      ? { ...slide, backgroundColor: color }
+                      : slide,
+                  ),
+                }));
+              }}
             />
           )}
         </aside>

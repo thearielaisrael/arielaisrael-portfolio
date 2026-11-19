@@ -1,5 +1,6 @@
 import type { BrandColorToken } from "./brandColors";
 import type { StudioFont } from "./fonts";
+import type { CanvasPreset } from "./canvasPresets";
 
 type BaseElement = {
   id: string;
@@ -34,3 +35,18 @@ export type CardElement = BaseElement & {
 };
 
 export type StudioElement = TextElement | CardElement;
+
+export type StudioSlide = {
+  id: string;
+  name: string;
+  backgroundColor: BrandColorToken;
+  elements: StudioElement[];
+};
+
+export type StudioProject = {
+  id: string;
+  name: string;
+  canvasPreset: CanvasPreset;
+  slides: StudioSlide[];
+  activeSlideId: string;
+};
