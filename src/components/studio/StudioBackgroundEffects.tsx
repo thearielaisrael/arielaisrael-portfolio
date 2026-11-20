@@ -1,12 +1,21 @@
 import type { StudioBackgroundEffect } from "../../lib/studio/types";
 import { studioGradientToCSS } from "../../lib/studio/gradientPresets";
 import StudioGlowSources from "./StudioGlowSources";
+import StudioParticleLayer from "./StudioParticleLayer";
+import StudioGridLayer from "./StudioGridLayer";
+import StudioPatternLayer from "./StudioPatternLayer";
 
 type StudioBackgroundEffectsProps = {
   effects: StudioBackgroundEffect[];
+  canvasWidth: number;
+  canvasHeight: number;
 };
 
-export default function StudioBackgroundEffects({ effects }: StudioBackgroundEffectsProps) {
+export default function StudioBackgroundEffects({
+  effects,
+  canvasWidth,
+  canvasHeight,
+}: StudioBackgroundEffectsProps) {
   return (
     <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
       {effects
@@ -41,6 +50,25 @@ export default function StudioBackgroundEffects({ effects }: StudioBackgroundEff
                 }}
               />
             );
+          }
+
+          if (effect.type === "particles") {
+            return (
+              <StudioParticleLayer
+                key={effect.id}
+                effect={effect}
+                canvasWidth={canvasWidth}
+                canvasHeight={canvasHeight}
+              />
+            );
+          }
+
+          if (effect.type === "grid") {
+            return <StudioGridLayer key={effect.id} effect={effect} />;
+          }
+
+          if (effect.type === "pattern") {
+            return <StudioPatternLayer key={effect.id} effect={effect} />;
           }
 
           return null;

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@12.6.0",
+  "packageManager": "pnpm@12.21.0",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@formspree/react": "^3.0.0",
+    "html-to-image": "^1.11.13",
     "lucide-react": "^1.73.0",
     "motion": "^12.27.5",
     "next": "^16.1.6",

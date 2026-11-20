@@ -4,7 +4,7 @@ import { brandColors, brandColor, type BrandColorToken } from "../../lib/studio/
 
 type BrandColorPickerProps = {
   label: string;
-  value: BrandColorToken;
+  value: string;
   onChange: (color: BrandColorToken) => void;
   disabled?: boolean;
 };

@@ -36,6 +36,9 @@ import {
   ArrowLeft,
   ArrowRight,
   GripVertical,
+  Save,
+  FolderOpen,
+  ImageDown,
 } from "lucide-react";
 import StudioTextContent from "./StudioTextContent";
 import StudioBackgroundEffects from "./StudioBackgroundEffects";
@@ -47,6 +50,8 @@ import {
   studioAmbientGlowPresets,
 } from "../../lib/studio/ambientGlowPresets";
 import StudioAmbientGlowPresets from "./StudioAmbientGlowPresets";
+
+const STUDIO_STORAGE_KEY = "arielaisrael-studio-project-v1";
 
 const initialElements: StudioElement[] = [
   {
@@ -165,6 +170,11 @@ function findClosestAlignment(
 
 export default function StudioEditor() {
   const [project, setProject] = useState<StudioProject>(initialProject);
+  const [storageReady, setStorageReady] = useState(false);
+  const [saveStatus, setSaveStatus] = useState("Loading saved project…");
+  const [exportingPng, setExportingPng] = useState(false);
+  const projectFileInputRef = useRef<HTMLInputElement | null>(null);
+  const canvasExportRef = useRef<HTMLDivElement | null>(null);
 
   const [draggedSlideId, setDraggedSlideId] = useState<string | null>(null);
 
@@ -224,6 +234,158 @@ export default function StudioEditor() {
 
   const canvasSize = canvasPresets[canvasPreset];
 
+  function restoreProject(nextProject: StudioProject) {
+    const slide = nextProject.slides.find((item) => item.id === nextProject.activeSlideId);
+    if (!slide) throw new Error("The project has no valid active slide.");
+    if (!(nextProject.canvasPreset in canvasPresets)) {
+      throw new Error("The project uses an unsupported canvas preset.");
+    }
+    setProject(nextProject);
+    setElements(slide.elements);
+    latestElementsRef.current = slide.elements;
+    setBackgroundColor(slide.backgroundColor);
+    setCanvasPreset(nextProject.canvasPreset);
+    setSelectedId(null);
+    setPast([]);
+    setFuture([]);
+    setNumericDrafts({});
+    setEditingTextId(null);
+  }
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadSavedProject() {
+      try {
+        const saved = window.localStorage.getItem(STUDIO_STORAGE_KEY);
+
+        if (cancelled) return;
+
+        if (saved) {
+          restoreProject(JSON.parse(saved) as StudioProject);
+        }
+
+        setSaveStatus(saved ? "Project restored" : "Autosave ready");
+      } catch (error) {
+        if (!cancelled) {
+          setSaveStatus("Could not restore saved project");
+          console.error("Studio restore failed:", error);
+        }
+      } finally {
+        if (!cancelled) {
+          setStorageReady(true);
+        }
+      }
+    }
+
+    void loadSavedProject();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!storageReady) return;
+
+    const timeout = window.setTimeout(() => {
+      try {
+        window.localStorage.setItem(STUDIO_STORAGE_KEY, JSON.stringify(project));
+        setSaveStatus("Saved locally");
+      } catch (error) {
+        setSaveStatus("Autosave failed — download a backup");
+        console.error("Studio autosave failed:", error);
+      }
+    }, 500);
+
+    return () => window.clearTimeout(timeout);
+  }, [project, storageReady]);
+
+  function downloadProjectJson() {
+    const blob = new Blob([JSON.stringify(project, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${project.name.trim().replace(/[^a-z0-9_-]+/gi, "-") || "studio-project"}.studio.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function importProjectJson(file: File) {
+    try {
+      const parsed: unknown = JSON.parse(await file.text());
+      if (
+        !parsed ||
+        typeof parsed !== "object" ||
+        !("slides" in parsed) ||
+        !Array.isArray(parsed.slides) ||
+        parsed.slides.length === 0 ||
+        !parsed.slides.every(
+          (slide: unknown) =>
+            !!slide &&
+            typeof slide === "object" &&
+            "id" in slide &&
+            "elements" in slide &&
+            Array.isArray(slide.elements) &&
+            "backgroundEffects" in slide &&
+            Array.isArray(slide.backgroundEffects),
+        ) ||
+        !("activeSlideId" in parsed) ||
+        !("canvasPreset" in parsed) ||
+        !("name" in parsed)
+      ) {
+        throw new Error("This is not a supported Studio project file.");
+      }
+      if (!window.confirm("Replace your current Studio project with the imported project?")) return;
+      restoreProject(parsed as StudioProject);
+      setSaveStatus("Project imported");
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "Could not open project.");
+    } finally {
+      if (projectFileInputRef.current) projectFileInputRef.current.value = "";
+    }
+  }
+
+  async function exportSlidePng() {
+    if (!canvasExportRef.current || exportingPng) return;
+    setExportingPng(true);
+    const previouslySelected = selectedId;
+    const previousGrid = showGrid;
+    const previousCenterlines = showCenterlines;
+    setSelectedId(null);
+    setShowGrid(false);
+    setShowCenterlines(false);
+    try {
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      );
+      const { toPng } = await import("html-to-image");
+      const node = canvasExportRef.current;
+      if (!node) throw new Error("Canvas is unavailable.");
+      const image = await toPng(node, {
+        cacheBust: true,
+        pixelRatio: 1 / scale,
+        backgroundColor: brandColor(backgroundColor),
+        filter: (element) =>
+          !(element instanceof HTMLElement && element.dataset.studioExportIgnore === "true"),
+      });
+      const link = document.createElement("a");
+      link.href = image;
+      link.download = `${project.name.trim().replace(/[^a-z0-9_-]+/gi, "-") || "studio"}-${activeSlide?.name.replace(/[^a-z0-9_-]+/gi, "-") || "slide"}.png`;
+      link.click();
+    } catch (error) {
+      console.error("PNG export failed:", error);
+      window.alert("PNG export failed. Check the browser console for details.");
+    } finally {
+      setSelectedId(previouslySelected);
+      setShowGrid(previousGrid);
+      setShowCenterlines(previousCenterlines);
+      setExportingPng(false);
+    }
+  }
+
   const dragSession = useRef<DragSession | null>(null);
 
   const syncActiveSlide = useCallback((nextElements: StudioElement[]) => {
@@ -265,6 +427,73 @@ export default function StudioEditor() {
           : slide,
       ),
     }));
+  }
+
+  function moveBackgroundEffect(effectId: string, direction: -1 | 1) {
+    setProject((currentProject) => ({
+      ...currentProject,
+      slides: currentProject.slides.map((slide) => {
+        if (slide.id !== currentProject.activeSlideId) return slide;
+        const effects = [...slide.backgroundEffects];
+        const index = effects.findIndex((effect) => effect.id === effectId);
+        const destination = index + direction;
+        if (index < 0 || destination < 0 || destination >= effects.length) return slide;
+        [effects[index], effects[destination]] = [effects[destination], effects[index]];
+        return { ...slide, backgroundEffects: effects };
+      }),
+    }));
+  }
+
+  function addCardEffect(cardId: string, type: "grid" | "pattern") {
+    const base: StudioBackgroundEffect = {
+      id: crypto.randomUUID(),
+      type,
+      enabled: true,
+      seed: 1,
+      opacity: 50,
+      color: "signature-aura-pink",
+      intensity: 100,
+      scale: 100,
+      ...(type === "grid"
+        ? { grid: { style: "lines" as const, spacing: 32, lineWidth: 1 } }
+        : { pattern: { style: "waves" as const, spacing: 40, lineWidth: 1, rotation: 0 } }),
+    };
+    const card = elements.find((item) => item.id === cardId);
+    if (!card || card.type !== "card") return;
+    commitElementUpdate(cardId, { effects: [...(card.effects ?? []), base] });
+  }
+
+  function updateCardEffect(
+    cardId: string,
+    effectId: string,
+    changes: Partial<StudioBackgroundEffect>,
+  ) {
+    const card = elements.find((item) => item.id === cardId);
+    if (!card || card.type !== "card") return;
+    commitElementUpdate(cardId, {
+      effects: (card.effects ?? []).map((effect) =>
+        effect.id === effectId ? { ...effect, ...changes } : effect,
+      ),
+    });
+  }
+
+  function removeCardEffect(cardId: string, effectId: string) {
+    const card = elements.find((item) => item.id === cardId);
+    if (!card || card.type !== "card") return;
+    commitElementUpdate(cardId, {
+      effects: (card.effects ?? []).filter((effect) => effect.id !== effectId),
+    });
+  }
+
+  function moveCardEffect(cardId: string, effectId: string, direction: -1 | 1) {
+    const card = elements.find((item) => item.id === cardId);
+    if (!card || card.type !== "card") return;
+    const effects = [...(card.effects ?? [])];
+    const index = effects.findIndex((effect) => effect.id === effectId);
+    const destination = index + direction;
+    if (index < 0 || destination < 0 || destination >= effects.length) return;
+    [effects[index], effects[destination]] = [effects[destination], effects[index]];
+    commitElementUpdate(cardId, { effects });
   }
 
   function getBackgroundGradient(effect: StudioBackgroundEffect): StudioGradient {
@@ -426,6 +655,110 @@ export default function StudioEditor() {
           }),
         };
       }),
+    }));
+  }
+
+  function randomizeParticlePositions(effectId: string) {
+    updateBackgroundEffect(effectId, {
+      seed: Math.floor(Math.random() * 4294967295),
+    });
+  }
+
+  function resetParticlePositions(effectId: string) {
+    updateBackgroundEffect(effectId, {
+      seed: 1,
+    });
+  }
+
+  function addParticleEffect() {
+    const newEffect: StudioBackgroundEffect = {
+      id: crypto.randomUUID(),
+      type: "particles",
+      enabled: true,
+      seed: 1,
+      opacity: 100,
+      color: "#ED3F98",
+      intensity: 80,
+      scale: 100,
+      particles: {
+        count: 60,
+        size: 2,
+        connectionOpacity: 12,
+        connectionDistance: 12,
+      },
+    };
+
+    setProject((currentProject) => ({
+      ...currentProject,
+      slides: currentProject.slides.map((slide) =>
+        slide.id === currentProject.activeSlideId
+          ? {
+              ...slide,
+              backgroundEffects: [...slide.backgroundEffects, newEffect],
+            }
+          : slide,
+      ),
+    }));
+  }
+
+  function addGridEffect() {
+    const newEffect: StudioBackgroundEffect = {
+      id: crypto.randomUUID(),
+      type: "grid",
+      enabled: true,
+      seed: 1,
+      opacity: 35,
+      color: "#ED3F98",
+      intensity: 100,
+      scale: 100,
+      grid: {
+        style: "lines",
+        spacing: 32,
+        lineWidth: 1,
+      },
+    };
+
+    setProject((currentProject) => ({
+      ...currentProject,
+      slides: currentProject.slides.map((slide) =>
+        slide.id === currentProject.activeSlideId
+          ? {
+              ...slide,
+              backgroundEffects: [...slide.backgroundEffects, newEffect],
+            }
+          : slide,
+      ),
+    }));
+  }
+
+  function addPatternEffect() {
+    const newEffect: StudioBackgroundEffect = {
+      id: crypto.randomUUID(),
+      type: "pattern",
+      enabled: true,
+      seed: 1,
+      opacity: 35,
+      color: "signature-aura-pink",
+      intensity: 100,
+      scale: 100,
+      pattern: {
+        style: "waves",
+        spacing: 40,
+        lineWidth: 1,
+        rotation: 0,
+      },
+    };
+
+    setProject((currentProject) => ({
+      ...currentProject,
+      slides: currentProject.slides.map((slide) =>
+        slide.id === currentProject.activeSlideId
+          ? {
+              ...slide,
+              backgroundEffects: [...slide.backgroundEffects, newEffect],
+            }
+          : slide,
+      ),
     }));
   }
 
@@ -1568,9 +1901,48 @@ export default function StudioEditor() {
             {project.name} · {project.slides.length} slide
             {project.slides.length === 1 ? "" : "s"}
           </span>
+          <span role="status" className="text-xs opacity-60">
+            {saveStatus}
+          </span>
         </div>
 
         <div className="flex flex-wrap gap-2">
+          <input
+            ref={projectFileInputRef}
+            type="file"
+            accept=".json,.studio.json,application/json"
+            className="hidden"
+            aria-label="Open Studio project"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (file) void importProjectJson(file);
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => projectFileInputRef.current?.click()}
+            className="studio-control studio-button"
+            title="Open saved Studio JSON project"
+          >
+            <FolderOpen size={17} /> Open Project
+          </button>
+          <button
+            type="button"
+            onClick={downloadProjectJson}
+            className="studio-control studio-button"
+            title="Download a portable project backup"
+          >
+            <Save size={17} /> Save Project
+          </button>
+          <button
+            type="button"
+            onClick={() => void exportSlidePng()}
+            disabled={exportingPng}
+            className="studio-control studio-button disabled:opacity-40"
+            title="Export active slide as PNG"
+          >
+            <ImageDown size={17} /> {exportingPng ? "Exporting…" : "Export PNG"}
+          </button>
           <button type="button" onClick={addText} className="studio-control studio-button">
             <Type size={17} strokeWidth={1.8} />
             <span>Add Text</span>
@@ -1942,6 +2314,7 @@ export default function StudioEditor() {
 
                 background: brandColor(backgroundColor),
               }}
+              ref={canvasExportRef}
               data-studio-canvas="true"
               onClick={() => {
                 if (activeTool === "select") {
@@ -1949,7 +2322,11 @@ export default function StudioEditor() {
                 }
               }}
             >
-              <StudioBackgroundEffects effects={activeSlide?.backgroundEffects ?? []} />
+              <StudioBackgroundEffects
+                effects={activeSlide?.backgroundEffects ?? []}
+                canvasWidth={canvasSize.width}
+                canvasHeight={canvasSize.height}
+              />
               {showGrid && (
                 <div
                   aria-hidden="true"
@@ -2089,6 +2466,27 @@ export default function StudioEditor() {
                           }
                         }}
                       >
+                        {(element.effects?.length ?? 0) > 0 && (
+                          <div
+                            className="pointer-events-none absolute inset-0 overflow-hidden"
+                            style={{ borderRadius: "inherit" }}
+                          >
+                            <div
+                              className="absolute top-0 left-0 origin-top-left"
+                              style={{
+                                width: element.width,
+                                height: element.height,
+                                transform: `scale(${scale})`,
+                              }}
+                            >
+                              <StudioBackgroundEffects
+                                effects={element.effects ?? []}
+                                canvasWidth={element.width}
+                                canvasHeight={element.height}
+                              />
+                            </div>
+                          </div>
+                        )}
                         {selectedId === element.id && !element.locked && (
                           <button
                             type="button"
@@ -2924,6 +3322,222 @@ export default function StudioEditor() {
                 </div>
               )}
 
+              {selected.type === "card" && (
+                <div className="space-y-3 border-t border-pink-200/60 pt-4">
+                  <h3 className="text-sm font-semibold">Card Effects</h3>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      disabled={selected.locked}
+                      onClick={() => addCardEffect(selected.id, "grid")}
+                      className="studio-control studio-button text-xs"
+                    >
+                      + Grid
+                    </button>
+                    <button
+                      type="button"
+                      disabled={selected.locked}
+                      onClick={() => addCardEffect(selected.id, "pattern")}
+                      className="studio-control studio-button text-xs"
+                    >
+                      + Pattern
+                    </button>
+                  </div>
+                  {(selected.effects ?? []).map((effect, index, effects) => (
+                    <div
+                      key={effect.id}
+                      className="space-y-3 rounded-xl border border-pink-200/60 bg-white/60 p-3"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-semibold">
+                          {effect.type === "grid" ? "Grid" : "Pattern"} {index + 1}
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            aria-label="Move effect down"
+                            title="Move effect down"
+                            disabled={selected.locked || index === 0}
+                            onClick={() => moveCardEffect(selected.id, effect.id, -1)}
+                            className="studio-control rounded p-1 disabled:opacity-30"
+                          >
+                            <ArrowDown size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            aria-label="Move effect up"
+                            title="Move effect up"
+                            disabled={selected.locked || index === effects.length - 1}
+                            onClick={() => moveCardEffect(selected.id, effect.id, 1)}
+                            className="studio-control rounded p-1 disabled:opacity-30"
+                          >
+                            <ArrowUp size={14} />
+                          </button>
+                          <label className="flex items-center gap-1 text-xs">
+                            <input
+                              type="checkbox"
+                              checked={effect.enabled}
+                              disabled={selected.locked}
+                              onChange={(event) =>
+                                updateCardEffect(selected.id, effect.id, {
+                                  enabled: event.target.checked,
+                                })
+                              }
+                              className="accent-[#ED3F98]"
+                            />
+                            On
+                          </label>
+                        </div>
+                      </div>
+                      {effect.grid && (
+                        <label className="block space-y-1 text-xs">
+                          Style
+                          <select
+                            disabled={selected.locked}
+                            value={effect.grid.style}
+                            onChange={(event) =>
+                              updateCardEffect(selected.id, effect.id, {
+                                grid: {
+                                  ...effect.grid!,
+                                  style: event.target.value as "lines" | "dots",
+                                },
+                              })
+                            }
+                            className="studio-field w-full"
+                          >
+                            <option value="lines">Lines</option>
+                            <option value="dots">Dots</option>
+                          </select>
+                        </label>
+                      )}
+                      {effect.pattern && (
+                        <label className="block space-y-1 text-xs">
+                          Style
+                          <select
+                            disabled={selected.locked}
+                            value={effect.pattern.style}
+                            onChange={(event) =>
+                              updateCardEffect(selected.id, effect.id, {
+                                pattern: {
+                                  ...effect.pattern!,
+                                  style: event.target.value as
+                                    "waves" | "diagonal-lines" | "crosses" | "diamonds",
+                                },
+                              })
+                            }
+                            className="studio-field w-full"
+                          >
+                            <option value="waves">Waves</option>
+                            <option value="diagonal-lines">Diagonal Lines</option>
+                            <option value="crosses">Crosses</option>
+                            <option value="diamonds">Diamonds</option>
+                          </select>
+                        </label>
+                      )}
+                      <BrandColorPicker
+                        label="Effect Color"
+                        value={effect.color as BrandColorToken}
+                        disabled={selected.locked}
+                        onChange={(color) => updateCardEffect(selected.id, effect.id, { color })}
+                      />
+                      {(["spacing", "lineWidth"] as const).map((field) => {
+                        const settings = effect.grid ?? effect.pattern;
+                        if (!settings) return null;
+                        return (
+                          <label key={field} className="block space-y-1 text-xs">
+                            <span className="flex justify-between">
+                              <span>
+                                {field === "spacing"
+                                  ? "Spacing"
+                                  : effect.grid?.style === "dots"
+                                    ? "Dot Size"
+                                    : "Line Weight"}
+                              </span>
+                              <span>{settings[field]}px</span>
+                            </span>
+                            <input
+                              type="range"
+                              min={field === "spacing" ? 8 : 0.5}
+                              max={field === "spacing" ? 120 : 8}
+                              step={field === "spacing" ? 2 : 0.5}
+                              value={settings[field]}
+                              disabled={selected.locked}
+                              onChange={(event) => {
+                                const value = Number(event.target.value);
+                                updateCardEffect(
+                                  selected.id,
+                                  effect.id,
+                                  effect.grid
+                                    ? { grid: { ...effect.grid, [field]: value } }
+                                    : { pattern: { ...effect.pattern!, [field]: value } },
+                                );
+                              }}
+                              className="w-full accent-[#ED3F98]"
+                            />
+                          </label>
+                        );
+                      })}
+                      {effect.pattern && (
+                        <label className="block space-y-1 text-xs">
+                          <span className="flex justify-between">
+                            <span>Rotation</span>
+                            <span>{effect.pattern.rotation}°</span>
+                          </span>
+                          <input
+                            type="range"
+                            min={0}
+                            max={360}
+                            value={effect.pattern.rotation}
+                            disabled={selected.locked}
+                            onChange={(event) =>
+                              updateCardEffect(selected.id, effect.id, {
+                                pattern: {
+                                  ...effect.pattern!,
+                                  rotation: Number(event.target.value),
+                                },
+                              })
+                            }
+                            className="w-full accent-[#ED3F98]"
+                          />
+                        </label>
+                      )}
+                      <label className="block space-y-1 text-xs">
+                        <span className="flex justify-between">
+                          <span>Opacity</span>
+                          <span>{effect.opacity}%</span>
+                        </span>
+                        <input
+                          type="range"
+                          min={0}
+                          max={100}
+                          value={effect.opacity}
+                          disabled={selected.locked}
+                          onChange={(event) =>
+                            updateCardEffect(selected.id, effect.id, {
+                              opacity: Number(event.target.value),
+                            })
+                          }
+                          className="w-full accent-[#ED3F98]"
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        disabled={selected.locked}
+                        onClick={() => removeCardEffect(selected.id, effect.id)}
+                        className="flex w-full items-center justify-center gap-2 rounded-lg border border-rose-200 px-3 py-2 text-xs text-rose-600 disabled:opacity-40"
+                      >
+                        <Trash2 size={13} />
+                        Remove Effect
+                      </button>
+                    </div>
+                  ))}
+                  <p className="text-xs text-slate-500">
+                    Effects at the bottom of this list render on top. Data Nodes remain
+                    background-only.
+                  </p>
+                </div>
+              )}
+
               {selected.type === "text" && (
                 <BrandColorPicker
                   label="Text Color"
@@ -2959,6 +3573,45 @@ export default function StudioEditor() {
                 onChange={updateBackgroundColor}
               />
 
+              {(activeSlide?.backgroundEffects.length ?? 0) > 0 && (
+                <div className="space-y-2 rounded-xl border border-pink-200/60 bg-white/60 p-3">
+                  <h3 className="text-sm font-semibold">Background Effect Order</h3>
+                  <p className="text-xs text-slate-500">Bottom of list renders on top.</p>
+                  {(activeSlide?.backgroundEffects ?? []).map((effect, index, effects) => (
+                    <div
+                      key={effect.id}
+                      className="flex items-center justify-between gap-2 rounded-lg border border-pink-100 px-2 py-1.5"
+                    >
+                      <span className="truncate text-xs capitalize">
+                        {effect.type.replaceAll("-", " ")} {index + 1}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          aria-label="Move background effect down"
+                          title="Move down"
+                          disabled={index === 0}
+                          onClick={() => moveBackgroundEffect(effect.id, -1)}
+                          className="studio-control rounded p-1 disabled:opacity-30"
+                        >
+                          <ArrowDown size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          aria-label="Move background effect up"
+                          title="Move up"
+                          disabled={index === effects.length - 1}
+                          onClick={() => moveBackgroundEffect(effect.id, 1)}
+                          className="studio-control rounded p-1 disabled:opacity-30"
+                        >
+                          <ArrowUp size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <StudioGradientPresets onSelect={addGradientPreset} />
 
               <div className="mt-5 space-y-4">
@@ -2972,6 +3625,605 @@ export default function StudioEditor() {
                   >
                     + Add Gradient
                   </button>
+                </div>
+
+                <div className="mt-5 space-y-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="text-sm font-semibold">Data Nodes</h3>
+
+                    <button
+                      type="button"
+                      onClick={addParticleEffect}
+                      className="studio-control studio-button text-xs"
+                    >
+                      + Add Data Nodes
+                    </button>
+                  </div>
+
+                  {(activeSlide?.backgroundEffects ?? [])
+                    .filter((effect) => effect.type === "particles")
+                    .map((effect, index) => (
+                      <div
+                        key={effect.id}
+                        className="space-y-3 rounded-xl border border-pink-200/60 bg-white/60 p-3"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-xs font-semibold">Data Nodes {index + 1}</span>
+
+                          <label className="flex cursor-pointer items-center gap-2 text-xs">
+                            <input
+                              type="checkbox"
+                              checked={effect.enabled}
+                              onChange={(event) =>
+                                updateBackgroundEffect(effect.id, {
+                                  enabled: event.target.checked,
+                                })
+                              }
+                              className="cursor-pointer accent-[#ED3F98]"
+                            />
+                            Enabled
+                          </label>
+                        </div>
+
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <label htmlFor={`particle-count-${effect.id}`}>Node Count</label>
+                            <span className="tabular-nums">{effect.particles?.count ?? 60}</span>
+                          </div>
+
+                          <input
+                            id={`particle-count-${effect.id}`}
+                            type="range"
+                            min={10}
+                            max={300}
+                            step={5}
+                            value={effect.particles?.count ?? 60}
+                            disabled={!effect.particles}
+                            onChange={(event) => {
+                              if (!effect.particles) return;
+
+                              updateBackgroundEffect(effect.id, {
+                                particles: {
+                                  ...effect.particles,
+                                  count: Number(event.target.value),
+                                },
+                              });
+                            }}
+                            className="w-full cursor-pointer accent-[#ED3F98] disabled:cursor-not-allowed disabled:opacity-40"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <label htmlFor={`particle-size-${effect.id}`}>Node Size</label>
+                            <span className="tabular-nums">{effect.particles?.size ?? 2}px</span>
+                          </div>
+
+                          <input
+                            id={`particle-size-${effect.id}`}
+                            type="range"
+                            min={1}
+                            max={12}
+                            step={0.5}
+                            value={effect.particles?.size ?? 2}
+                            disabled={!effect.particles}
+                            onChange={(event) => {
+                              if (!effect.particles) return;
+
+                              updateBackgroundEffect(effect.id, {
+                                particles: {
+                                  ...effect.particles,
+                                  size: Number(event.target.value),
+                                },
+                              });
+                            }}
+                            className="w-full cursor-pointer accent-[#ED3F98] disabled:cursor-not-allowed disabled:opacity-40"
+                          />
+                        </div>
+
+                        <BrandColorPicker
+                          label="Node Color"
+                          value={effect.color}
+                          onChange={(color) =>
+                            updateBackgroundEffect(effect.id, {
+                              color,
+                            })
+                          }
+                        />
+
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <label htmlFor={`particle-opacity-${effect.id}`}>Node Opacity</label>
+
+                            <span className="tabular-nums">{effect.opacity}%</span>
+                          </div>
+
+                          <input
+                            id={`particle-opacity-${effect.id}`}
+                            type="range"
+                            min={0}
+                            max={100}
+                            step={5}
+                            value={effect.opacity}
+                            onChange={(event) =>
+                              updateBackgroundEffect(effect.id, {
+                                opacity: Number(event.target.value),
+                              })
+                            }
+                            className="w-full cursor-pointer accent-[#ED3F98]"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <label htmlFor={`particle-connection-opacity-${effect.id}`}>
+                              Connection Opacity
+                            </label>
+
+                            <span className="tabular-nums">
+                              {effect.particles?.connectionOpacity ?? 12}%
+                            </span>
+                          </div>
+
+                          <input
+                            id={`particle-connection-opacity-${effect.id}`}
+                            type="range"
+                            min={0}
+                            max={100}
+                            step={1}
+                            value={effect.particles?.connectionOpacity ?? 12}
+                            disabled={!effect.particles}
+                            onChange={(event) => {
+                              if (!effect.particles) return;
+
+                              updateBackgroundEffect(effect.id, {
+                                particles: {
+                                  ...effect.particles,
+                                  connectionOpacity: Number(event.target.value),
+                                },
+                              });
+                            }}
+                            className="w-full cursor-pointer accent-[#ED3F98] disabled:cursor-not-allowed disabled:opacity-40"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <label htmlFor={`particle-connection-distance-${effect.id}`}>
+                              Connection Distance
+                            </label>
+
+                            <span className="tabular-nums">
+                              {effect.particles?.connectionDistance ?? 12}
+                            </span>
+                          </div>
+
+                          <input
+                            id={`particle-connection-distance-${effect.id}`}
+                            type="range"
+                            min={0}
+                            max={30}
+                            step={1}
+                            value={effect.particles?.connectionDistance ?? 12}
+                            disabled={!effect.particles}
+                            onChange={(event) => {
+                              if (!effect.particles) return;
+
+                              updateBackgroundEffect(effect.id, {
+                                particles: {
+                                  ...effect.particles,
+                                  connectionDistance: Number(event.target.value),
+                                },
+                              });
+                            }}
+                            className="w-full cursor-pointer accent-[#ED3F98] disabled:cursor-not-allowed disabled:opacity-40"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => randomizeParticlePositions(effect.id)}
+                            className="studio-control studio-button text-xs"
+                          >
+                            Randomize Positions
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => resetParticlePositions(effect.id)}
+                            disabled={effect.seed === 1}
+                            className="studio-control text-xs disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            Reset Positions
+                          </button>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => removeBackgroundEffect(effect.id)}
+                          className="flex w-full items-center justify-center gap-2 rounded-lg border border-rose-200 px-3 py-2 text-xs text-rose-600 transition-colors hover:bg-rose-50"
+                        >
+                          <Trash2 size={13} />
+                          Remove Data Nodes
+                        </button>
+                      </div>
+                    ))}
+                </div>
+
+                <div className="mt-5 space-y-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="text-sm font-semibold">Grid Effects</h3>
+
+                    <button
+                      type="button"
+                      onClick={addGridEffect}
+                      className="studio-control studio-button text-xs"
+                    >
+                      + Add Grid
+                    </button>
+                  </div>
+
+                  {(activeSlide?.backgroundEffects ?? [])
+                    .filter((effect) => effect.type === "grid")
+                    .map((effect, index) => (
+                      <div
+                        key={effect.id}
+                        className="space-y-3 rounded-xl border border-pink-200/60 bg-white/60 p-3"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-xs font-semibold">Grid {index + 1}</span>
+
+                          <label className="flex cursor-pointer items-center gap-2 text-xs">
+                            <input
+                              type="checkbox"
+                              checked={effect.enabled}
+                              onChange={(event) =>
+                                updateBackgroundEffect(effect.id, {
+                                  enabled: event.target.checked,
+                                })
+                              }
+                              className="cursor-pointer accent-[#ED3F98]"
+                            />
+                            Enabled
+                          </label>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label
+                            htmlFor={`grid-style-${effect.id}`}
+                            className="text-xs font-medium"
+                          >
+                            Grid Style
+                          </label>
+
+                          <select
+                            id={`grid-style-${effect.id}`}
+                            value={effect.grid?.style ?? "lines"}
+                            disabled={!effect.grid}
+                            onChange={(event) => {
+                              if (!effect.grid) return;
+
+                              updateBackgroundEffect(effect.id, {
+                                grid: {
+                                  ...effect.grid,
+                                  style: event.target.value as "lines" | "dots",
+                                },
+                              });
+                            }}
+                            className="studio-control w-full cursor-pointer rounded-lg border border-pink-200/60 bg-white px-3 py-2 text-xs disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            <option value="lines">Line Grid</option>
+                            <option value="dots">Dot Grid</option>
+                          </select>
+                        </div>
+
+                        {effect.grid && (
+                          <div className="space-y-4">
+                            {/* Grid Spacing */}
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between text-xs">
+                                <label htmlFor={`grid-spacing-${effect.id}`}>Spacing</label>
+                                <span className="tabular-nums">{effect.grid.spacing}px</span>
+                              </div>
+
+                              <input
+                                id={`grid-spacing-${effect.id}`}
+                                type="range"
+                                min={8}
+                                max={120}
+                                step={2}
+                                value={effect.grid.spacing}
+                                onChange={(event) =>
+                                  updateBackgroundEffect(effect.id, {
+                                    grid: {
+                                      ...effect.grid!,
+                                      spacing: Number(event.target.value),
+                                    },
+                                  })
+                                }
+                                className="w-full cursor-pointer accent-[#ED3F98]"
+                              />
+                            </div>
+
+                            {/* Grid Opacity */}
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between text-xs">
+                                <label htmlFor={`grid-opacity-${effect.id}`}>Opacity</label>
+                                <span className="tabular-nums">{effect.opacity}%</span>
+                              </div>
+
+                              <input
+                                id={`grid-opacity-${effect.id}`}
+                                type="range"
+                                min={0}
+                                max={100}
+                                step={1}
+                                value={effect.opacity}
+                                onChange={(event) =>
+                                  updateBackgroundEffect(effect.id, {
+                                    opacity: Number(event.target.value),
+                                  })
+                                }
+                                className="w-full cursor-pointer accent-[#ED3F98]"
+                              />
+                            </div>
+
+                            {/* Grid Color */}
+                            <div className="space-y-2">
+                              <label className="block text-xs font-medium">Grid Color</label>
+
+                              <BrandColorPicker
+                                label="Grid Color"
+                                value={effect.color as BrandColorToken}
+                                onChange={(color) =>
+                                  updateBackgroundEffect(effect.id, {
+                                    color,
+                                  })
+                                }
+                              />
+                            </div>
+
+                            {/* Line Weight / Dot Size */}
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between text-xs">
+                                <label htmlFor={`grid-weight-${effect.id}`}>
+                                  {effect.grid.style === "dots" ? "Dot Size" : "Line Weight"}
+                                </label>
+
+                                <span className="tabular-nums">{effect.grid.lineWidth}px</span>
+                              </div>
+
+                              <input
+                                id={`grid-weight-${effect.id}`}
+                                type="range"
+                                min={0.5}
+                                max={8}
+                                step={0.5}
+                                value={effect.grid.lineWidth}
+                                onChange={(event) =>
+                                  updateBackgroundEffect(effect.id, {
+                                    grid: {
+                                      ...effect.grid!,
+                                      lineWidth: Number(event.target.value),
+                                    },
+                                  })
+                                }
+                                className="w-full cursor-pointer accent-[#ED3F98]"
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => removeBackgroundEffect(effect.id)}
+                          className="flex w-full items-center justify-center gap-2 rounded-lg border border-rose-200 px-3 py-2 text-xs text-rose-600 transition-colors hover:bg-rose-50"
+                        >
+                          <Trash2 size={13} />
+                          Remove Grid
+                        </button>
+                      </div>
+                    ))}
+                </div>
+
+                {/* Pattern Effects */}
+                <div className="mt-5 space-y-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="text-sm font-semibold">Pattern Effects</h3>
+
+                    <button
+                      type="button"
+                      onClick={addPatternEffect}
+                      className="studio-control studio-button text-xs"
+                    >
+                      + Add Pattern
+                    </button>
+                  </div>
+
+                  {(activeSlide?.backgroundEffects ?? [])
+                    .filter((effect) => effect.type === "pattern")
+                    .map((effect, index) => (
+                      <div
+                        key={effect.id}
+                        className="space-y-3 rounded-xl border border-pink-200/60 bg-white/60 p-3"
+                      >
+                        {/* Pattern Header */}
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-xs font-semibold">Pattern {index + 1}</span>
+
+                          <label className="flex cursor-pointer items-center gap-2 text-xs">
+                            <input
+                              type="checkbox"
+                              checked={effect.enabled}
+                              onChange={(event) =>
+                                updateBackgroundEffect(effect.id, {
+                                  enabled: event.target.checked,
+                                })
+                              }
+                              className="cursor-pointer accent-[#ED3F98]"
+                            />
+                            Enabled
+                          </label>
+                        </div>
+
+                        {effect.pattern && (
+                          <div className="space-y-4">
+                            {/* Pattern Style */}
+                            <div className="space-y-2">
+                              <label
+                                htmlFor={`pattern-style-${effect.id}`}
+                                className="block text-xs font-medium"
+                              >
+                                Pattern Style
+                              </label>
+
+                              <select
+                                id={`pattern-style-${effect.id}`}
+                                value={effect.pattern.style}
+                                onChange={(event) =>
+                                  updateBackgroundEffect(effect.id, {
+                                    pattern: {
+                                      ...effect.pattern!,
+                                      style: event.target.value as
+                                        "waves" | "diagonal-lines" | "crosses" | "diamonds",
+                                    },
+                                  })
+                                }
+                                className="studio-control w-full cursor-pointer rounded-lg border border-pink-200/60 bg-white px-3 py-2 text-xs"
+                              >
+                                <option value="waves">Waves</option>
+                                <option value="diagonal-lines">Diagonal Lines</option>
+                                <option value="crosses">Crosses</option>
+                                <option value="diamonds">Diamonds</option>
+                              </select>
+                            </div>
+
+                            {/* Pattern Spacing */}
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between text-xs">
+                                <label htmlFor={`pattern-spacing-${effect.id}`}>Spacing</label>
+                                <span className="tabular-nums">{effect.pattern.spacing}px</span>
+                              </div>
+
+                              <input
+                                id={`pattern-spacing-${effect.id}`}
+                                type="range"
+                                min={8}
+                                max={120}
+                                step={2}
+                                value={effect.pattern.spacing}
+                                onChange={(event) =>
+                                  updateBackgroundEffect(effect.id, {
+                                    pattern: {
+                                      ...effect.pattern!,
+                                      spacing: Number(event.target.value),
+                                    },
+                                  })
+                                }
+                                className="w-full cursor-pointer accent-[#ED3F98]"
+                              />
+                            </div>
+
+                            {/* Pattern Line Weight */}
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between text-xs">
+                                <label htmlFor={`pattern-weight-${effect.id}`}>Line Weight</label>
+                                <span className="tabular-nums">{effect.pattern.lineWidth}px</span>
+                              </div>
+
+                              <input
+                                id={`pattern-weight-${effect.id}`}
+                                type="range"
+                                min={0.5}
+                                max={8}
+                                step={0.5}
+                                value={effect.pattern.lineWidth}
+                                onChange={(event) =>
+                                  updateBackgroundEffect(effect.id, {
+                                    pattern: {
+                                      ...effect.pattern!,
+                                      lineWidth: Number(event.target.value),
+                                    },
+                                  })
+                                }
+                                className="w-full cursor-pointer accent-[#ED3F98]"
+                              />
+                            </div>
+
+                            {/* Pattern Rotation */}
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between text-xs">
+                                <label htmlFor={`pattern-rotation-${effect.id}`}>Rotation</label>
+                                <span className="tabular-nums">{effect.pattern.rotation}°</span>
+                              </div>
+
+                              <input
+                                id={`pattern-rotation-${effect.id}`}
+                                type="range"
+                                min={0}
+                                max={360}
+                                step={1}
+                                value={effect.pattern.rotation}
+                                onChange={(event) =>
+                                  updateBackgroundEffect(effect.id, {
+                                    pattern: {
+                                      ...effect.pattern!,
+                                      rotation: Number(event.target.value),
+                                    },
+                                  })
+                                }
+                                className="w-full cursor-pointer accent-[#ED3F98]"
+                              />
+                            </div>
+
+                            {/* Pattern Opacity */}
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between text-xs">
+                                <label htmlFor={`pattern-opacity-${effect.id}`}>Opacity</label>
+                                <span className="tabular-nums">{effect.opacity}%</span>
+                              </div>
+
+                              <input
+                                id={`pattern-opacity-${effect.id}`}
+                                type="range"
+                                min={0}
+                                max={100}
+                                step={1}
+                                value={effect.opacity}
+                                onChange={(event) =>
+                                  updateBackgroundEffect(effect.id, {
+                                    opacity: Number(event.target.value),
+                                  })
+                                }
+                                className="w-full cursor-pointer accent-[#ED3F98]"
+                              />
+                            </div>
+
+                            {/* Pattern Color */}
+                            <BrandColorPicker
+                              label="Pattern Color"
+                              value={effect.color as BrandColorToken}
+                              onChange={(color) =>
+                                updateBackgroundEffect(effect.id, {
+                                  color,
+                                })
+                              }
+                            />
+                          </div>
+                        )}
+
+                        {/* Remove Pattern */}
+                        <button
+                          type="button"
+                          onClick={() => removeBackgroundEffect(effect.id)}
+                          className="flex w-full items-center justify-center gap-2 rounded-lg border border-rose-200 px-3 py-2 text-xs text-rose-600 transition-colors hover:bg-rose-50"
+                        >
+                          <Trash2 size={13} />
+                          Remove Pattern
+                        </button>
+                      </div>
+                    ))}
                 </div>
 
                 {activeSlide?.backgroundEffects

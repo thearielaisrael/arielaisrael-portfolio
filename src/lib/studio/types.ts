@@ -34,6 +34,7 @@ export type CardElement = BaseElement & {
   radius: number;
   fillType?: "solid" | "gradient";
   gradient?: StudioGradient;
+  effects?: StudioBackgroundEffect[];
 };
 
 export type StudioElement = TextElement | CardElement;
@@ -55,6 +56,26 @@ export type StudioAmbientGlowPreset = {
   sources: StudioAmbientGlowSource[];
 };
 
+export type StudioParticleSettings = {
+  count: number;
+  size: number;
+  connectionOpacity: number;
+  connectionDistance: number;
+};
+
+export type StudioGridSettings = {
+  style: "lines" | "dots";
+  spacing: number;
+  lineWidth: number;
+};
+
+export type StudioPatternSettings = {
+  style: "waves" | "diagonal-lines" | "crosses" | "diamonds";
+  spacing: number;
+  lineWidth: number;
+  rotation: number;
+};
+
 export type StudioBackgroundEffectType =
   "gradient" | "ambient-glow" | "particles" | "connections" | "grid" | "pattern";
 
@@ -72,6 +93,9 @@ export type StudioBackgroundEffect = {
   glowSources?: StudioAmbientGlowSource[];
   originalGlowSources?: StudioAmbientGlowSource[];
   ambientGlowPresetId?: string;
+  particles?: StudioParticleSettings;
+  grid?: StudioGridSettings;
+  pattern?: StudioPatternSettings;
 };
 
 export type StudioGradientStop = {
