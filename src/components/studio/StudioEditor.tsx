@@ -42,6 +42,11 @@ import StudioBackgroundEffects from "./StudioBackgroundEffects";
 import { studioGradientPresets, studioGradientToCSS } from "../../lib/studio/gradientPresets";
 import StudioGradientPresets from "./StudioGradientPresets";
 import StudioGradientEditor from "./StudioGradientEditor";
+import {
+  cloneAmbientGlowSources,
+  studioAmbientGlowPresets,
+} from "../../lib/studio/ambientGlowPresets";
+import StudioAmbientGlowPresets from "./StudioAmbientGlowPresets";
 
 const initialElements: StudioElement[] = [
   {
@@ -187,6 +192,7 @@ export default function StudioEditor() {
   const pasteCountRef = useRef(0);
   const [hasCopiedElement, setHasCopiedElement] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>("text-1");
+  const [numericDrafts, setNumericDrafts] = useState<Record<string, string>>({});
   const [editingTextId, setEditingTextId] = useState<string | null>(null);
   const [editingDraft, setEditingDraft] = useState("");
   const [overflowingTextIds, setOverflowingTextIds] = useState<string[]>([]);
@@ -328,6 +334,101 @@ export default function StudioEditor() {
     }));
   }
 
+  function addAmbientGlowPreset(presetId: string) {
+    const preset = studioAmbientGlowPresets.find((item) => item.id === presetId);
+
+    if (!preset) return;
+
+    const newEffect: StudioBackgroundEffect = {
+      id: crypto.randomUUID(),
+      type: "ambient-glow",
+      enabled: true,
+      seed: 1,
+      opacity: 100,
+      color: preset.sources[0]?.color ?? "#FF91B8",
+      intensity: 50,
+      scale: 100,
+      glowSources: cloneAmbientGlowSources(preset),
+      originalGlowSources: cloneAmbientGlowSources(preset),
+      ambientGlowPresetId: preset.id,
+    };
+
+    setProject((currentProject) => ({
+      ...currentProject,
+      slides: currentProject.slides.map((slide) =>
+        slide.id === currentProject.activeSlideId
+          ? {
+              ...slide,
+              backgroundEffects: [...slide.backgroundEffects, newEffect],
+            }
+          : slide,
+      ),
+    }));
+  }
+
+  function randomizeAmbientGlowPositions(effectId: string) {
+    setProject((currentProject) => ({
+      ...currentProject,
+      slides: currentProject.slides.map((slide) => {
+        if (slide.id !== currentProject.activeSlideId) {
+          return slide;
+        }
+
+        return {
+          ...slide,
+          backgroundEffects: slide.backgroundEffects.map((effect) => {
+            if (effect.id !== effectId || effect.type !== "ambient-glow") {
+              return effect;
+            }
+
+            return {
+              ...effect,
+              glowSources: (effect.glowSources ?? []).map((source) => {
+                const newX = 10 + Math.random() * 80;
+                const newY = 10 + Math.random() * 80;
+
+                return {
+                  ...source,
+                  x: Math.round(newX),
+                  y: Math.round(newY),
+                };
+              }),
+            };
+          }),
+        };
+      }),
+    }));
+  }
+
+  function resetAmbientGlowPositions(effectId: string) {
+    setProject((currentProject) => ({
+      ...currentProject,
+      slides: currentProject.slides.map((slide) => {
+        if (slide.id !== currentProject.activeSlideId) {
+          return slide;
+        }
+
+        return {
+          ...slide,
+          backgroundEffects: slide.backgroundEffects.map((effect) => {
+            if (
+              effect.id !== effectId ||
+              effect.type !== "ambient-glow" ||
+              !effect.originalGlowSources
+            ) {
+              return effect;
+            }
+
+            return {
+              ...effect,
+              glowSources: effect.originalGlowSources.map((source) => ({ ...source })),
+            };
+          }),
+        };
+      }),
+    }));
+  }
+
   function addGradientEffect() {
     const newEffect: StudioBackgroundEffect = {
       id: crypto.randomUUID(),
@@ -380,6 +481,8 @@ export default function StudioEditor() {
   function addSlide() {
     const newSlideId = crypto.randomUUID();
 
+    setNumericDrafts({});
+
     setProject((currentProject) => ({
       ...currentProject,
       activeSlideId: newSlideId,
@@ -411,6 +514,8 @@ export default function StudioEditor() {
 
     if (!nextSlide) return;
 
+    setNumericDrafts({});
+
     setProject((currentProject) => ({
       ...currentProject,
       activeSlideId: slideId,
@@ -429,6 +534,8 @@ export default function StudioEditor() {
     const sourceSlide = project.slides.find((slide) => slide.id === slideId);
 
     if (!sourceSlide) return;
+
+    setNumericDrafts({});
 
     const newSlideId = crypto.randomUUID();
 
@@ -472,6 +579,8 @@ export default function StudioEditor() {
     const slideIndex = project.slides.findIndex((slide) => slide.id === slideId);
 
     if (slideIndex === -1) return;
+
+    setNumericDrafts({});
 
     const deletingActiveSlide = project.activeSlideId === slideId;
 
@@ -633,9 +742,14 @@ export default function StudioEditor() {
 
     event.preventDefault();
 
+    if (selectedId !== element.id) {
+      setNumericDrafts({});
+    }
+
     setSelectedId(element.id);
 
     const canvas = event.currentTarget.parentElement;
+
     if (!canvas) return;
 
     const actualScale = canvas.getBoundingClientRect().width / canvasSize.width;
@@ -952,6 +1066,36 @@ export default function StudioEditor() {
         element.id === id ? ({ ...element, ...changes } as StudioElement) : element,
       ),
     );
+  }
+
+  function commitNumericDraft(
+    key: string,
+    elementId: string,
+    property: "fontSize" | "lineHeight" | "letterSpacing" | "width" | "height",
+    currentValue: number,
+    min: number,
+    max: number,
+  ) {
+    const draft = numericDrafts[key];
+
+    if (draft === undefined) return;
+
+    const trimmed = draft.trim();
+    const parsed = trimmed === "" ? NaN : Number(trimmed);
+
+    if (Number.isFinite(parsed)) {
+      const clamped = Math.max(min, Math.min(max, parsed));
+
+      if (clamped !== currentValue) {
+        commitElementUpdate(elementId, { [property]: clamped });
+      }
+    }
+
+    setNumericDrafts((previous) => {
+      const next = { ...previous };
+      delete next[key];
+      return next;
+    });
   }
 
   function startTextEditing(element: StudioElement) {
@@ -1489,7 +1633,7 @@ export default function StudioEditor() {
                 type="checkbox"
                 checked={showGrid}
                 onChange={(event) => setShowGrid(event.target.checked)}
-                className="accent-pink-500"
+                className="cursor-pointer accent-[#ED3F98]"
               />
               Show Grid
             </label>
@@ -1499,16 +1643,17 @@ export default function StudioEditor() {
                 type="checkbox"
                 checked={snapToGrid}
                 onChange={(event) => setSnapToGrid(event.target.checked)}
-                className="accent-pink-500"
+                className="cursor-pointer accent-[#ED3F98]"
               />
               Snap
             </label>
 
-            <label className="flex items-center gap-2 text-sm">
+            <label className="flex cursor-pointer items-center gap-2 text-sm accent-[#ED3F98]">
               <input
                 type="checkbox"
                 checked={showCenterlines}
                 onChange={(event) => setShowCenterlines(event.target.checked)}
+                className="cursor-pointer accent-[#ED3F98]"
               />
               Centerlines
             </label>
@@ -1535,7 +1680,7 @@ export default function StudioEditor() {
               type="button"
               onClick={() => setActiveTool("select")}
               aria-pressed={activeTool === "select"}
-              className={`cursor-pointer rounded-lg px-3 py-2 text-sm ${
+              className={`hover:text-foreground cursor-pointer rounded-lg px-3 py-2 text-sm transition-colors hover:bg-pink-50 ${
                 activeTool === "select" && "studio-control studio-button"
               }`}
             >
@@ -1546,7 +1691,7 @@ export default function StudioEditor() {
               type="button"
               onClick={() => setActiveTool("hand")}
               aria-pressed={activeTool === "hand"}
-              className={`cursor-pointer rounded-lg px-3 py-2 text-sm ${
+              className={`hover:text-foreground cursor-pointer rounded-lg px-3 py-2 text-sm transition-colors hover:bg-pink-50 ${
                 activeTool === "hand" && "studio-control studio-button"
               }`}
             >
@@ -1558,6 +1703,7 @@ export default function StudioEditor() {
             <button
               type="button"
               onClick={() => changeZoom(displayedZoom - 25)}
+              disabled={displayedZoom <= 25}
               aria-label="Zoom out"
               className="studio-control px-2 py-1"
             >
@@ -1569,6 +1715,7 @@ export default function StudioEditor() {
             <button
               type="button"
               onClick={() => changeZoom(displayedZoom + 25)}
+              disabled={displayedZoom >= 400}
               aria-label="Zoom in"
               className="studio-control px-2 py-1"
             >
@@ -1701,7 +1848,15 @@ export default function StudioEditor() {
                 </span>
                 <button
                   type="button"
-                  onClick={() => setSelectedId(element.id)}
+                  onClick={() => {
+                    if (selectedId !== element.id) {
+                      setNumericDrafts({});
+                    }
+
+                    setSelectedId(element.id);
+                  }}
+
+                  aria-pressed={selectedId === element.id}
                   className={`min-w-0 flex-1 cursor-pointer truncate text-left text-sm ${
                     element.visible ? "" : "opacity-40"
                   }`}
@@ -1714,7 +1869,7 @@ export default function StudioEditor() {
                   onClick={() => toggleVisibility(element.id)}
                   title={element.visible ? "Hide layer" : "Show layer"}
                   aria-label={element.visible ? "Hide layer" : "Show layer"}
-                  aria-pressed={element.visible}
+                  aria-pressed={!element.visible}
                   className="studio-layer-icon"
                 >
                   {element.visible ? (
@@ -1899,13 +2054,19 @@ export default function StudioEditor() {
                     return (
                       <div
                         key={element.id}
+
                         onClick={(event) => {
                           event.stopPropagation();
 
                           if (activeTool === "select") {
+                            if (selectedId !== element.id) {
+                              setNumericDrafts({});
+                            }
+
                             setSelectedId(element.id);
                           }
                         }}
+
                         style={{
                           ...commonStyle,
                           height: element.height * scale,
@@ -1966,13 +2127,19 @@ export default function StudioEditor() {
                         event.stopPropagation();
                         startTextEditing(element);
                       }}
+
                       onClick={(event) => {
                         event.stopPropagation();
 
                         if (activeTool === "select") {
+                          if (selectedId !== element.id) {
+                            setNumericDrafts({});
+                          }
+
                           setSelectedId(element.id);
                         }
                       }}
+
                       style={{
                         ...commonStyle,
                         height: element.height * scale,
@@ -2195,16 +2362,28 @@ export default function StudioEditor() {
                         min={8}
                         max={500}
                         step={1}
-                        value={selected.fontSize}
+                        value={numericDrafts[`${selected.id}-fontSize`] ?? selected.fontSize}
                         disabled={selected.locked}
                         onChange={(event) => {
-                          const value = Number(event.target.value);
-
-                          if (!Number.isFinite(value)) return;
-
-                          commitElementUpdate(selected.id, {
-                            fontSize: Math.max(8, Math.min(500, value)),
-                          });
+                          setNumericDrafts((previous) => ({
+                            ...previous,
+                            [`${selected.id}-fontSize`]: event.target.value,
+                          }));
+                        }}
+                        onBlur={() =>
+                          commitNumericDraft(
+                            `${selected.id}-fontSize`,
+                            selected.id,
+                            "fontSize",
+                            selected.fontSize,
+                            8,
+                            500,
+                          )
+                        }
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.currentTarget.blur();
+                          }
                         }}
                         className="studio-field w-24 text-sm"
                       />
@@ -2301,6 +2480,7 @@ export default function StudioEditor() {
                         })
                       }
                       className="studio-field mt-2"
+                      disabled={selected.locked}
                     >
                       {studioFonts[selected.fontFamily].weights.map((weight) => (
                         <option key={weight} value={weight}>
@@ -2398,12 +2578,30 @@ export default function StudioEditor() {
                         min="0.8"
                         max="2.5"
                         step="0.05"
-                        value={selected.lineHeight}
-                        onChange={(event) =>
-                          commitElementUpdate(selected.id, {
-                            lineHeight: Number(event.target.value),
-                          })
+                        value={numericDrafts[`${selected.id}-lineHeight`] ?? selected.lineHeight}
+                        onChange={(event) => {
+                          const value = event.target.value;
+
+                          setNumericDrafts((previous) => ({
+                            ...previous,
+                            [`${selected.id}-lineHeight`]: value,
+                          }));
+                        }}
+                        onBlur={() =>
+                          commitNumericDraft(
+                            `${selected.id}-lineHeight`,
+                            selected.id,
+                            "lineHeight",
+                            selected.lineHeight,
+                            0.8,
+                            2.5,
+                          )
                         }
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.currentTarget.blur();
+                          }
+                        }}
                         disabled={selected.locked}
                         aria-label="Line height value"
                         className="studio-field w-20 text-sm"
@@ -2464,12 +2662,30 @@ export default function StudioEditor() {
                         min="-5"
                         max="20"
                         step="0.5"
-                        value={selected.letterSpacing}
-                        onChange={(event) =>
-                          commitElementUpdate(selected.id, {
-                            letterSpacing: Number(event.target.value),
-                          })
+                        value={
+                          numericDrafts[`${selected.id}-letterSpacing`] ?? selected.letterSpacing
                         }
+                        onChange={(event) => {
+                          setNumericDrafts((previous) => ({
+                            ...previous,
+                            [`${selected.id}-letterSpacing`]: event.target.value,
+                          }));
+                        }}
+                        onBlur={() =>
+                          commitNumericDraft(
+                            `${selected.id}-letterSpacing`,
+                            selected.id,
+                            "letterSpacing",
+                            selected.letterSpacing,
+                            -5,
+                            20,
+                          )
+                        }
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.currentTarget.blur();
+                          }
+                        }}
                         disabled={selected.locked}
                         aria-label="Letter spacing value"
                         className="studio-field w-20 text-sm"
@@ -2495,6 +2711,7 @@ export default function StudioEditor() {
                       })
                     }
                     className="mt-2 w-full accent-pink-500"
+                    disabled={selected.locked}
                     onPointerDown={startSliderHistory}
                     onPointerUp={finishSliderHistory}
                     onPointerCancel={cancelSliderHistory}
@@ -2530,43 +2747,66 @@ export default function StudioEditor() {
                 <input
                   type="number"
                   min={80}
-                  max={canvasSize.width}
-                  value={selected.width}
-                  onChange={(event) =>
-                    commitElementUpdate(selected.id, {
-                      width: Math.max(
-                        80,
-                        Math.min(canvasSize.width - selected.x, Number(event.target.value) || 80),
-                      ),
-                    })
+                  max={canvasSize.width - selected.x}
+                  value={numericDrafts[`${selected.id}-width`] ?? selected.width}
+                  disabled={selected.locked}
+                  onChange={(event) => {
+                    setNumericDrafts((previous) => ({
+                      ...previous,
+                      [`${selected.id}-width`]: event.target.value,
+                    }));
+                  }}
+                  onBlur={() =>
+                    commitNumericDraft(
+                      `${selected.id}-width`,
+                      selected.id,
+                      "width",
+                      selected.width,
+                      80,
+                      Math.max(80, canvasSize.width - selected.x),
+                    )
                   }
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.currentTarget.blur();
+                    }
+                  }}
                   className="studio-field"
                 />
               </label>
 
-              {selected.type === "card" && (
-                <label className="block text-sm">
-                  Height: {selected.height}px
-                  <input
-                    type="number"
-                    min={60}
-                    max={canvasSize.height}
-                    value={selected.height}
-                    onChange={(event) =>
-                      commitElementUpdate(selected.id, {
-                        height: Math.max(
-                          60,
-                          Math.min(
-                            canvasSize.height - selected.y,
-                            Number(event.target.value) || 60,
-                          ),
-                        ),
-                      })
+              <label className="block text-sm">
+                Height: {selected.height}px
+                <input
+                  type="number"
+                  min={selected.type === "card" ? 60 : 40}
+                  max={canvasSize.height - selected.y}
+                  value={numericDrafts[`${selected.id}-height`] ?? selected.height}
+                  disabled={selected.locked}
+                  onChange={(event) => {
+                    setNumericDrafts((previous) => ({
+                      ...previous,
+                      [`${selected.id}-height`]: event.target.value,
+                    }));
+                  }}
+                  onBlur={() =>
+                    commitNumericDraft(
+                      `${selected.id}-height`,
+                      selected.id,
+                      "height",
+                      selected.height,
+                      selected.type === "card" ? 60 : 40,
+                      Math.max(selected.type === "card" ? 60 : 40, canvasSize.height - selected.y),
+                    )
+                  }
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.currentTarget.blur();
                     }
-                    className="studio-field"
-                  />
-                </label>
-              )}
+                  }}
+                  className="studio-field"
+                />
+              </label>
 
               {(["x", "y", "rotation", "opacity"] as const).map((property) => {
                 const ranges = {
@@ -2586,6 +2826,7 @@ export default function StudioEditor() {
                       min={ranges[property][0]}
                       max={ranges[property][1]}
                       value={selected[property]}
+                      disabled={selected.locked}
                       onChange={(e) =>
                         updateElement(selected.id, {
                           [property]: Number(e.target.value),
@@ -2652,7 +2893,11 @@ export default function StudioEditor() {
                     <BrandColorPicker
                       label="Card Color"
                       value={selected.color}
-                      onChange={(color) => commitElementUpdate(selected.id, { color })}
+                      disabled={selected.locked}
+                      onChange={(color) => {
+                        if (selected.locked) return;
+                        commitElementUpdate(selected.id, { color });
+                      }}
                     />
                   ) : (
                     <div className="space-y-4">
@@ -2683,7 +2928,11 @@ export default function StudioEditor() {
                 <BrandColorPicker
                   label="Text Color"
                   value={selected.color}
-                  onChange={(color) => commitElementUpdate(selected.id, { color })}
+                  disabled={selected.locked}
+                  onChange={(color) => {
+                    if (selected.locked) return;
+                    commitElementUpdate(selected.id, { color });
+                  }}
                 />
               )}
 
@@ -2755,13 +3004,131 @@ export default function StudioEditor() {
                       <button
                         type="button"
                         onClick={() => removeBackgroundEffect(effect.id)}
-                        className="studio-control w-full justify-center text-xs"
+                        className="flex w-full items-center justify-center gap-2 rounded-lg border border-rose-200 px-3 py-2 text-xs text-rose-600 transition-colors hover:bg-rose-50"
                       >
-                        <Trash2 size={14} strokeWidth={1.8} />
+                        <Trash2 size={13} />
                         Remove Gradient
                       </button>
                     </div>
                   ))}
+              </div>
+
+              {(activeSlide?.backgroundEffects ?? [])
+                .filter((effect) => effect.type === "ambient-glow")
+                .map((effect, index) => (
+                  <div
+                    key={effect.id}
+                    className="mb-3 space-y-3 rounded-xl border border-pink-200/60 bg-white/60 p-3"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-semibold">Ambient Glow {index + 1}</span>
+
+                      <label className="flex items-center gap-2 text-xs">
+                        <input
+                          type="checkbox"
+                          checked={effect.enabled}
+                          onChange={(event) =>
+                            updateBackgroundEffect(effect.id, {
+                              enabled: event.target.checked,
+                            })
+                          }
+                        />
+                        Enabled
+                      </label>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span>Opacity</span>
+                        <span>{effect.opacity}%</span>
+                      </div>
+                      <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        step={1}
+                        value={effect.opacity}
+                        onChange={(event) =>
+                          updateBackgroundEffect(effect.id, {
+                            opacity: Number(event.target.value),
+                          })
+                        }
+                        className="w-full accent-pink-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span>Intensity</span>
+                        <span>{effect.intensity}%</span>
+                      </div>
+                      <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        step={1}
+                        value={effect.intensity}
+                        onChange={(event) =>
+                          updateBackgroundEffect(effect.id, {
+                            intensity: Number(event.target.value),
+                          })
+                        }
+                        className="w-full accent-pink-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span>Scale</span>
+                        <span>{effect.scale}%</span>
+                      </div>
+                      <input
+                        type="range"
+                        min={25}
+                        max={200}
+                        step={5}
+                        value={effect.scale}
+                        onChange={(event) =>
+                          updateBackgroundEffect(effect.id, {
+                            scale: Number(event.target.value),
+                          })
+                        }
+                        className="w-full accent-pink-500"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => randomizeAmbientGlowPositions(effect.id)}
+                        className="rounded-lg border border-pink-200 bg-pink-50 px-3 py-2 text-xs font-medium text-pink-700 transition-colors hover:bg-pink-100"
+                      >
+                        Randomize Positions
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => resetAmbientGlowPositions(effect.id)}
+                        disabled={!effect.originalGlowSources}
+                        className="rounded-lg border border-pink-200 px-3 py-2 text-xs font-medium transition-colors hover:bg-pink-50 disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        Reset Positions
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => removeBackgroundEffect(effect.id)}
+                      className="flex w-full items-center justify-center gap-2 rounded-lg border border-rose-200 px-3 py-2 text-xs text-rose-600 transition-colors hover:bg-rose-50"
+                    >
+                      <Trash2 size={13} />
+                      Remove Ambient Glow
+                    </button>
+                  </div>
+                ))}
+
+              <div className="mt-5">
+                <StudioAmbientGlowPresets onSelect={addAmbientGlowPreset} />
               </div>
             </div>
           )}

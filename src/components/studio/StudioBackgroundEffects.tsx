@@ -1,5 +1,6 @@
 import type { StudioBackgroundEffect } from "../../lib/studio/types";
 import { studioGradientToCSS } from "../../lib/studio/gradientPresets";
+import StudioGlowSources from "./StudioGlowSources";
 
 type StudioBackgroundEffectsProps = {
   effects: StudioBackgroundEffect[];
@@ -11,6 +12,20 @@ export default function StudioBackgroundEffects({ effects }: StudioBackgroundEff
       {effects
         .filter((effect) => effect.enabled)
         .map((effect) => {
+          if (effect.type === "ambient-glow") {
+            return (
+              <StudioGlowSources
+                key={effect.id}
+                sources={effect.glowSources ?? []}
+                originalSources={effect.originalGlowSources}
+                presetId={effect.ambientGlowPresetId}
+                opacity={effect.opacity}
+                intensity={effect.intensity}
+                scale={effect.scale}
+              />
+            );
+          }
+
           if (effect.type === "gradient") {
             return (
               <div

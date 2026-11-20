@@ -38,6 +38,23 @@ export type CardElement = BaseElement & {
 
 export type StudioElement = TextElement | CardElement;
 
+export type StudioAmbientGlowSource = {
+  id: string;
+  color: string;
+  x: number;
+  y: number;
+  radius: number;
+  opacity: number;
+};
+
+export type StudioAmbientGlowPreset = {
+  id: string;
+  name: string;
+  category: "website" | "ethereal";
+  description: string;
+  sources: StudioAmbientGlowSource[];
+};
+
 export type StudioBackgroundEffectType =
   "gradient" | "ambient-glow" | "particles" | "connections" | "grid" | "pattern";
 
@@ -52,6 +69,9 @@ export type StudioBackgroundEffect = {
   intensity: number;
   scale: number;
   gradient?: StudioGradient;
+  glowSources?: StudioAmbientGlowSource[];
+  originalGlowSources?: StudioAmbientGlowSource[];
+  ambientGlowPresetId?: string;
 };
 
 export type StudioGradientStop = {

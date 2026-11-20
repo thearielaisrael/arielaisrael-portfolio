@@ -590,6 +590,83 @@
     border-radius: 1rem;
   }
 
+  /* Studio checkbox styling */
+  .studio-panel input[type="checkbox"] {
+    accent-color: #ed3f98;
+    cursor: pointer;
+  }
+
+  .studio-panel input[type="checkbox"]:disabled {
+    cursor: not-allowed;
+  }
+
+  .studio-panel label:has(input[type="checkbox"]:not(:disabled)) {
+    cursor: pointer;
+  }
+
+  /* Studio checkbox styling */
+  .studio-panel input[type="checkbox"] {
+    accent-color: #ed3f98;
+    cursor: pointer;
+  }
+
+  .studio-panel input[type="checkbox"]:disabled {
+    cursor: not-allowed;
+  }
+
+  .studio-panel label:has(input[type="checkbox"]:not(:disabled)) {
+    cursor: pointer;
+  }
+
+  /* Studio-wide interactive controls */
+
+  .studio-panel button:not(:disabled),
+  .studio-panel [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
+  .studio-panel button:disabled,
+  .studio-panel [role="button"][aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+
+  .studio-panel button:disabled {
+    opacity: 0.4;
+  }
+
+  .studio-panel button:focus-visible,
+  .studio-panel [role="button"]:focus-visible {
+    outline: 2px solid var(--color-focus-brand);
+    outline-offset: 2px;
+  }
+
+  .studio-panel button:not(:disabled):active {
+    filter: brightness(0.96);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .studio-panel button:not(:disabled):active {
+      transform: scale(0.98);
+    }
+  }
+
+  /* Studio sliders and numeric fields */
+
+  .studio-panel input[type="range"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  .studio-panel input[type="range"]:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+  }
+
+  .studio-panel input[type="number"]:disabled,
+  .studio-panel select:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+  }
+
   /* Standard Studio buttons */
   .studio-control {
     display: inline-flex;
