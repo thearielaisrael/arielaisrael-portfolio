@@ -1,4 +1,4 @@
-import StudioEditor from "../../components/studio/StudioEditor";
+import StudioEditor from "@/components/studio/StudioEditor";
 
 export default function StudioPage() {
   return (
