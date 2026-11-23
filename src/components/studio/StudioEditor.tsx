@@ -8,6 +8,7 @@ import type {
   StudioProject,
   StudioBackgroundEffect,
   StudioGradient,
+  StudioShapeType,
 } from "../../lib/studio/types";
 import { canvasPresets, type CanvasPreset } from "../../lib/studio/canvasPresets";
 import { studioFonts, type StudioFont } from "../../lib/studio/fonts";
@@ -50,6 +51,9 @@ import {
   studioAmbientGlowPresets,
 } from "../../lib/studio/ambientGlowPresets";
 import StudioAmbientGlowPresets from "./StudioAmbientGlowPresets";
+import StudioShape from "./StudioShape";
+import StudioRotationHandle from "./StudioRotationHandle";
+import { flushSync } from "react-dom";
 
 const STUDIO_STORAGE_KEY = "arielaisrael-studio-project-v1";
 
@@ -127,6 +131,15 @@ type ResizeSession = {
   scale: number;
 };
 
+type RotationSession = {
+  pointerId: number;
+  elementId: string;
+  centerX: number;
+  centerY: number;
+  startPointerAngle: number;
+  startRotation: number;
+};
+
 type PanSession = {
   pointerId: number;
   startClientX: number;
@@ -170,9 +183,13 @@ function findClosestAlignment(
 
 export default function StudioEditor() {
   const [project, setProject] = useState<StudioProject>(initialProject);
+  const [projectNameDraft, setProjectNameDraft] = useState<string | null>(null);
+  const cancelProjectRenameRef = useRef(false);
+
   const [storageReady, setStorageReady] = useState(false);
   const [saveStatus, setSaveStatus] = useState("Loading saved project…");
   const [exportingPng, setExportingPng] = useState(false);
+  const [exportingAllSlides, setExportingAllSlides] = useState(false);
   const projectFileInputRef = useRef<HTMLInputElement | null>(null);
   const canvasExportRef = useRef<HTMLDivElement | null>(null);
 
@@ -383,6 +400,133 @@ export default function StudioEditor() {
       setShowGrid(previousGrid);
       setShowCenterlines(previousCenterlines);
       setExportingPng(false);
+    }
+  }
+
+  async function exportAllSlidesZip() {
+    if (exportingPng || exportingAllSlides || !canvasExportRef.current) {
+      return;
+    }
+
+    const originalProject = project;
+    const originalElements = elements;
+    const originalSelectedId = selectedId;
+    const originalBackgroundColor = backgroundColor;
+    const originalGrid = showGrid;
+    const originalCenterlines = showCenterlines;
+
+    const safeFilename = (value: string) =>
+      value
+        .trim()
+        .replace(/[^a-z0-9_-]+/gi, "-")
+        .replace(/^-+|-+$/g, "") || "slide";
+
+    const waitForPaint = () =>
+      new Promise<void>((resolve) => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => resolve());
+        });
+      });
+
+    setExportingAllSlides(true);
+
+    try {
+      const [{ default: JSZip }, { toPng }] = await Promise.all([
+        import("jszip"),
+        import("html-to-image"),
+      ]);
+
+      const zip = new JSZip();
+      const slides = originalProject.slides;
+      const digits = Math.max(2, String(slides.length).length);
+
+      for (let index = 0; index < slides.length; index++) {
+        const slide = slides[index];
+
+        // Render the slide using the existing Studio canvas.
+        flushSync(() => {
+          setProject({
+            ...originalProject,
+            activeSlideId: slide.id,
+          });
+
+          setElements(slide.elements);
+          latestElementsRef.current = slide.elements;
+
+          setBackgroundColor(slide.backgroundColor);
+          setSelectedId(null);
+          setShowGrid(false);
+          setShowCenterlines(false);
+        });
+
+        await document.fonts.ready;
+        await waitForPaint();
+
+        const canvas = canvasExportRef.current;
+
+        if (!canvas) {
+          throw new Error(`Canvas unavailable for ${slide.name}.`);
+        }
+
+        const dataUrl = await toPng(canvas, {
+          cacheBust: true,
+          pixelRatio: 1 / scale,
+          backgroundColor: brandColor(slide.backgroundColor),
+          filter: (node) =>
+            !(node instanceof HTMLElement && node.dataset.studioExportIgnore === "true"),
+        });
+
+        const base64 = dataUrl.split(",")[1];
+
+        if (!base64) {
+          throw new Error(`Could not render ${slide.name}.`);
+        }
+
+        const number = String(index + 1).padStart(digits, "0");
+        const filename = `${number}-${safeFilename(slide.name)}.png`;
+
+        zip.file(filename, base64, { base64: true });
+      }
+
+      const blob = await zip.generateAsync({
+        type: "blob",
+        compression: "DEFLATE",
+        compressionOptions: { level: 6 },
+      });
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = `${safeFilename(originalProject.name)}.zip`;
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (error) {
+      console.error("Multi-slide export failed:", error);
+
+      window.alert(
+        error instanceof Error
+          ? `Multi-slide export failed: ${error.message}`
+          : "Multi-slide export failed.",
+      );
+    } finally {
+      // Restore the editor to the exact slide and selection
+      // that were active before exporting.
+      flushSync(() => {
+        setProject(originalProject);
+        setElements(originalElements);
+        latestElementsRef.current = originalElements;
+        setBackgroundColor(originalBackgroundColor);
+        setSelectedId(originalSelectedId);
+        setShowGrid(originalGrid);
+        setShowCenterlines(originalCenterlines);
+      });
+
+      setExportingAllSlides(false);
     }
   }
 
@@ -799,6 +943,15 @@ export default function StudioEditor() {
             }
           : slide,
       ),
+    }));
+  }
+
+  function renameProject(name: string) {
+    const trimmedName = name.trim();
+
+    setProject((currentProject) => ({
+      ...currentProject,
+      name: trimmedName || "Untitled Design",
     }));
   }
 
@@ -1269,8 +1422,10 @@ export default function StudioEditor() {
         Math.min(maxWidth, snapValue(element.x + session.startWidth + deltaX) - element.x),
       );
 
+      const minimumHeight = element.type === "card" ? 60 : element.type === "shape" ? 12 : 40;
+
       const newHeight = Math.max(
-        element.type === "card" ? 60 : 40,
+        minimumHeight,
         Math.min(maxHeight, snapValue(element.y + session.startHeight + deltaY) - element.y),
       );
 
@@ -1294,6 +1449,97 @@ export default function StudioEditor() {
     finishCanvasInteractionHistory();
 
     resizeSession.current = null;
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  }
+
+  const rotationSession = useRef<RotationSession | null>(null);
+
+  function normalizeRotation(angle: number) {
+    return ((angle % 360) + 360) % 360;
+  }
+
+  function handleRotationStart(
+    event: React.PointerEvent<HTMLButtonElement>,
+    element: StudioElement,
+  ) {
+    if (activeTool !== "select" || element.locked) return;
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const canvas = event.currentTarget.closest('[data-studio-canvas="true"]');
+
+    if (!canvas) return;
+
+    const canvasRect = canvas.getBoundingClientRect();
+    const actualScale = canvasRect.width / canvasSize.width;
+
+    const centerX = canvasRect.left + (element.x + element.width / 2) * actualScale;
+
+    const centerY = canvasRect.top + (element.y + element.height / 2) * actualScale;
+
+    const startPointerAngle =
+      Math.atan2(event.clientY - centerY, event.clientX - centerX) * (180 / Math.PI);
+
+    startCanvasInteractionHistory();
+
+    rotationSession.current = {
+      pointerId: event.pointerId,
+      elementId: element.id,
+      centerX,
+      centerY,
+      startPointerAngle,
+      startRotation: element.rotation,
+    };
+
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function handleRotationMove(event: React.PointerEvent<HTMLButtonElement>) {
+    const session = rotationSession.current;
+
+    if (!session || session.pointerId !== event.pointerId) return;
+
+    if (!event.currentTarget.hasPointerCapture(event.pointerId)) {
+      return;
+    }
+
+    const pointerAngle =
+      Math.atan2(event.clientY - session.centerY, event.clientX - session.centerX) *
+      (180 / Math.PI);
+
+    const deltaAngle = pointerAngle - session.startPointerAngle;
+
+    let nextRotation = session.startRotation + deltaAngle;
+
+    if (event.shiftKey) {
+      nextRotation = Math.round(nextRotation / 15) * 15;
+    }
+
+    nextRotation = Math.round(normalizeRotation(nextRotation) * 10) / 10;
+
+    const updated = latestElementsRef.current.map((element) =>
+      element.id === session.elementId && !element.locked
+        ? { ...element, rotation: nextRotation }
+        : element,
+    );
+
+    latestElementsRef.current = updated;
+    setElements(updated);
+    syncActiveSlide(updated);
+  }
+
+  function handleRotationEnd(event: React.PointerEvent<HTMLButtonElement>) {
+    const session = rotationSession.current;
+
+    if (!session || session.pointerId !== event.pointerId) return;
+
+    finishCanvasInteractionHistory();
+    rotationSession.current = null;
 
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
@@ -1515,6 +1761,38 @@ export default function StudioEditor() {
     setSelectedId(id);
   }
 
+  function addShape(shape: StudioShapeType) {
+    const id = crypto.randomUUID();
+    const isLine = shape === "line";
+
+    const width = isLine ? 360 : 280;
+    const height = isLine ? 24 : 220;
+
+    const newShape: StudioElement = {
+      id,
+      type: "shape",
+      shape,
+      x: Math.max(0, Math.round((canvasSize.width - width) / 2)),
+      y: Math.max(0, Math.round((canvasSize.height - height) / 2)),
+      width,
+      height,
+      rotation: 0,
+      opacity: 100,
+      visible: true,
+      locked: false,
+      fill: "signature-aura-pink",
+      stroke: "deep-plum",
+      strokeWidth: 3,
+      fillEnabled: !isLine,
+      strokeEnabled: isLine,
+      cornerRadius: 24,
+    };
+
+    commitElements([...elements, newShape]);
+    setSelectedId(id);
+    setNumericDrafts({});
+  }
+
   function duplicateSelected() {
     if (!selectedId) return;
 
@@ -1694,6 +1972,35 @@ export default function StudioEditor() {
 
     return Math.round(value / gridSize) * gridSize;
   }
+
+  function renderRotationHandle(element: StudioElement) {
+    if (
+      selectedId !== element.id ||
+      element.locked ||
+      activeTool !== "select" ||
+      editingTextId === element.id
+    ) {
+      return null;
+    }
+
+    return (
+      <StudioRotationHandle
+        scale={scale}
+        onPointerDown={(event) => handleRotationStart(event, element)}
+        onPointerMove={handleRotationMove}
+        onPointerUp={handleRotationEnd}
+        onPointerCancel={handleRotationEnd}
+        onLostPointerCapture={(event) => {
+          if (rotationSession.current?.pointerId === event.pointerId) {
+            finishCanvasInteractionHistory();
+            rotationSession.current = null;
+          }
+        }}
+        onReset={() => commitElementUpdate(element.id, { rotation: 0 })}
+      />
+    );
+  }
+
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       const target = event.target;
@@ -1898,8 +2205,41 @@ export default function StudioEditor() {
         <div className="flex flex-col">
           <span className="font-semibold">Design Editor</span>
           <span className="text-xs opacity-60">
-            {project.name} · {project.slides.length} slide
-            {project.slides.length === 1 ? "" : "s"}
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                type="text"
+                aria-label="Project name"
+                title="Click to rename project"
+                value={projectNameDraft ?? project.name}
+                maxLength={100}
+                onChange={(event) => setProjectNameDraft(event.target.value)}
+                onFocus={() => {
+                  cancelProjectRenameRef.current = false;
+                  setProjectNameDraft(project.name);
+                }}
+                onBlur={() => {
+                  if (!cancelProjectRenameRef.current && projectNameDraft !== null) {
+                    renameProject(projectNameDraft);
+                  }
+
+                  cancelProjectRenameRef.current = false;
+                  setProjectNameDraft(null);
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.currentTarget.blur();
+                  }
+
+                  if (event.key === "Escape") {
+                    cancelProjectRenameRef.current = true;
+                    event.currentTarget.blur();
+                  }
+                }}
+                className="w-52 min-w-0 rounded-md border border-transparent bg-transparent px-1 py-0.5 text-sm font-semibold text-[#51283D] transition outline-none hover:border-pink-200 focus:border-[#ED3F98] focus:bg-white"
+              />
+
+              <span className="text-foreground/50 text-xs">· {project.slides.length} slides</span>
+            </div>
           </span>
           <span role="status" className="text-xs opacity-60">
             {saveStatus}
@@ -1918,6 +2258,7 @@ export default function StudioEditor() {
               if (file) void importProjectJson(file);
             }}
           />
+
           <button
             type="button"
             onClick={() => projectFileInputRef.current?.click()}
@@ -1926,6 +2267,7 @@ export default function StudioEditor() {
           >
             <FolderOpen size={17} /> Open Project
           </button>
+
           <button
             type="button"
             onClick={downloadProjectJson}
@@ -1934,15 +2276,28 @@ export default function StudioEditor() {
           >
             <Save size={17} /> Save Project
           </button>
+
           <button
             type="button"
             onClick={() => void exportSlidePng()}
-            disabled={exportingPng}
+            disabled={exportingPng || exportingAllSlides}
             className="studio-control studio-button disabled:opacity-40"
             title="Export active slide as PNG"
           >
             <ImageDown size={17} /> {exportingPng ? "Exporting…" : "Export PNG"}
           </button>
+
+          <button
+            type="button"
+            onClick={() => void exportAllSlidesZip()}
+            disabled={exportingPng || exportingAllSlides || project.slides.length === 0}
+            className="studio-control studio-button disabled:opacity-40"
+            title="Export every slide as a PNG inside one ZIP file"
+          >
+            <ImageDown size={17} />
+            {exportingAllSlides ? "Exporting Slides…" : `Export All (${project.slides.length})`}
+          </button>
+
           <button type="button" onClick={addText} className="studio-control studio-button">
             <Type size={17} strokeWidth={1.8} />
             <span>Add Text</span>
@@ -1952,6 +2307,30 @@ export default function StudioEditor() {
             <SquarePlus size={17} strokeWidth={1.8} />
             <span>Add Card</span>
           </button>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              aria-label="Add a shape"
+              defaultValue=""
+              className="studio-field text-sm"
+              onChange={(event) => {
+                if (!event.target.value) return;
+
+                addShape(event.target.value as StudioShapeType);
+                event.target.value = "";
+              }}
+            >
+              <option value="" disabled>
+                + Add Shape
+              </option>
+              <option value="rectangle">Rectangle</option>
+              <option value="rounded-rectangle">Rounded Rectangle</option>
+              <option value="ellipse">Ellipse / Circle</option>
+              <option value="triangle">Triangle</option>
+              <option value="diamond">Diamond</option>
+              <option value="line">Line</option>
+            </select>
+          </div>
 
           <button
             type="button"
@@ -2233,7 +2612,14 @@ export default function StudioEditor() {
                     element.visible ? "" : "opacity-40"
                   }`}
                 >
-                  {element.type === "text" ? element.content || "Text" : "Glass Card"}
+                  {element.type === "text"
+                    ? element.content || "Text"
+                    : element.type === "shape"
+                      ? element.shape
+                          .split("-")
+                          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                          .join(" ")
+                      : "Glass Card"}
                 </button>
 
                 <button
@@ -2427,6 +2813,64 @@ export default function StudioEditor() {
                     userSelect: "none" as const,
                   };
 
+                  if (element.type === "shape") {
+                    return (
+                      <div
+                        key={element.id}
+                        style={{
+                          ...commonStyle,
+                          height: element.height * scale,
+                        }}
+                        onClick={(event) => {
+                          event.stopPropagation();
+
+                          if (activeTool === "select") {
+                            if (selectedId !== element.id) {
+                              setNumericDrafts({});
+                            }
+
+                            setSelectedId(element.id);
+                          }
+                        }}
+                        onPointerDown={(event) => handleDragStart(event, element)}
+                        onPointerMove={handleDragMove}
+                        onPointerUp={handleDragEnd}
+                        onPointerCancel={handleDragEnd}
+                        onLostPointerCapture={(event) => {
+                          if (dragSession.current?.pointerId === event.pointerId) {
+                            finishCanvasInteractionHistory();
+                            dragSession.current = null;
+                          }
+                        }}
+                      >
+                        <StudioShape element={element} />
+
+                        {renderRotationHandle(element)}
+
+                        {selectedId === element.id && !element.locked && (
+                          <button
+                            type="button"
+                            aria-label="Resize shape"
+                            title="Drag to resize"
+                            onClick={(event) => event.stopPropagation()}
+                            onPointerDown={(event) => handleResizeStart(event, element)}
+                            onPointerMove={handleResizeMove}
+                            onPointerUp={handleResizeEnd}
+                            onPointerCancel={handleResizeEnd}
+                            onLostPointerCapture={(event) => {
+                              if (resizeSession.current?.pointerId === event.pointerId) {
+                                finishCanvasInteractionHistory();
+                                resizeSession.current = null;
+                              }
+                            }}
+                            className="absolute -right-1.5 -bottom-1.5 z-10 size-3 cursor-nwse-resize rounded-sm border-2 border-white bg-[#C42B70] shadow-sm"
+                            style={{ touchAction: "none" }}
+                          />
+                        )}
+                      </div>
+                    );
+                  }
+
                   if (element.type === "card") {
                     return (
                       <div
@@ -2487,6 +2931,9 @@ export default function StudioEditor() {
                             </div>
                           </div>
                         )}
+
+                        {renderRotationHandle(element)}
+
                         {selectedId === element.id && !element.locked && (
                           <button
                             type="button"
@@ -2541,7 +2988,7 @@ export default function StudioEditor() {
                       style={{
                         ...commonStyle,
                         height: element.height * scale,
-                        overflow: "hidden",
+                        overflow: "visible",
                         color: brandColor(element.color),
                         fontFamily: studioFonts[element.fontFamily].family,
                         fontSize: element.fontSize * scale,
@@ -2590,20 +3037,22 @@ export default function StudioEditor() {
                           }}
                         />
                       ) : (
-                        <StudioTextContent
-                          content={element.content}
-                          onOverflowChange={(overflowing) => {
-                            setOverflowingTextIds((previous) => {
-                              const exists = previous.includes(element.id);
+                        <div className="pointer-events-none h-full w-full overflow-hidden">
+                          <StudioTextContent
+                            content={element.content}
+                            onOverflowChange={(overflowing) => {
+                              setOverflowingTextIds((previous) => {
+                                const exists = previous.includes(element.id);
 
-                              if (exists === overflowing) return previous;
+                                if (exists === overflowing) return previous;
 
-                              return overflowing
-                                ? [...previous, element.id]
-                                : previous.filter((id) => id !== element.id);
-                            });
-                          }}
-                        />
+                                return overflowing
+                                  ? [...previous, element.id]
+                                  : previous.filter((id) => id !== element.id);
+                              });
+                            }}
+                          />
+                        </div>
                       )}
 
                       {selectedId === element.id &&
@@ -2617,6 +3066,8 @@ export default function StudioEditor() {
                             <AlertTriangle size={12} strokeWidth={2.2} />
                           </div>
                         )}
+
+                      {renderRotationHandle(element)}
 
                       {selectedId === element.id && !element.locked && (
                         <button
@@ -2698,6 +3149,88 @@ export default function StudioEditor() {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              <div className="space-y-3 border-t border-pink-200/60 pt-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Rotation</span>
+                  <button
+                    type="button"
+                    disabled={selected.locked}
+                    onClick={() => commitElementUpdate(selected.id, { rotation: 0 })}
+                    className="text-xs text-[#C42B70] hover:underline disabled:opacity-40"
+                  >
+                    Reset
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <input
+                    type="range"
+                    min={0}
+                    max={360}
+                    step={1}
+                    value={selected.rotation}
+                    disabled={selected.locked}
+                    onChange={(event) =>
+                      updateElement(selected.id, {
+                        rotation: Number(event.target.value),
+                      })
+                    }
+                    onPointerDown={startSliderHistory}
+                    onPointerUp={finishSliderHistory}
+                    onPointerCancel={cancelSliderHistory}
+                    onBlur={finishSliderHistory}
+                    className="min-w-0 flex-1 accent-pink-500"
+                    aria-label="Element rotation"
+                  />
+
+                  <input
+                    type="number"
+                    min={-360}
+                    max={360}
+                    step={1}
+                    value={numericDrafts[`${selected.id}-rotation`] ?? selected.rotation}
+                    disabled={selected.locked}
+                    onChange={(event) =>
+                      setNumericDrafts((previous) => ({
+                        ...previous,
+                        [`${selected.id}-rotation`]: event.target.value,
+                      }))
+                    }
+                    onBlur={() => {
+                      const key = `${selected.id}-rotation`;
+                      const draft = numericDrafts[key];
+
+                      if (draft !== undefined && draft.trim() !== "") {
+                        const parsed = Number(draft);
+
+                        if (Number.isFinite(parsed)) {
+                          commitElementUpdate(selected.id, {
+                            rotation: normalizeRotation(parsed),
+                          });
+                        }
+                      }
+
+                      setNumericDrafts((previous) => {
+                        const next = { ...previous };
+                        delete next[key];
+                        return next;
+                      });
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") event.currentTarget.blur();
+                    }}
+                    className="studio-field w-20 text-sm"
+                    aria-label="Rotation degrees"
+                  />
+                  <span className="text-sm">°</span>
+                </div>
+
+                <p className="text-foreground/60 text-xs">
+                  Drag the rotation handle or enter an exact angle. Hold Shift while dragging to
+                  snap to 15°.
+                </p>
               </div>
 
               {selected.type === "text" && (
@@ -3093,6 +3626,127 @@ export default function StudioEditor() {
                     <p className="text-foreground/60 text-xs">Spacing in canvas pixels.</p>
                   </div>
                 </>
+              )}
+
+              {selected.type === "shape" && (
+                <div className="space-y-4 border-t border-pink-200/60 pt-4">
+                  <h3 className="text-sm font-semibold">Shape Appearance</h3>
+
+                  <label className="block space-y-2 text-sm">
+                    <span className="font-medium">Shape Type</span>
+                    <select
+                      value={selected.shape}
+                      disabled={selected.locked}
+                      onChange={(event) =>
+                        commitElementUpdate(selected.id, {
+                          shape: event.target.value as StudioShapeType,
+                        })
+                      }
+                      className="studio-field w-full"
+                    >
+                      <option value="rectangle">Rectangle</option>
+                      <option value="rounded-rectangle">Rounded Rectangle</option>
+                      <option value="ellipse">Ellipse / Circle</option>
+                      <option value="triangle">Triangle</option>
+                      <option value="diamond">Diamond</option>
+                      <option value="line">Line</option>
+                    </select>
+                  </label>
+
+                  {selected.shape !== "line" && (
+                    <>
+                      <label className="flex items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={selected.fillEnabled}
+                          disabled={selected.locked}
+                          onChange={(event) =>
+                            commitElementUpdate(selected.id, {
+                              fillEnabled: event.target.checked,
+                            })
+                          }
+                        />
+                        Enable Fill
+                      </label>
+
+                      {selected.fillEnabled && (
+                        <BrandColorPicker
+                          label="Shape Fill"
+                          value={selected.fill}
+                          onChange={(color) => commitElementUpdate(selected.id, { fill: color })}
+                        />
+                      )}
+                    </>
+                  )}
+
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={selected.shape === "line" || selected.strokeEnabled}
+                      disabled={selected.locked || selected.shape === "line"}
+                      onChange={(event) =>
+                        commitElementUpdate(selected.id, {
+                          strokeEnabled: event.target.checked,
+                        })
+                      }
+                    />
+                    Enable Stroke
+                  </label>
+
+                  {(selected.strokeEnabled || selected.shape === "line") && (
+                    <>
+                      <BrandColorPicker
+                        label="Shape Stroke"
+                        value={selected.stroke}
+                        onChange={(color) => commitElementUpdate(selected.id, { stroke: color })}
+                      />
+
+                      <label className="block space-y-2 text-sm">
+                        <span>Stroke Width: {selected.strokeWidth}px</span>
+                        <input
+                          type="range"
+                          min={1}
+                          max={40}
+                          value={selected.strokeWidth}
+                          disabled={selected.locked}
+                          onChange={(event) =>
+                            updateElement(selected.id, {
+                              strokeWidth: Number(event.target.value),
+                            })
+                          }
+                          onPointerDown={startSliderHistory}
+                          onPointerUp={finishSliderHistory}
+                          onPointerCancel={cancelSliderHistory}
+                          onBlur={finishSliderHistory}
+                          className="w-full accent-pink-500"
+                        />
+                      </label>
+                    </>
+                  )}
+
+                  {selected.shape === "rounded-rectangle" && (
+                    <label className="block space-y-2 text-sm">
+                      <span>Corner Radius: {selected.cornerRadius}px</span>
+                      <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        value={selected.cornerRadius}
+                        disabled={selected.locked}
+                        onChange={(event) =>
+                          updateElement(selected.id, {
+                            cornerRadius: Number(event.target.value),
+                          })
+                        }
+                        onPointerDown={startSliderHistory}
+                        onPointerUp={finishSliderHistory}
+                        onPointerCancel={cancelSliderHistory}
+                        onBlur={finishSliderHistory}
+                        className="w-full accent-pink-500"
+                      />
+                    </label>
+                  )}
+                </div>
               )}
 
               {selected.type === "card" && (

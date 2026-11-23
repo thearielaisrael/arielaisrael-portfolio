@@ -13,6 +13,7 @@
   "dependencies": {
     "@formspree/react": "^3.0.0",
     "html-to-image": "^1.11.13",
+    "jszip": "^3.10.2",
     "lucide-react": "^1.73.0",
     "motion": "^12.27.5",
     "next": "^16.1.6",

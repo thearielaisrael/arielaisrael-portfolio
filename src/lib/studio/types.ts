@@ -37,7 +37,22 @@ export type CardElement = BaseElement & {
   effects?: StudioBackgroundEffect[];
 };
 
-export type StudioElement = TextElement | CardElement;
+export type StudioShapeType =
+  "rectangle" | "rounded-rectangle" | "ellipse" | "triangle" | "diamond" | "line";
+
+export type ShapeElement = BaseElement & {
+  type: "shape";
+  shape: StudioShapeType;
+  height: number;
+  fill: BrandColorToken;
+  stroke: BrandColorToken;
+  strokeWidth: number;
+  fillEnabled: boolean;
+  strokeEnabled: boolean;
+  cornerRadius: number;
+};
+
+export type StudioElement = TextElement | CardElement | ShapeElement;
 
 export type StudioAmbientGlowSource = {
   id: string;
