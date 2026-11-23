@@ -1,6 +1,6 @@
-import { studioGradientPresets, studioGradientToCSS } from "../../lib/studio/gradientPresets";
+import { studioGradientPresets, studioGradientToCSS } from "@/lib/studio/gradientPresets";
 
-import type { StudioGradient } from "../../lib/studio/types";
+import type { StudioGradient } from "@/lib/studio/types";
 
 type StudioGradientPresetsProps = {
   onSelect: (gradient: StudioGradient) => void;
@@ -11,7 +11,7 @@ type StudioGradientPresetsProps = {
 export default function StudioGradientPresets({
   onSelect,
   disabled = false,
-  selectedGradient
+  selectedGradient,
 }: StudioGradientPresetsProps) {
   return (
     <div className="space-y-3">

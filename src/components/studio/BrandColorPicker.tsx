@@ -1,6 +1,6 @@
 "use client";
 
-import { brandColors, brandColor, type BrandColorToken } from "../../lib/studio/brandColors";
+import { brandColors, brandColor, type BrandColorToken } from "@/lib/studio/brandColors";
 
 type BrandColorPickerProps = {
   label: string;

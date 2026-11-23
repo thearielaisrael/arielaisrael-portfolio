@@ -2,16 +2,16 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import BrandColorPicker from "./BrandColorPicker";
-import { brandColor, type BrandColorToken } from "../../lib/studio/brandColors";
+import { brandColor, type BrandColorToken } from "@/lib/studio/brandColors";
 import type {
   StudioElement,
   StudioProject,
   StudioBackgroundEffect,
   StudioGradient,
   StudioShapeType,
-} from "../../lib/studio/types";
-import { canvasPresets, type CanvasPreset } from "../../lib/studio/canvasPresets";
-import { studioFonts, type StudioFont } from "../../lib/studio/fonts";
+} from "@/lib/studio/types";
+import { canvasPresets, type CanvasPreset } from "@/lib/studio/canvasPresets";
+import { studioFonts, type StudioFont } from "@/lib/studio/fonts";
 import {
   AlignLeft,
   AlignCenter,
@@ -43,13 +43,10 @@ import {
 } from "lucide-react";
 import StudioTextContent from "./StudioTextContent";
 import StudioBackgroundEffects from "./StudioBackgroundEffects";
-import { studioGradientPresets, studioGradientToCSS } from "../../lib/studio/gradientPresets";
+import { studioGradientPresets, studioGradientToCSS } from "@/lib/studio/gradientPresets";
 import StudioGradientPresets from "./StudioGradientPresets";
 import StudioGradientEditor from "./StudioGradientEditor";
-import {
-  cloneAmbientGlowSources,
-  studioAmbientGlowPresets,
-} from "../../lib/studio/ambientGlowPresets";
+import { cloneAmbientGlowSources, studioAmbientGlowPresets } from "@/lib/studio/ambientGlowPresets";
 import StudioAmbientGlowPresets from "./StudioAmbientGlowPresets";
 import StudioShape from "./StudioShape";
 import StudioRotationHandle from "./StudioRotationHandle";

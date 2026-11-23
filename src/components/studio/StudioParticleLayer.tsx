@@ -1,9 +1,9 @@
-import type { StudioBackgroundEffect } from "../../lib/studio/types";
+import type { StudioBackgroundEffect } from "@/lib/studio/types";
 import {
   generateStudioParticles,
   generateStudioParticleConnections,
-} from "../../lib/studio/particleGenerator";
-import { brandColor, type BrandColorToken } from "../../lib/studio/brandColors";
+} from "@/lib/studio/particleGenerator";
+import { brandColor, type BrandColorToken } from "@/lib/studio/brandColors";
 
 type StudioParticleLayerProps = {
   effect: StudioBackgroundEffect;

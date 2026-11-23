@@ -1,5 +1,5 @@
-import { brandColor } from "../../lib/studio/brandColors";
-import type { ShapeElement } from "../../lib/studio/types";
+import { brandColor } from "@/lib/studio/brandColors";
+import type { ShapeElement } from "@/lib/studio/types";
 
 type StudioShapeProps = {
   element: ShapeElement;

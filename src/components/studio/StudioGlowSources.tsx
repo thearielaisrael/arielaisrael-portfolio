@@ -1,6 +1,6 @@
 "use client";
 
-import type { StudioAmbientGlowSource } from "../../lib/studio/types";
+import type { StudioAmbientGlowSource } from "@/lib/studio/types";
 
 type StudioGlowSourcesProps = {
   sources: StudioAmbientGlowSource[];

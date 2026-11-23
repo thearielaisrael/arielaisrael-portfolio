@@ -1,5 +1,5 @@
-import type { StudioBackgroundEffect } from "../../lib/studio/types";
-import { brandColor, type BrandColorToken } from "../../lib/studio/brandColors";
+import type { StudioBackgroundEffect } from "@/lib/studio/types";
+import { brandColor, type BrandColorToken } from "@/lib/studio/brandColors";
 
 type StudioGridLayerProps = {
   effect: StudioBackgroundEffect;

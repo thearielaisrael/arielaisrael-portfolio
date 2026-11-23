@@ -1,7 +1,7 @@
 "use client";
 
-import { studioAmbientGlowPresets } from "../../lib/studio/ambientGlowPresets";
-import type { StudioAmbientGlowPreset } from "../../lib/studio/types";
+import { studioAmbientGlowPresets } from "@/lib/studio/ambientGlowPresets";
+import type { StudioAmbientGlowPreset } from "@/lib/studio/types";
 import StudioGlowSources from "./StudioGlowSources";
 
 type StudioAmbientGlowPresetsProps = {

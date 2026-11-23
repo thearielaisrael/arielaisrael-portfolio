@@ -5,10 +5,10 @@ import { usePathname } from "next/navigation";
 import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useRef } from "react";
 
-import CloseIcon from "../../assets/icons/close.svg";
+import CloseIcon from "@/assets/icons/close.svg";
 
-import { resumeHref } from "../../data/navData";
-import type { MenuItem, SocialIcon } from "../../data/navData";
+import { resumeHref } from "@/data/navData";
+import type { MenuItem, SocialIcon } from "@/data/navData";
 
 import SocialLinks from "./SocialLinks";
 import ThemeToggle from "./ThemeToggle";

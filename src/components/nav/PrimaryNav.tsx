@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, useReducedMotion } from "motion/react";
 
-import type { MenuItem } from "../../data/navData";
+import type { MenuItem } from "@/data/navData";
 
 interface PrimaryNavProps {
   menuItems: MenuItem[];

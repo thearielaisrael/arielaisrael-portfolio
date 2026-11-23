@@ -1,6 +1,6 @@
 "use client";
 
-import type { StudioGradient } from "../../lib/studio/types";
+import type { StudioGradient } from "@/lib/studio/types";
 
 type StudioGradientEditorProps = {
   gradient: StudioGradient;

@@ -1,5 +1,5 @@
-import type { StudioBackgroundEffect } from "../../lib/studio/types";
-import { studioGradientToCSS } from "../../lib/studio/gradientPresets";
+import type { StudioBackgroundEffect } from "@/lib/studio/types";
+import { studioGradientToCSS } from "@/lib/studio/gradientPresets";
 import StudioGlowSources from "./StudioGlowSources";
 import StudioParticleLayer from "./StudioParticleLayer";
 import StudioGridLayer from "./StudioGridLayer";

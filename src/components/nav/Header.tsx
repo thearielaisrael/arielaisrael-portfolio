@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence } from "motion/react";
 
-import { MenuItems, SocialIcons } from "../../data/navData";
+import { MenuItems, SocialIcons } from "@/data/navData";
 import MenuButton from "./MenuButton";
 import NavDrawer from "./NavDrawer";
 import PrimaryNav from "./PrimaryNav";

@@ -1,4 +1,4 @@
-import MenuIcon from "../../assets/icons/menu.svg";
+import MenuIcon from "@/assets/icons/menu.svg";
 
 interface MenuButtonProps {
   isOpen: boolean;

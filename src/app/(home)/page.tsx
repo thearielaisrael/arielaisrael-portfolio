@@ -1,9 +1,9 @@
 import Link from "next/link";
 
-import Hero from "../../components/home/Hero";
-import { FeaturedProjectCard } from "../../components/projects/FeaturedProjectCard";
-import { PrimaryCTA } from "../../components/ui/Buttons";
-import { projects } from "../../data/projectData";
+import Hero from "@/components/home/Hero";
+import { FeaturedProjectCard } from "@/components/projects/FeaturedProjectCard";
+import { PrimaryCTA } from "@/components/ui/Buttons";
+import { projects } from "@/data/projectData";
 
 import type { Metadata } from "next";
 import { Card, GlassCard } from "@/src/components/ui/Cards";
