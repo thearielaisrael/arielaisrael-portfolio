@@ -67,6 +67,7 @@ import type {
   CloudProjectSession,
   CloudProjectSummary,
 } from "@/lib/studio/cloudTypes";
+import StudioCloudProjectPreview from "./StudioCloudProjectPreview";
 
 const STUDIO_STORAGE_KEY = "arielaisrael-studio-project-v1";
 
@@ -3651,31 +3652,22 @@ export default function StudioEditor() {
                 return (
                   <article
                     key={item.id}
-                    className="border-default bg-surface-elevated flex min-w-0 flex-col rounded-lg border p-3"
+                    className="border-default bg-surface-elevated flex min-w-0 flex-col gap-3 rounded-lg border p-3"
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex min-w-0 items-start gap-3">
-                        <div
-                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
-                          style={{
-                            backgroundColor: "var(--color-chip-bg)",
-                            color: "var(--color-accent)",
-                            border: "1px solid var(--color-chip-border)",
-                          }}
+                    {/* Design preview */}
+                    <StudioCloudProjectPreview projectId={item.id} revision={item.revision} />
+
+                    {/* Project identity */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <h3
+                          className="text-foreground truncate text-sm font-semibold"
+                          title={item.name}
                         >
-                          <FolderOpen size={19} strokeWidth={1.7} />
-                        </div>
+                          {item.name}
+                        </h3>
 
-                        <div className="min-w-0">
-                          <h3
-                            className="text-foreground truncate text-sm font-semibold"
-                            title={item.name}
-                          >
-                            {item.name}
-                          </h3>
-
-                          <p className="text-muted mt-1 text-xs">Revision {item.revision}</p>
-                        </div>
+                        <p className="text-muted mt-1 text-xs">Revision {item.revision}</p>
                       </div>
 
                       {isCurrentProject && (
@@ -3692,8 +3684,10 @@ export default function StudioEditor() {
                       )}
                     </div>
 
-                    <div className="text-muted mt-4 flex items-center gap-1.5 text-xs">
-                      <CalendarDays size={13} />
+                    {/* Last updated */}
+                    <div className="text-muted flex items-center gap-1.5 text-xs">
+                      <CalendarDays size={13} className="shrink-0" />
+
                       <time dateTime={item.updated_at}>
                         {new Date(item.updated_at).toLocaleString(undefined, {
                           month: "short",
@@ -3705,38 +3699,56 @@ export default function StudioEditor() {
                       </time>
                     </div>
 
-                    <div className="border-default mt-4 flex flex-wrap items-center justify-between gap-3 border-t pt-3">
-                      <span className="text-muted text-xs">
-                        {isCurrentProject
-                          ? cloudDirty
-                            ? "Unsaved changes"
-                            : "Up to date"
-                          : "Cloud saved"}
-                      </span>
+                    {/* Synchronization status */}
+                    <div className="text-muted flex items-center gap-1.5 text-xs">
+                      {isCurrentProject && cloudSyncState === "conflict" ? (
+                        <>
+                          <AlertTriangle size={13} className="text-accent" />
+                          Cloud conflict
+                        </>
+                      ) : isCurrentProject && cloudSaving ? (
+                        <>
+                          <RefreshCw size={13} className="text-accent animate-spin" />
+                          Synchronizing…
+                        </>
+                      ) : isCurrentProject && cloudDirty ? (
+                        <>
+                          <Cloud size={13} className="text-accent" />
+                          Unsaved changes
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 size={13} className="text-accent" />
+                          Cloud saved
+                        </>
+                      )}
+                    </div>
 
-                      <div className="flex flex-wrap items-center gap-2">
-                        <button
-                          type="button"
-                          disabled={projectActionsDisabled || cloudLoading}
-                          onClick={() => void openCloudProject(item.id)}
-                          className="studio-control studio-button text-xs"
-                        >
-                          <FolderOpen size={14} />
-                          Open Project
-                        </button>
+                    {/* Project actions */}
+                    <div className="border-default mt-auto flex flex-wrap items-center justify-between gap-2 border-t pt-3">
+                      <button
+                        type="button"
+                        disabled={projectActionsDisabled || cloudLoading}
+                        onClick={() => void openCloudProject(item.id)}
+                        className="studio-control studio-button text-xs"
+                        title={`Open ${item.name}`}
+                      >
+                        <FolderOpen size={14} />
+                        Open Project
+                      </button>
 
-                        <button
-                          type="button"
-                          disabled={projectActionsDisabled || cloudLoading}
-                          onClick={() => void deleteCloudProject(item.id, item.name)}
-                          className="studio-control studio-button text-xs"
-                          aria-label={`Delete ${item.name} from cloud`}
-                          title={`Delete ${item.name}`}
-                        >
-                          <Trash2 size={14} />
-                          {cloudDeletingId === item.id ? "Deleting…" : "Delete"}
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        disabled={projectActionsDisabled || cloudLoading}
+                        onClick={() => void deleteCloudProject(item.id, item.name)}
+                        className="studio-control studio-button text-xs"
+                        aria-label={`Delete ${item.name} from cloud`}
+                        title={`Delete ${item.name}`}
+                      >
+                        <Trash2 size={14} />
+
+                        {cloudDeletingId === item.id ? "Deleting…" : "Delete"}
+                      </button>
                     </div>
                   </article>
                 );
