@@ -3,25 +3,16 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-import {
-  ArrowRight,
-  FolderOpen,
-  LayoutDashboard,
-  Plus,
-  RefreshCw,
-  Sparkles,
-  PencilLine,
-} from "lucide-react";
+import { ArrowRight, FolderOpen, Plus, RefreshCw, Sparkles } from "lucide-react";
 
 import type { CloudProjectSummary } from "@/lib/studio/cloudTypes";
 
 import StudioQuickCreate from "./StudioQuickCreate";
 import StudioProjectCard from "./StudioProjectCard";
+import StudioSidebar from "../workspace/StudioSidebar";
 
 type LibraryState =
-  | {
-      status: "loading";
-    }
+  | { status: "loading" }
   | {
       status: "ready";
       projects: CloudProjectSummary[];
@@ -39,8 +30,6 @@ export default function StudioDashboard() {
   });
 
   const [refreshVersion, setRefreshVersion] = useState(0);
-
-  const [showAllProjects, setShowAllProjects] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -91,104 +80,52 @@ export default function StudioDashboard() {
 
   const projects = library.status === "ready" ? library.projects : [];
 
-  const displayedProjects = showAllProjects ? projects : projects.slice(0, RECENT_PROJECT_LIMIT);
+  const recentProjects = [...projects]
+    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+    .slice(0, RECENT_PROJECT_LIMIT);
 
   return (
     <main className="studio-dashboard">
-      <aside className="studio-dashboard-sidebar">
-        <Link
-          href="/studio/editor?preset=instagramPortrait"
-          className="studio-dashboard-primary studio-sidebar-create"
-        >
-          <Plus size={18} />
-          Create a design
-        </Link>
-
-        <p className="studio-dashboard-nav-label">Workspace</p>
-
-        <nav aria-label="Studio navigation">
-          <button
-            type="button"
-            className="studio-dashboard-nav-item"
-            aria-pressed={!showAllProjects}
-            onClick={() => setShowAllProjects(false)}
-          >
-            <LayoutDashboard size={19} />
-            Home
-          </button>
-
-          <button
-            type="button"
-            className="studio-dashboard-nav-item"
-            aria-pressed={showAllProjects}
-            onClick={() => setShowAllProjects(true)}
-          >
-            <FolderOpen size={19} />
-            All projects
-          </button>
-
-          <Link href="/studio/editor" className="studio-dashboard-nav-item">
-            <PencilLine size={19} />
-            Design editor
-          </Link>
-        </nav>
-
-        <div className="studio-dashboard-sidebar-footer">
-          <Sparkles size={16} />
-          Your private creative workspace
-        </div>
-      </aside>
+      <StudioSidebar />
 
       <div className="studio-dashboard-content">
-        {!showAllProjects && (
-          <>
-            <section className="studio-dashboard-hero">
-              <div className="studio-dashboard-hero-copy">
-                <p className="studio-dashboard-eyebrow">Your creative workspace</p>
+        <section className="studio-dashboard-hero">
+          <div className="studio-dashboard-hero-copy">
+            <p className="studio-dashboard-eyebrow">Your creative workspace</p>
 
-                <h1>Bring your ideas to life.</h1>
+            <h1>Bring your ideas to life.</h1>
 
-                <p className="studio-dashboard-hero-description">
-                  Create something meaningful today.
-                </p>
+            <p className="studio-dashboard-hero-description">Create something meaningful today.</p>
 
-                <div className="studio-dashboard-hero-actions">
-                  <Link
-                    href="/studio/editor?preset=instagramPortrait"
-                    className="studio-dashboard-primary"
-                  >
-                    <Plus size={18} />
-                    Create a design
-                  </Link>
+            <div className="studio-dashboard-hero-actions">
+              <Link
+                href="/studio/editor?preset=instagramPortrait"
+                className="studio-dashboard-primary"
+              >
+                <Plus size={18} />
+                Create a design
+              </Link>
 
-                  <Link href="/studio/editor" className="studio-dashboard-secondary">
-                    Continue editing
-                    <ArrowRight size={16} />
-                  </Link>
-                </div>
-              </div>
+              <Link href="/studio/editor" className="studio-dashboard-secondary">
+                Continue editing
+                <ArrowRight size={16} />
+              </Link>
+            </div>
+          </div>
 
-              <div className="studio-dashboard-hero-decoration" aria-hidden="true">
-                <Sparkles size={100} strokeWidth={0.65} />
-              </div>
-            </section>
+          <div className="studio-dashboard-hero-decoration" aria-hidden="true">
+            <Sparkles size={100} strokeWidth={0.65} />
+          </div>
+        </section>
 
-            <StudioQuickCreate />
-          </>
-        )}
+        <StudioQuickCreate />
 
         <section aria-labelledby="studio-projects-heading" aria-busy={library.status === "loading"}>
           <div className="studio-dashboard-section-heading">
             <div>
-              <h2 id="studio-projects-heading">
-                {showAllProjects ? "All projects" : "Recent projects"}
-              </h2>
+              <h2 id="studio-projects-heading">Recent projects</h2>
 
-              <p>
-                {showAllProjects
-                  ? "Your complete cloud project library."
-                  : "Pick up where you left off."}
-              </p>
+              <p>Pick up where you left off.</p>
             </div>
 
             <div className="studio-dashboard-section-actions">
@@ -206,16 +143,10 @@ export default function StudioDashboard() {
                 />
               </button>
 
-              {!showAllProjects && (
-                <button
-                  type="button"
-                  className="studio-dashboard-text-button"
-                  onClick={() => setShowAllProjects(true)}
-                >
-                  View all
-                  <ArrowRight size={15} />
-                </button>
-              )}
+              <Link href="/studio/projects" className="studio-dashboard-text-button">
+                View all
+                <ArrowRight size={15} />
+              </Link>
             </div>
           </div>
 
@@ -259,7 +190,7 @@ export default function StudioDashboard() {
 
           {library.status === "ready" && projects.length > 0 && (
             <div className="studio-dashboard-project-grid">
-              {displayedProjects.map((project) => (
+              {recentProjects.map((project) => (
                 <StudioProjectCard key={project.id} project={project} />
               ))}
             </div>

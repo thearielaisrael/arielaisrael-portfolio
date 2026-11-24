@@ -12,6 +12,7 @@ import StudioSlidePreview from "./StudioSlidePreview";
 type StudioCloudProjectPreviewProps = {
   projectId: string;
   revision: number;
+  showMetadata?: boolean;
 };
 
 type PreviewResult =
@@ -33,6 +34,7 @@ const MAX_CACHED_PREVIEWS = 20;
 export default function StudioCloudProjectPreview({
   projectId,
   revision,
+  showMetadata = true,
 }: StudioCloudProjectPreviewProps) {
   const cacheKey = `${projectId}:${revision}`;
 
@@ -177,19 +179,23 @@ export default function StudioCloudProjectPreview({
         </div>
       </div>
 
-      <div className="text-muted flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-        <span>
-          {slideCount} {slideCount === 1 ? "slide" : "slides"}
-        </span>
+      {showMetadata && (
+        <>
+          <div className="text-muted flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+            <span>
+              {slideCount} {slideCount === 1 ? "slide" : "slides"}
+            </span>
 
-        <span aria-hidden="true">·</span>
+            <span aria-hidden="true">·</span>
 
-        <span>
-          {canvasSize.width} × {canvasSize.height}
-        </span>
-      </div>
+            <span>
+              {canvasSize.width} × {canvasSize.height}
+            </span>
+          </div>
 
-      <p className="text-muted text-xs">{presetName}</p>
+          <p className="text-muted text-xs">{presetName}</p>
+        </>
+      )}
     </div>
   );
 }

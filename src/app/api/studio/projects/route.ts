@@ -32,7 +32,18 @@ export async function GET() {
 
   const { data, error } = await auth.supabase
     .from("studio_projects")
-    .select("id, name, revision, updated_at")
+    .select(
+      `
+  id,
+  name,
+  revision,
+  updated_at,
+  created_at,
+  folder_id,
+  is_favorite,
+  document
+`,
+    )
     .eq("owner_id", auth.userId)
     .order("updated_at", { ascending: false });
 
@@ -40,7 +51,24 @@ export async function GET() {
     return NextResponse.json({ error: "Could not load projects." }, { status: 500 });
   }
 
-  return NextResponse.json({ projects: data }, { headers: { "Cache-Control": "no-store" } });
+  const projects = (data ?? []).map((record) => {
+    const { document, ...summary } = record;
+
+    return {
+      ...summary,
+      canvas_preset: document?.canvasPreset,
+      slide_count: Array.isArray(document?.slides) ? document.slides.length : 0,
+    };
+  });
+
+  return NextResponse.json(
+    { projects },
+    {
+      headers: {
+        "Cache-Control": "no-store",
+      },
+    },
+  );
 }
 
 export async function POST(request: Request) {
