@@ -40,6 +40,17 @@ import {
   Save,
   FolderOpen,
   ImageDown,
+  Cloud,
+  CloudDownload,
+  CalendarDays,
+  CheckCircle2,
+  X,
+  RefreshCw,
+  FilePlus,
+  FileUp,
+  FileDown,
+  CloudUpload,
+  CloudCheck,
 } from "lucide-react";
 import StudioTextContent from "./StudioTextContent";
 import StudioBackgroundEffects from "./StudioBackgroundEffects";
@@ -51,8 +62,39 @@ import StudioAmbientGlowPresets from "./StudioAmbientGlowPresets";
 import StudioShape from "./StudioShape";
 import StudioRotationHandle from "./StudioRotationHandle";
 import { flushSync } from "react-dom";
+import type {
+  CloudProjectRecord,
+  CloudProjectSession,
+  CloudProjectSummary,
+} from "@/lib/studio/cloudTypes";
 
 const STUDIO_STORAGE_KEY = "arielaisrael-studio-project-v1";
+
+const STUDIO_RECOVERY_KEY = "arielaisrael-studio-recovery-v2";
+
+type StudioRecoveryRecord = {
+  version: 2;
+  project: StudioProject;
+  cloudSession: CloudProjectSession | null;
+  cloudSavedSnapshot: string | null;
+  cloudSyncPaused: boolean;
+};
+
+function serializeStudioProject(project: StudioProject): string {
+  return JSON.stringify(project, (_key, value: unknown) => {
+    if (value !== null && typeof value === "object" && !Array.isArray(value)) {
+      const object = value as Record<string, unknown>;
+
+      return Object.fromEntries(
+        Object.keys(object)
+          .sort()
+          .map((key) => [key, object[key]]),
+      );
+    }
+
+    return value;
+  });
+}
 
 const initialElements: StudioElement[] = [
   {
@@ -185,8 +227,85 @@ export default function StudioEditor() {
 
   const [storageReady, setStorageReady] = useState(false);
   const [saveStatus, setSaveStatus] = useState("Loading saved project…");
+  const [cloudSaving, setCloudSaving] = useState(false);
+  const [cloudProjects, setCloudProjects] = useState<CloudProjectSummary[]>([]);
+
+  const [cloudSession, setCloudSession] = useState<CloudProjectSession | null>(null);
+
+  const [cloudLibraryOpen, setCloudLibraryOpen] = useState(false);
+  const [cloudLoading, setCloudLoading] = useState(false);
+  const [cloudDeletingId, setCloudDeletingId] = useState<string | null>(null);
+
+  const [cloudNotice, setCloudNotice] = useState<string | null>(null);
+
+  const [cloudSyncState, setCloudSyncState] = useState<
+    "idle" | "saving" | "saved" | "offline" | "error" | "conflict"
+  >("idle");
+
+  const [cloudSyncPaused, setCloudSyncPaused] = useState(false);
+  const [cloudRetryCount, setCloudRetryCount] = useState(0);
+
+  const projectRef = useRef(project);
+  const cloudSessionRef = useRef(cloudSession);
+
+  const cloudBusyRef = useRef(false);
+
+  const [projectOperationBusy, setProjectOperationBusy] = useState(false);
+
+  const exportBusyRef = useRef(false);
+
+  const [cloudSavedSnapshot, setCloudSavedSnapshot] = useState<string | null>(null);
+
+  const cloudDirty =
+    cloudSession !== null && serializeStudioProject(project) !== cloudSavedSnapshot;
+
+  useEffect(() => {
+    projectRef.current = project;
+  }, [project]);
+
+  useEffect(() => {
+    cloudSessionRef.current = cloudSession;
+  }, [cloudSession]);
+
   const [exportingPng, setExportingPng] = useState(false);
   const [exportingAllSlides, setExportingAllSlides] = useState(false);
+  const editorLocked = !storageReady || projectOperationBusy || exportingPng || exportingAllSlides;
+
+  const projectActionsDisabled = editorLocked || cloudSaving || cloudDeletingId !== null;
+
+  const cloudHasConflict = cloudSyncState === "conflict";
+
+  const cloudNeedsRetry =
+    cloudSyncState === "error" || cloudSyncState === "offline" || cloudSyncPaused;
+
+  const cloudIsSynced =
+    cloudSession !== null && !cloudDirty && !cloudSaving && !cloudNeedsRetry && !cloudHasConflict;
+
+  const cloudSaveButtonLabel = cloudSaving
+    ? "Saving…"
+    : !cloudSession
+      ? "Save to Cloud"
+      : cloudHasConflict
+        ? "Cloud Conflict"
+        : cloudNeedsRetry
+          ? "Retry Save"
+          : cloudDirty
+            ? "Save Now"
+            : "Saved to Cloud";
+
+  const cloudSaveButtonDisabled =
+    projectActionsDisabled || cloudLoading || cloudHasConflict || cloudIsSynced;
+
+  const CloudSaveIcon = cloudSaving
+    ? RefreshCw
+    : cloudHasConflict && cloudSession
+      ? AlertTriangle
+      : cloudIsSynced
+        ? CloudCheck
+        : cloudNeedsRetry && cloudSession
+          ? RefreshCw
+          : CloudUpload;
+
   const projectFileInputRef = useRef<HTMLInputElement | null>(null);
   const canvasExportRef = useRef<HTMLDivElement | null>(null);
 
@@ -271,6 +390,160 @@ export default function StudioEditor() {
 
     async function loadSavedProject() {
       try {
+        const recoveryJson = window.localStorage.getItem(STUDIO_RECOVERY_KEY);
+
+        if (recoveryJson) {
+          const recovery = JSON.parse(recoveryJson) as StudioRecoveryRecord;
+
+          if (recovery.version !== 2 || !recovery.project) {
+            throw new Error("Invalid Studio recovery record.");
+          }
+
+          if (cancelled) return;
+
+          restoreProject(recovery.project);
+
+          const session = recovery.cloudSession;
+
+          const validSession =
+            session &&
+            session.id === recovery.project.id &&
+            Number.isInteger(session.revision) &&
+            session.revision >= 0 &&
+            typeof recovery.cloudSavedSnapshot === "string";
+
+          if (!validSession || !session) {
+            setSaveStatus("Local project restored");
+            return;
+          }
+
+          cloudSessionRef.current = session;
+          setCloudSession(session);
+          setCloudSavedSnapshot(recovery.cloudSavedSnapshot);
+
+          setCloudSyncPaused(recovery.cloudSyncPaused);
+
+          try {
+            const response = await fetch(`/api/studio/projects/${encodeURIComponent(session.id)}`, {
+              cache: "no-store",
+              credentials: "same-origin",
+            });
+
+            if (cancelled) return;
+
+            if (response.status === 404) {
+              cloudSessionRef.current = null;
+              setCloudSession(null);
+              setCloudSavedSnapshot(null);
+              setCloudSyncPaused(false);
+              setCloudSyncState("idle");
+
+              setCloudNotice(
+                "The original cloud project no longer exists. " +
+                  "Your local design has been recovered.",
+              );
+
+              setSaveStatus("Recovered local project");
+              return;
+            }
+
+            if (!response.ok) {
+              throw new Error("Could not verify cloud revision.");
+            }
+
+            const result = await response.json();
+
+            if (cancelled) return;
+
+            const record = result.project as CloudProjectRecord;
+
+            if (!record.document || record.id !== session.id || record.document.id !== session.id) {
+              throw new Error("Invalid cloud project.");
+            }
+
+            const localSnapshot = serializeStudioProject(recovery.project);
+
+            const remoteSnapshot = serializeStudioProject(record.document);
+
+            const localHasChanges = localSnapshot !== recovery.cloudSavedSnapshot;
+
+            // Local and remote designs already match.
+            if (localSnapshot === remoteSnapshot) {
+              const nextSession = {
+                id: record.id,
+                revision: record.revision,
+              };
+
+              cloudSessionRef.current = nextSession;
+              setCloudSession(nextSession);
+              setCloudSavedSnapshot(remoteSnapshot);
+              setCloudSyncPaused(false);
+              setCloudSyncState("saved");
+              setSaveStatus("Cloud project restored");
+              return;
+            }
+
+            // A newer cloud version exists, but the local
+            // recovery record contains no unsaved edits.
+            if (!localHasChanges && record.revision > session.revision) {
+              restoreProject(record.document);
+
+              const nextSession = {
+                id: record.id,
+                revision: record.revision,
+              };
+
+              cloudSessionRef.current = nextSession;
+              setCloudSession(nextSession);
+              setCloudSavedSnapshot(remoteSnapshot);
+              setCloudSyncPaused(false);
+              setCloudSyncState("saved");
+              setSaveStatus("Latest cloud version restored");
+              return;
+            }
+
+            // Cloud has not changed since the local base.
+            if (
+              record.revision === session.revision &&
+              remoteSnapshot === recovery.cloudSavedSnapshot
+            ) {
+              setCloudSyncPaused(false);
+              setCloudSyncState("idle");
+              setSaveStatus("Recovered local changes — awaiting sync");
+              return;
+            }
+
+            // Both versions may contain different changes.
+            setCloudSyncPaused(true);
+            setCloudSyncState("conflict");
+
+            setCloudNotice(
+              "Your recovered design differs from the " +
+                "cloud version. Your local changes have " +
+                "been preserved. Use Download JSON " +
+                "or Use Save as Copy before " +
+                "opening the latest cloud project.",
+            );
+
+            setSaveStatus("Recovered project — cloud conflict");
+          } catch (error) {
+            if (cancelled) return;
+
+            console.error("Cloud recovery verification failed:", error);
+
+            setCloudSyncPaused(true);
+
+            setCloudSyncState(
+              recovery.cloudSyncPaused ? "conflict" : navigator.onLine ? "error" : "offline",
+            );
+
+            setSaveStatus("Local project recovered — cloud verification unavailable");
+          }
+
+          return;
+        }
+
+        // Compatibility with projects saved before v2.
         const saved = window.localStorage.getItem(STUDIO_STORAGE_KEY);
 
         if (cancelled) return;
@@ -283,6 +556,7 @@ export default function StudioEditor() {
       } catch (error) {
         if (!cancelled) {
           setSaveStatus("Could not restore saved project");
+
           console.error("Studio restore failed:", error);
         }
       } finally {
@@ -300,22 +574,583 @@ export default function StudioEditor() {
   }, []);
 
   useEffect(() => {
-    if (!storageReady) return;
+    if (!storageReady || exportingAllSlides) return;
+
+    function persistRecovery() {
+      if (exportBusyRef.current) return;
+
+      try {
+        const recovery: StudioRecoveryRecord = {
+          version: 2,
+          project,
+          cloudSession,
+          cloudSavedSnapshot,
+          cloudSyncPaused,
+        };
+
+        window.localStorage.setItem(STUDIO_RECOVERY_KEY, JSON.stringify(recovery));
+
+        if (!cloudSession) {
+          setSaveStatus("Saved locally");
+        }
+      } catch (error) {
+        setSaveStatus("Local recovery failed — download a backup");
+
+        console.error("Studio recovery save failed:", error);
+      }
+    }
+
+    const timeout = window.setTimeout(persistRecovery, 500);
+
+    function handlePageHide() {
+      if (!exportBusyRef.current) {
+        persistRecovery();
+      }
+    }
+
+    window.addEventListener("pagehide", handlePageHide);
+
+    return () => {
+      window.clearTimeout(timeout);
+
+      window.removeEventListener("pagehide", handlePageHide);
+    };
+  }, [
+    project,
+    cloudSession,
+    cloudSavedSnapshot,
+    cloudSyncPaused,
+    storageReady,
+    exportingAllSlides,
+  ]);
+
+  async function createCloudProject(copyName?: string) {
+    if (cloudBusyRef.current || exportBusyRef.current || cloudSaving || !storageReady) {
+      return;
+    }
+
+    const currentProject = projectRef.current;
+
+    const snapshot: StudioProject = {
+      ...currentProject,
+      name: copyName ?? currentProject.name,
+    };
+
+    const creatingCopy = copyName !== undefined;
+
+    cloudBusyRef.current = true;
+    setCloudSaving(true);
+    setCloudNotice(null);
+
+    setSaveStatus(creatingCopy ? "Creating project copy…" : "Saving project to cloud…");
+
+    try {
+      const response = await fetch("/api/studio/projects", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "same-origin",
+        body: JSON.stringify(snapshot),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error ?? "Could not create cloud project.");
+      }
+
+      const cloudId = result.id as string;
+
+      const session: CloudProjectSession = {
+        id: cloudId,
+        revision: Number(result.revision),
+      };
+
+      const savedCloudDocument: StudioProject = {
+        ...snapshot,
+        id: cloudId,
+      };
+
+      // Preserve any design changes made during the request.
+      setProject((current) => ({
+        ...current,
+        id: cloudId,
+        name: current.name === currentProject.name ? snapshot.name : current.name,
+      }));
+
+      cloudSessionRef.current = session;
+
+      setCloudSession(session);
+
+      setCloudSavedSnapshot(serializeStudioProject(savedCloudDocument));
+
+      setCloudSyncPaused(false);
+      setCloudSyncState("saved");
+      setCloudNotice(null);
+
+      setSaveStatus(creatingCopy ? "Project copy created" : "Project saved to cloud");
+
+      await refreshCloudLibrary();
+    } catch (error) {
+      console.error("Cloud project creation failed:", error);
+
+      setCloudNotice(error instanceof Error ? error.message : "Could not create cloud project.");
+
+      setSaveStatus("Cloud save failed — local project retained");
+    } finally {
+      cloudBusyRef.current = false;
+      setCloudSaving(false);
+    }
+  }
+
+  async function refreshCloudLibrary() {
+    setCloudLoading(true);
+
+    try {
+      const response = await fetch("/api/studio/projects", {
+        cache: "no-store",
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error ?? "Could not load cloud library.");
+      }
+
+      setCloudProjects(result.projects as CloudProjectSummary[]);
+    } catch (error) {
+      setCloudNotice(error instanceof Error ? error.message : "Cloud library failed.");
+    } finally {
+      setCloudLoading(false);
+    }
+  }
+
+  async function deleteCloudProject(id: string, name: string) {
+    if (cloudBusyRef.current || exportBusyRef.current || cloudDeletingId || !storageReady) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Permanently delete "${name}" from your cloud library?\n\n` +
+        "This cannot be undone. Your downloaded JSON backups " +
+        "and local browser data will not be deleted.",
+    );
+
+    if (!confirmed) return;
+
+    cloudBusyRef.current = true;
+    setProjectOperationBusy(true);
+    setCloudDeletingId(id);
+    setCloudNotice(null);
+
+    try {
+      const response = await fetch(`/api/studio/projects/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error ?? "Could not delete cloud project.");
+      }
+
+      setCloudProjects((current) => current.filter((item) => item.id !== id));
+
+      if (cloudSessionRef.current?.id === id) {
+        cloudSessionRef.current = null;
+        setCloudSession(null);
+        setCloudSavedSnapshot(null);
+
+        setCloudSyncPaused(false);
+        setCloudSyncState("idle");
+
+        setSaveStatus("Cloud project deleted — current design retained locally");
+      }
+
+      setCloudNotice(`"${name}" was deleted from your cloud library.`);
+    } catch (error) {
+      setCloudNotice(error instanceof Error ? error.message : "Cloud project deletion failed.");
+    } finally {
+      cloudBusyRef.current = false;
+      setProjectOperationBusy(false);
+      setCloudDeletingId(null);
+    }
+  }
+
+  async function openCloudProject(id: string) {
+    if (cloudBusyRef.current || exportBusyRef.current || !storageReady) {
+      return;
+    }
+
+    if (
+      !window.confirm(
+        "Open this cloud project? Your current editor will be replaced. " +
+          "Use Download JSON first if you have unsaved work.",
+      )
+    ) {
+      return;
+    }
+
+    cloudBusyRef.current = true;
+    setProjectOperationBusy(true);
+    setCloudLoading(true);
+    setCloudNotice(null);
+
+    try {
+      const response = await fetch(`/api/studio/projects/${encodeURIComponent(id)}`, {
+        cache: "no-store",
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error ?? "Could not open cloud project.");
+      }
+
+      const record = result.project as CloudProjectRecord;
+
+      if (
+        !record.document ||
+        record.document.id !== record.id ||
+        !Array.isArray(record.document.slides) ||
+        !record.document.slides.some((slide) => slide.id === record.document.activeSlideId)
+      ) {
+        throw new Error("The cloud project contains invalid data.");
+      }
+
+      restoreProject(record.document);
+
+      const session = {
+        id: record.id,
+        revision: record.revision,
+      };
+
+      cloudSessionRef.current = session;
+      setCloudSession(session);
+
+      setCloudSavedSnapshot(serializeStudioProject(record.document));
+
+      setCloudSyncPaused(false);
+      setCloudSyncState("saved");
+      setCloudNotice(null);
+
+      setCloudLibraryOpen(false);
+      setSaveStatus("Cloud project opened");
+    } catch (error) {
+      setCloudNotice(error instanceof Error ? error.message : "Could not open project.");
+    } finally {
+      cloudBusyRef.current = false;
+      setProjectOperationBusy(false);
+      setCloudLoading(false);
+    }
+  }
+
+  const syncCloudProject = useCallback(async () => {
+    if (
+      cloudBusyRef.current ||
+      exportBusyRef.current ||
+      !storageReady ||
+      cloudSyncState === "conflict"
+    ) {
+      return;
+    }
+
+    const session = cloudSessionRef.current;
+    const snapshot = projectRef.current;
+
+    if (!session) {
+      setCloudNotice("Open a cloud project or use Save to Cloud first.");
+      return;
+    }
+
+    if (snapshot.id !== session.id) {
+      setCloudNotice("Project identity mismatch. Save cancelled.");
+      return;
+    }
+
+    if (!navigator.onLine) {
+      setCloudSyncPaused(true);
+      setCloudSyncState("offline");
+      setSaveStatus("Offline — local recovery active");
+      return;
+    }
+
+    cloudBusyRef.current = true;
+
+    setCloudSaving(true);
+    setCloudSyncState("saving");
+    setCloudNotice(null);
+    setSaveStatus("Saving to cloud…");
+
+    try {
+      const response = await fetch(`/api/studio/projects/${encodeURIComponent(session.id)}`, {
+        method: "PATCH",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          project: snapshot,
+          expectedRevision: session.revision,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.status === 409) {
+        setCloudSyncPaused(true);
+        setCloudSyncState("conflict");
+
+        setCloudNotice(
+          "Another device has a newer cloud revision. " +
+            "Automatic saving has been paused. Your local " +
+            "changes remain available. Use Download JSON " +
+            "or Use Save as Copy before opening " +
+            "the newer version.",
+        );
+
+        setSaveStatus("Cloud conflict — autosave paused");
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(result.error ?? "Cloud save failed.");
+      }
+
+      if (cloudSessionRef.current?.id !== session.id) {
+        return;
+      }
+
+      const nextSession: CloudProjectSession = {
+        id: session.id,
+        revision: Number(result.revision),
+      };
+
+      const savedSnapshot = serializeStudioProject(snapshot);
+
+      cloudSessionRef.current = nextSession;
+
+      setCloudSession(nextSession);
+      setCloudSavedSnapshot(savedSnapshot);
+      setCloudSyncPaused(false);
+      setCloudSyncState("saved");
+
+      const changedDuringSave = serializeStudioProject(projectRef.current) !== savedSnapshot;
+
+      setSaveStatus(
+        changedDuringSave ? "Cloud saved — newer edits awaiting sync" : "Saved to cloud",
+      );
+
+      setCloudProjects((current) =>
+        current.map((item) =>
+          item.id === session.id
+            ? {
+                ...item,
+                name: snapshot.name,
+                revision: nextSession.revision,
+              }
+            : item,
+        ),
+      );
+    } catch (error) {
+      console.error("Studio cloud save failed:", error);
+
+      setCloudSyncPaused(true);
+
+      setCloudSyncState(navigator.onLine ? "error" : "offline");
+
+      setCloudNotice(error instanceof Error ? error.message : "Cloud synchronization failed.");
+
+      setSaveStatus("Cloud unavailable — local recovery active");
+    } finally {
+      cloudBusyRef.current = false;
+      setCloudSaving(false);
+    }
+  }, [storageReady, cloudSyncState]);
+
+  useEffect(() => {
+    if (
+      !storageReady ||
+      !cloudSession ||
+      !cloudDirty ||
+      cloudSyncPaused ||
+      cloudSaving ||
+      projectOperationBusy ||
+      exportingPng ||
+      exportingAllSlides ||
+      cloudDeletingId !== null
+    ) {
+      return;
+    }
 
     const timeout = window.setTimeout(() => {
-      try {
-        window.localStorage.setItem(STUDIO_STORAGE_KEY, JSON.stringify(project));
-        setSaveStatus("Saved locally");
-      } catch (error) {
-        setSaveStatus("Autosave failed — download a backup");
-        console.error("Studio autosave failed:", error);
-      }
-    }, 500);
+      void syncCloudProject();
+    }, 2000);
 
     return () => window.clearTimeout(timeout);
-  }, [project, storageReady]);
+  }, [
+    project,
+    cloudSession,
+    cloudDirty,
+    cloudSyncPaused,
+    storageReady,
+    cloudSaving,
+    projectOperationBusy,
+    exportingPng,
+    exportingAllSlides,
+    cloudDeletingId,
+    cloudRetryCount,
+    syncCloudProject,
+  ]);
 
-  function downloadProjectJson() {
+  function retryCloudSync() {
+    if (!cloudSession || cloudBusyRef.current || exportBusyRef.current) {
+      return;
+    }
+
+    if (cloudSyncState === "conflict") {
+      setCloudNotice(
+        "This project has a revision conflict. Preserve " +
+          "Your current design using Download JSON or " +
+          "Save as Copy, then open the latest cloud version.",
+      );
+      return;
+    }
+
+    setCloudSyncPaused(false);
+    setCloudSyncState("idle");
+    setCloudRetryCount((count) => count + 1);
+
+    void syncCloudProject();
+  }
+
+  useEffect(() => {
+    function handleOnline() {
+      if (!cloudSession || cloudSyncState !== "offline") {
+        return;
+      }
+
+      setCloudSyncPaused(false);
+      setCloudSyncState("idle");
+      setCloudRetryCount((count) => count + 1);
+
+      void syncCloudProject();
+    }
+
+    window.addEventListener("online", handleOnline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+    };
+  }, [cloudSession, cloudSyncState, syncCloudProject]);
+
+  function saveProjectToCloud() {
+    if (projectActionsDisabled || cloudBusyRef.current || exportBusyRef.current) {
+      return;
+    }
+
+    if (!cloudSessionRef.current) {
+      void createCloudProject();
+      return;
+    }
+
+    if (cloudSyncState === "conflict") {
+      return;
+    }
+
+    if (cloudSyncState === "error" || cloudSyncState === "offline" || cloudSyncPaused) {
+      retryCloudSync();
+      return;
+    }
+
+    if (cloudDirty) {
+      void syncCloudProject();
+    }
+  }
+
+  function saveProjectAsCopy() {
+    if (
+      !cloudSessionRef.current ||
+      projectActionsDisabled ||
+      cloudBusyRef.current ||
+      exportBusyRef.current
+    ) {
+      return;
+    }
+
+    const name = window.prompt(
+      "Save a separate copy of this project:",
+      `${projectRef.current.name} Copy`,
+    );
+
+    if (name === null) return;
+
+    const trimmedName = name.trim();
+
+    if (!trimmedName) {
+      setCloudNotice("Please enter a project name.");
+      return;
+    }
+
+    void createCloudProject(trimmedName);
+  }
+
+  function createNewProject() {
+    if (projectActionsDisabled || cloudBusyRef.current || exportBusyRef.current) {
+      return;
+    }
+
+    const message =
+      !cloudSession || cloudDirty
+        ? "Create a new project? Your current editor will be " +
+          "replaced. Use Download JSON first if you want " +
+          "to preserve your current unsynchronized design."
+        : "Create a new project? Your existing cloud project " +
+          "will remain available in the Cloud Library.";
+
+    if (!window.confirm(message)) return;
+
+    const slideId = crypto.randomUUID();
+
+    const nextProject: StudioProject = {
+      id: crypto.randomUUID(),
+      name: "Untitled Design",
+      canvasPreset: "instagramPortrait",
+      activeSlideId: slideId,
+      slides: [
+        {
+          id: slideId,
+          name: "Slide 1",
+          backgroundColor: "blush-paper",
+          backgroundEffects: [],
+          elements: [],
+        },
+      ],
+    };
+
+    restoreProject(nextProject);
+
+    cloudSessionRef.current = null;
+
+    setCloudSession(null);
+    setCloudSavedSnapshot(null);
+    setCloudSyncPaused(false);
+    setCloudSyncState("idle");
+    setCloudRetryCount(0);
+    setCloudNotice(null);
+
+    setProjectNameDraft(null);
+    setCloudLibraryOpen(false);
+
+    copiedElementRef.current = null;
+    pasteCountRef.current = 0;
+    setHasCopiedElement(false);
+
+    setSaveStatus("New project created");
+  }
+
+  function exportProjectJson() {
     const blob = new Blob([JSON.stringify(project, null, 2)], {
       type: "application/json",
     });
@@ -328,8 +1163,20 @@ export default function StudioEditor() {
   }
 
   async function importProjectJson(file: File) {
+    if (cloudBusyRef.current || exportBusyRef.current || !storageReady) {
+      if (projectFileInputRef.current) {
+        projectFileInputRef.current.value = "";
+      }
+
+      return;
+    }
+
+    cloudBusyRef.current = true;
+    setProjectOperationBusy(true);
+
     try {
       const parsed: unknown = JSON.parse(await file.text());
+
       if (
         !parsed ||
         typeof parsed !== "object" ||
@@ -352,18 +1199,53 @@ export default function StudioEditor() {
       ) {
         throw new Error("This is not a supported Studio project file.");
       }
-      if (!window.confirm("Replace your current Studio project with the imported project?")) return;
+
+      if (
+        !window.confirm(
+          "Replace your current Studio project with the " +
+            "imported project? Make sure you have saved " +
+            "any changes you wish to keep.",
+        )
+      ) {
+        return;
+      }
+
       restoreProject(parsed as StudioProject);
+
+      cloudSessionRef.current = null;
+
+      setCloudSession(null);
+      setCloudSavedSnapshot(null);
+      setCloudSyncPaused(false);
+      setCloudSyncState("idle");
+      setCloudNotice(null);
+
       setSaveStatus("Project imported");
     } catch (error) {
       window.alert(error instanceof Error ? error.message : "Could not open project.");
     } finally {
-      if (projectFileInputRef.current) projectFileInputRef.current.value = "";
+      cloudBusyRef.current = false;
+      setProjectOperationBusy(false);
+
+      if (projectFileInputRef.current) {
+        projectFileInputRef.current.value = "";
+      }
     }
   }
 
   async function exportSlidePng() {
-    if (!canvasExportRef.current || exportingPng) return;
+    if (
+      !canvasExportRef.current ||
+      exportingPng ||
+      exportingAllSlides ||
+      cloudBusyRef.current ||
+      exportBusyRef.current ||
+      !storageReady
+    ) {
+      return;
+    }
+
+    exportBusyRef.current = true;
     setExportingPng(true);
     const previouslySelected = selectedId;
     const previousGrid = showGrid;
@@ -396,14 +1278,24 @@ export default function StudioEditor() {
       setSelectedId(previouslySelected);
       setShowGrid(previousGrid);
       setShowCenterlines(previousCenterlines);
+      exportBusyRef.current = false;
       setExportingPng(false);
     }
   }
 
   async function exportAllSlidesZip() {
-    if (exportingPng || exportingAllSlides || !canvasExportRef.current) {
+    if (
+      exportingPng ||
+      exportingAllSlides ||
+      !canvasExportRef.current ||
+      cloudBusyRef.current ||
+      exportBusyRef.current ||
+      !storageReady
+    ) {
       return;
     }
+
+    exportBusyRef.current = true;
 
     const originalProject = project;
     const originalElements = elements;
@@ -425,7 +1317,9 @@ export default function StudioEditor() {
         });
       });
 
-    setExportingAllSlides(true);
+    flushSync(() => {
+      setExportingAllSlides(true);
+    });
 
     try {
       const [{ default: JSZip }, { toPng }] = await Promise.all([
@@ -523,6 +1417,7 @@ export default function StudioEditor() {
         setShowCenterlines(originalCenterlines);
       });
 
+      exportBusyRef.current = false;
       setExportingAllSlides(false);
     }
   }
@@ -2000,6 +2895,8 @@ export default function StudioEditor() {
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
+      if (editorLocked) return;
+
       const target = event.target;
 
       if (
@@ -2168,6 +3065,7 @@ export default function StudioEditor() {
     canvasSize.width,
     canvasSize.height,
     syncActiveSlide,
+    editorLocked,
   ]);
 
   useEffect(() => {
@@ -2190,7 +3088,11 @@ export default function StudioEditor() {
   }, []);
 
   return (
-    <div>
+    <div
+      inert={editorLocked}
+      aria-busy={editorLocked}
+      className={editorLocked ? "cursor-wait" : undefined}
+    >
       <div
         className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-4"
         style={{
@@ -2256,28 +3158,98 @@ export default function StudioEditor() {
             }}
           />
 
+          {/* New Project */}
+          <button
+            type="button"
+            onClick={createNewProject}
+            disabled={projectActionsDisabled || cloudLoading}
+            className="studio-control studio-button"
+            title="Create a new blank Studio project"
+          >
+            <FilePlus size={17} />
+            New Project
+          </button>
+
+          {/* Cloud Library */}
+          <button
+            type="button"
+            onClick={() => {
+              setCloudLibraryOpen(true);
+              setCloudNotice(null);
+              void refreshCloudLibrary();
+            }}
+            disabled={projectActionsDisabled || cloudLoading}
+            className="studio-control studio-button"
+            title="Browse your saved cloud projects"
+          >
+            <FolderOpen size={17} />
+            Cloud Library
+          </button>
+
+          {/* Import JSON */}
           <button
             type="button"
             onClick={() => projectFileInputRef.current?.click()}
+            disabled={projectActionsDisabled}
             className="studio-control studio-button"
-            title="Open saved Studio JSON project"
+            title="Import a saved Studio JSON project"
           >
-            <FolderOpen size={17} /> Open Project
+            <FileUp size={17} />
+            Import JSON
           </button>
 
+          {/* Download JSON */}
           <button
             type="button"
-            onClick={downloadProjectJson}
+            onClick={exportProjectJson}
+            disabled={editorLocked}
             className="studio-control studio-button"
-            title="Download a portable project backup"
+            title="Download an editable Studio JSON backup"
           >
-            <Save size={17} /> Save Project
+            <FileDown size={17} />
+            Download JSON
           </button>
+
+          {/* Context-aware cloud save */}
+          <button
+            type="button"
+            onClick={saveProjectToCloud}
+            disabled={cloudSaveButtonDisabled}
+            className="studio-control studio-button"
+            aria-live="polite"
+            title={
+              cloudHasConflict
+                ? "Resolve the cloud revision conflict before saving"
+                : cloudIsSynced
+                  ? "All project changes are saved to the cloud"
+                  : cloudSession
+                    ? "Synchronize current changes to the cloud"
+                    : "Create a cloud-saved project"
+            }
+          >
+            <CloudSaveIcon size={17} className={cloudSaving ? "animate-spin" : ""} />
+
+            {cloudSaveButtonLabel}
+          </button>
+
+          {/* Save as Copy */}
+          {cloudSession && (
+            <button
+              type="button"
+              onClick={saveProjectAsCopy}
+              disabled={projectActionsDisabled || cloudLoading}
+              className="studio-control studio-button"
+              title="Save this design as a separate cloud project"
+            >
+              <Copy size={17} />
+              Save as Copy
+            </button>
+          )}
 
           <button
             type="button"
             onClick={() => void exportSlidePng()}
-            disabled={exportingPng || exportingAllSlides}
+            disabled={projectActionsDisabled}
             className="studio-control studio-button disabled:opacity-40"
             title="Export active slide as PNG"
           >
@@ -2287,7 +3259,7 @@ export default function StudioEditor() {
           <button
             type="button"
             onClick={() => void exportAllSlidesZip()}
-            disabled={exportingPng || exportingAllSlides || project.slides.length === 0}
+            disabled={projectActionsDisabled || project.slides.length === 0}
             className="studio-control studio-button disabled:opacity-40"
             title="Export every slide as a PNG inside one ZIP file"
           >
@@ -2508,6 +3480,271 @@ export default function StudioEditor() {
           </div>
         </div>
       </div>
+
+      <div
+        className="text-muted flex flex-wrap items-center justify-between gap-3 px-4 py-2 text-xs"
+        aria-live="polite"
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          {!cloudSession ? (
+            <>
+              <Save size={14} className="text-accent" />
+
+              <span>Local project · Browser recovery</span>
+            </>
+          ) : (
+            <>
+              {cloudHasConflict ? (
+                <AlertTriangle size={14} className="text-accent" />
+              ) : (
+                <CloudSaveIcon
+                  size={14}
+                  className={cloudSaving ? "text-accent animate-spin" : "text-accent"}
+                />
+              )}
+
+              <span>Cloud project · Revision {cloudSession.revision}</span>
+
+              <span>
+                {cloudSaving
+                  ? "· Synchronizing…"
+                  : cloudHasConflict
+                    ? "· Conflict — synchronization paused"
+                    : cloudSyncState === "offline"
+                      ? "· Offline — local recovery active"
+                      : cloudNeedsRetry
+                        ? "· Cloud synchronization paused"
+                        : cloudDirty
+                          ? "· Unsaved cloud changes"
+                          : "· All changes synchronized"}
+              </span>
+            </>
+          )}
+        </div>
+
+        {cloudSession && cloudHasConflict && (
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={exportProjectJson}
+              disabled={editorLocked}
+              className="studio-control studio-button cursor-pointer text-xs disabled:cursor-not-allowed"
+            >
+              <FileDown size={13} />
+              Download Backup
+            </button>
+
+            <button
+              type="button"
+              onClick={saveProjectAsCopy}
+              disabled={projectActionsDisabled || cloudLoading}
+              className="studio-control studio-button cursor-pointer text-xs disabled:cursor-not-allowed"
+            >
+              <Copy size={13} />
+              Preserve as Copy
+            </button>
+
+            <button
+              type="button"
+              disabled={projectActionsDisabled || cloudLoading}
+              onClick={() => {
+                setCloudLibraryOpen(true);
+                void refreshCloudLibrary();
+              }}
+              className="studio-control studio-button cursor-pointer text-xs disabled:cursor-not-allowed"
+            >
+              <FolderOpen size={13} />
+              Open Cloud Library
+            </button>
+          </div>
+        )}
+      </div>
+
+      {cloudNotice && (
+        <div
+          role="alert"
+          className="mx-4 my-2 rounded-xl border border-rose-300 bg-rose-50 p-3 text-sm text-rose-900"
+        >
+          {cloudNotice}
+        </div>
+      )}
+
+      {cloudLibraryOpen && (
+        <section
+          className="studio-panel my-4 min-w-0 p-4 sm:p-5"
+          aria-label="Cloud Project Library"
+        >
+          {/* Header */}
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="text-foreground flex items-center gap-2 text-sm font-semibold">
+                <Cloud size={17} className="text-accent" />
+                Cloud Project Library
+              </h2>
+
+              <p className="text-muted mt-1 text-xs">Private projects stored in Supabase</p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => void refreshCloudLibrary()}
+                disabled={projectActionsDisabled}
+                className="studio-control studio-button text-xs"
+                title="Refresh cloud projects"
+              >
+                <RefreshCw size={14} className={cloudLoading ? "animate-spin" : ""} />
+                Refresh
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setCloudLibraryOpen(false)}
+                className="studio-control studio-button text-xs"
+              >
+                <X size={14} />
+                Close
+              </button>
+            </div>
+          </div>
+
+          {/* Project count */}
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-muted text-xs">
+              {cloudProjects.length}{" "}
+              {cloudProjects.length === 1 ? "saved project" : "saved projects"}
+            </p>
+
+            <span className="text-muted flex items-center gap-1.5 text-xs">
+              <CheckCircle2 size={13} className="text-accent" />
+              Private library
+            </span>
+          </div>
+
+          {/* Loading state */}
+          {cloudLoading && cloudProjects.length === 0 && (
+            <div className="border-default bg-surface-elevated text-muted mt-3 flex items-center gap-2 rounded-lg border p-4 text-sm">
+              <RefreshCw size={16} className="text-accent animate-spin" />
+              Loading cloud projects…
+            </div>
+          )}
+
+          {/* Empty state */}
+          {!cloudLoading && cloudProjects.length === 0 && (
+            <div className="border-default bg-surface-elevated mt-3 flex flex-col items-center rounded-lg border border-dashed p-8 text-center">
+              <CloudDownload size={26} className="text-accent mb-3" strokeWidth={1.5} />
+
+              <h3 className="text-foreground text-sm font-semibold">No cloud projects yet</h3>
+
+              <p className="text-muted mt-2 max-w-sm text-xs leading-relaxed">
+                Use Save to Cloud in the editor toolbar to save your first project.
+              </p>
+            </div>
+          )}
+
+          {/* Saved projects */}
+          {cloudProjects.length > 0 && (
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {cloudProjects.map((item) => {
+                const isCurrentProject = cloudSession?.id === item.id;
+
+                return (
+                  <article
+                    key={item.id}
+                    className="border-default bg-surface-elevated flex min-w-0 flex-col rounded-lg border p-3"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex min-w-0 items-start gap-3">
+                        <div
+                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+                          style={{
+                            backgroundColor: "var(--color-chip-bg)",
+                            color: "var(--color-accent)",
+                            border: "1px solid var(--color-chip-border)",
+                          }}
+                        >
+                          <FolderOpen size={19} strokeWidth={1.7} />
+                        </div>
+
+                        <div className="min-w-0">
+                          <h3
+                            className="text-foreground truncate text-sm font-semibold"
+                            title={item.name}
+                          >
+                            {item.name}
+                          </h3>
+
+                          <p className="text-muted mt-1 text-xs">Revision {item.revision}</p>
+                        </div>
+                      </div>
+
+                      {isCurrentProject && (
+                        <span
+                          className="shrink-0 rounded-md px-2 py-1 text-[11px] font-medium"
+                          style={{
+                            backgroundColor: "var(--color-chip-bg)",
+                            color: "var(--color-chip-text)",
+                            border: "1px solid var(--color-chip-border)",
+                          }}
+                        >
+                          Current
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="text-muted mt-4 flex items-center gap-1.5 text-xs">
+                      <CalendarDays size={13} />
+                      <time dateTime={item.updated_at}>
+                        {new Date(item.updated_at).toLocaleString(undefined, {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })}
+                      </time>
+                    </div>
+
+                    <div className="border-default mt-4 flex flex-wrap items-center justify-between gap-3 border-t pt-3">
+                      <span className="text-muted text-xs">
+                        {isCurrentProject
+                          ? cloudDirty
+                            ? "Unsaved changes"
+                            : "Up to date"
+                          : "Cloud saved"}
+                      </span>
+
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          disabled={projectActionsDisabled || cloudLoading}
+                          onClick={() => void openCloudProject(item.id)}
+                          className="studio-control studio-button text-xs"
+                        >
+                          <FolderOpen size={14} />
+                          Open Project
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={projectActionsDisabled || cloudLoading}
+                          onClick={() => void deleteCloudProject(item.id, item.name)}
+                          className="studio-control studio-button text-xs"
+                          aria-label={`Delete ${item.name} from cloud`}
+                          title={`Delete ${item.name}`}
+                        >
+                          <Trash2 size={14} />
+                          {cloudDeletingId === item.id ? "Deleting…" : "Delete"}
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      )}
 
       <div
         className="grid min-h-150 items-start gap-4 lg:grid-cols-[220px_minmax(0,1fr)_280px]"
