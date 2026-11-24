@@ -232,7 +232,15 @@ function findClosestAlignment(
   return closest?.position ?? null;
 }
 
-export default function StudioEditor() {
+type StudioEditorProps = {
+  requestedProjectId?: string;
+  requestedPreset?: CanvasPreset;
+};
+
+export default function StudioEditor({ requestedProjectId, requestedPreset }: StudioEditorProps) {
+  const [pendingLaunch, setPendingLaunch] = useState(
+    Boolean(requestedProjectId || requestedPreset),
+  );
   const [project, setProject] = useState<StudioProject>(initialProject);
   const [projectNameDraft, setProjectNameDraft] = useState<string | null>(null);
   const cancelProjectRenameRef = useRef(false);
@@ -1221,7 +1229,7 @@ export default function StudioEditor() {
     void createCloudProject(trimmedName);
   }
 
-  function createNewProject() {
+  function createNewProject(preset: CanvasPreset = "instagramPortrait") {
     if (projectActionsDisabled || cloudBusyRef.current || exportBusyRef.current) {
       return;
     }
@@ -1241,7 +1249,7 @@ export default function StudioEditor() {
     const nextProject: StudioProject = {
       id: createId(),
       name: "Untitled Design",
-      canvasPreset: "instagramPortrait",
+      canvasPreset: preset,
       activeSlideId: slideId,
       slides: [
         {
@@ -1273,6 +1281,65 @@ export default function StudioEditor() {
     setHasCopiedElement(false);
 
     setSaveStatus("New project created");
+  }
+
+  function clearLaunchRequest() {
+    setPendingLaunch(false);
+
+    window.history.replaceState(window.history.state, "", "/studio/editor");
+  }
+
+  function handleRequestedLaunch() {
+    if (projectActionsDisabled || cloudBusyRef.current || exportBusyRef.current) {
+      return;
+    }
+
+    clearLaunchRequest();
+
+    if (requestedProjectId) {
+      if (cloudSessionRef.current?.id === requestedProjectId) {
+        return;
+      }
+
+      void openCloudProject(requestedProjectId);
+
+      return;
+    }
+
+    if (requestedPreset) {
+      createNewProject(requestedPreset);
+    }
+  }
+
+  function returnToDashboard() {
+    if (projectActionsDisabled || cloudBusyRef.current || exportBusyRef.current) {
+      return;
+    }
+
+    try {
+      const recovery: StudioRecoveryRecord = {
+        version: 2,
+        project,
+        cloudSession,
+        cloudSavedSnapshot,
+        cloudSyncPaused,
+      };
+
+      // Persist immediately instead of waiting for
+      // the existing debounced recovery effect.
+      window.localStorage.setItem(STUDIO_RECOVERY_KEY, JSON.stringify(recovery));
+
+      window.location.assign("/studio");
+    } catch (error) {
+      console.error("Studio recovery save failed:", error);
+
+      setCloudNotice(
+        "Could not preserve your local project. " +
+          "Download a JSON backup before leaving the editor.",
+      );
+
+      setSaveStatus("Local recovery failed");
+    }
   }
 
   function exportProjectJson() {
@@ -3360,6 +3427,53 @@ export default function StudioEditor() {
       aria-busy={editorLocked}
       className={`studio-editor-root ${editorLocked ? "cursor-wait" : ""}`}
     >
+      {storageReady && pendingLaunch && (
+        <div className="studio-launch-request" role="region" aria-label="Requested design">
+          <div className="studio-launch-request-copy">
+            <strong>
+              {requestedProjectId
+                ? "Open selected project"
+                : requestedPreset
+                  ? `Create ${canvasPresets[requestedPreset].label}`
+                  : "Create a design"}
+            </strong>
+
+            <p>
+              Your previous editing session has been recovered. Save or download any unfinished work
+              before replacing it.
+            </p>
+          </div>
+
+          <div className="studio-launch-request-actions">
+            <button
+              type="button"
+              className="studio-dashboard-secondary"
+              onClick={exportProjectJson}
+              disabled={projectActionsDisabled}
+            >
+              Download backup
+            </button>
+
+            <button
+              type="button"
+              className="studio-dashboard-secondary"
+              onClick={clearLaunchRequest}
+            >
+              Keep editing
+            </button>
+
+            <button
+              type="button"
+              className="studio-dashboard-primary"
+              onClick={handleRequestedLaunch}
+              disabled={projectActionsDisabled}
+            >
+              {requestedProjectId ? "Open project" : "Create design"}
+            </button>
+          </div>
+        </div>
+      )}
+
       <div
         ref={toolbarRef}
         className="studio-editor-toolbar flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-3"
@@ -3370,6 +3484,16 @@ export default function StudioEditor() {
         }}
       >
         <div className="studio-project-info flex flex-col">
+          <button
+            type="button"
+            onClick={returnToDashboard}
+            disabled={projectActionsDisabled}
+            className="studio-editor-home-button"
+          >
+            <span aria-hidden="true">←</span>
+            Dashboard
+          </button>
+
           <span className="font-semibold">Design Editor</span>
           <span className="text-xs opacity-60">
             <div className="flex flex-wrap items-center gap-2">
@@ -3435,7 +3559,7 @@ export default function StudioEditor() {
               {/* New Project */}
               <button
                 type="button"
-                onClick={createNewProject}
+                onClick={() => createNewProject()}
                 disabled={projectActionsDisabled || cloudLoading}
                 className="studio-control studio-button"
                 title="Create a new blank Studio project"
