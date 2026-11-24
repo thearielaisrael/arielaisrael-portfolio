@@ -220,13 +220,17 @@ export default function RootLayout({
           Skip to main content
         </a>
 
-        <Header />
+        <div data-site-chrome className="contents">
+          <Header />
+        </div>
 
         <div id="main-content" tabIndex={-1} className="scroll-mt-24">
           {children}
         </div>
 
-        <Footer />
+        <div data-site-chrome className="contents">
+          <Footer />
+        </div>
       </body>
     </html>
   );

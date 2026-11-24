@@ -1,5 +1,7 @@
 "use client";
 
+import "./StudioResponsive.css";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import BrandColorPicker from "./BrandColorPicker";
 import { brandColor, type BrandColorToken } from "@/lib/studio/brandColors";
@@ -51,6 +53,11 @@ import {
   FileDown,
   CloudUpload,
   CloudCheck,
+  PanelLeft,
+  PanelRight,
+  GalleryHorizontalEnd,
+  MousePointer2,
+  Hand,
 } from "lucide-react";
 import StudioTextContent from "./StudioTextContent";
 import StudioBackgroundEffects from "./StudioBackgroundEffects";
@@ -68,6 +75,8 @@ import type {
   CloudProjectSummary,
 } from "@/lib/studio/cloudTypes";
 import StudioCloudProjectPreview from "./StudioCloudProjectPreview";
+import StudioSlidePreview from "./StudioSlidePreview";
+import StudioToolbarGroup from "./StudioToolbarGroup";
 
 const STUDIO_STORAGE_KEY = "arielaisrael-studio-project-v1";
 
@@ -348,6 +357,107 @@ export default function StudioEditor() {
   const [snapToGrid, setSnapToGrid] = useState(false);
   const [gridSize, setGridSize] = useState(20);
 
+  type ToolbarMenu = "file" | "export" | "add" | "edit" | "view";
+
+  const [activeToolbarMenu, setActiveToolbarMenu] = useState<ToolbarMenu | null>(null);
+
+  const toolbarRef = useRef<HTMLDivElement | null>(null);
+
+  function toggleToolbarMenu(menu: ToolbarMenu) {
+    setActiveToolbarMenu((current) => (current === menu ? null : menu));
+  }
+
+  useEffect(() => {
+    if (!activeToolbarMenu) return;
+
+    function handleOutsidePointer(event: PointerEvent) {
+      if (event.target instanceof Node && !toolbarRef.current?.contains(event.target)) {
+        setActiveToolbarMenu(null);
+      }
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setActiveToolbarMenu(null);
+      }
+    }
+
+    document.addEventListener("pointerdown", handleOutsidePointer);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("pointerdown", handleOutsidePointer);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [activeToolbarMenu]);
+
+  const [layersPanelOpen, setLayersPanelOpen] = useState(true);
+  const [propertiesPanelOpen, setPropertiesPanelOpen] = useState(true);
+  const [slidesPanelOpen, setSlidesPanelOpen] = useState(true);
+
+  const [compactLayout, setCompactLayout] = useState(false);
+
+  const [activeCompactPanel, setActiveCompactPanel] = useState<"layers" | "properties" | null>(
+    null,
+  );
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 1199px)");
+
+    function updateLayout() {
+      setCompactLayout(mediaQuery.matches);
+      setActiveCompactPanel(null);
+    }
+
+    updateLayout();
+
+    mediaQuery.addEventListener("change", updateLayout);
+
+    return () => {
+      mediaQuery.removeEventListener("change", updateLayout);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!activeCompactPanel) return;
+
+    function handlePanelKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setActiveCompactPanel(null);
+      }
+    }
+
+    window.addEventListener("keydown", handlePanelKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handlePanelKeyDown);
+    };
+  }, [activeCompactPanel]);
+
+  function toggleLayersPanel() {
+    if (compactLayout) {
+      setActiveCompactPanel((current) => (current === "layers" ? null : "layers"));
+      return;
+    }
+
+    setLayersPanelOpen((current) => !current);
+  }
+
+  function togglePropertiesPanel() {
+    if (compactLayout) {
+      setActiveCompactPanel((current) => (current === "properties" ? null : "properties"));
+      return;
+    }
+
+    setPropertiesPanelOpen((current) => !current);
+  }
+
+  const layersVisible = compactLayout ? activeCompactPanel === "layers" : layersPanelOpen;
+
+  const propertiesVisible = compactLayout
+    ? activeCompactPanel === "properties"
+    : propertiesPanelOpen;
+
   const [zoom, setZoom] = useState<number | "fit">("fit");
   const workspaceRef = useRef<HTMLElement | null>(null);
   const [workspaceSize, setWorkspaceSize] = useState({
@@ -359,7 +469,7 @@ export default function StudioEditor() {
 
   const [showCenterlines, setShowCenterlines] = useState(false);
 
-  const [showOverflow, setShowOverflow] = useState(true);
+  const [showOverflow, setShowOverflow] = useState(false);
 
   const canvasClipped = !showOverflow || exportingPng || exportingAllSlides;
 
@@ -2500,23 +2610,42 @@ export default function StudioEditor() {
     }
   }
 
-  const workspacePadding = 48;
+  const MIN_ZOOM = 5;
+  const MAX_ZOOM = 400;
 
-  const availableWidth = Math.max(1, workspaceSize.width - workspacePadding);
+  const workspacePadding = workspaceSize.width < 600 ? 16 : 24;
 
-  const availableHeight = Math.max(1, workspaceSize.height - workspacePadding);
+  const overflowPadding = showOverflow
+    ? Math.min(160, Math.round(Math.min(workspaceSize.width, workspaceSize.height) * 0.08))
+    : 0;
 
-  const fitScale = Math.min(availableWidth / canvasSize.width, availableHeight / canvasSize.height);
+  const availableWidth = Math.max(
+    1,
+    workspaceSize.width - (workspacePadding + overflowPadding) * 2,
+  );
+
+  const availableHeight = Math.max(
+    1,
+    workspaceSize.height - (workspacePadding + overflowPadding) * 2,
+  );
+
+  const fitScale = Math.min(
+    availableWidth / canvasSize.width,
+    availableHeight / canvasSize.height,
+    MAX_ZOOM / 100,
+  );
 
   const scale = zoom === "fit" ? fitScale : zoom / 100;
 
   const previewWidth = canvasSize.width * scale;
   const previewHeight = canvasSize.height * scale;
 
-  const displayedZoom = Math.round(scale * 100);
+  const displayedZoom = Math.max(1, Math.round(scale * 100));
+
+  const zoomStep = displayedZoom < 50 ? 5 : 25;
 
   function changeZoom(nextZoom: number) {
-    setZoom(Math.max(25, Math.min(400, nextZoom)));
+    setZoom(Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, nextZoom)));
   }
 
   const selected = elements.find((el) => el.id === selectedId);
@@ -3148,17 +3277,18 @@ export default function StudioEditor() {
     <div
       inert={editorLocked}
       aria-busy={editorLocked}
-      className={editorLocked ? "cursor-wait" : undefined}
+      className={`studio-editor-root ${editorLocked ? "cursor-wait" : ""}`}
     >
       <div
-        className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-4"
+        ref={toolbarRef}
+        className="studio-editor-toolbar flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-3"
         style={{
           background: brandColor("surface"),
           color: brandColor("foreground"),
           borderColor: brandColor("border"),
         }}
       >
-        <div className="flex flex-col">
+        <div className="studio-project-info flex flex-col">
           <span className="font-semibold">Design Editor</span>
           <span className="text-xs opacity-60">
             <div className="flex flex-wrap items-center gap-2">
@@ -3202,7 +3332,7 @@ export default function StudioEditor() {
           </span>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="studio-toolbar-actions">
           <input
             ref={projectFileInputRef}
             type="file"
@@ -3215,341 +3345,460 @@ export default function StudioEditor() {
             }}
           />
 
-          {/* New Project */}
-          <button
-            type="button"
-            onClick={createNewProject}
-            disabled={projectActionsDisabled || cloudLoading}
-            className="studio-control studio-button"
-            title="Create a new blank Studio project"
-          >
-            <FilePlus size={17} />
-            New Project
-          </button>
-
-          {/* Cloud Library */}
-          <button
-            type="button"
-            onClick={() => {
-              setCloudLibraryOpen(true);
-              setCloudNotice(null);
-              void refreshCloudLibrary();
-            }}
-            disabled={projectActionsDisabled || cloudLoading}
-            className="studio-control studio-button"
-            title="Browse your saved cloud projects"
-          >
-            <FolderOpen size={17} />
-            Cloud Library
-          </button>
-
-          {/* Import JSON */}
-          <button
-            type="button"
-            onClick={() => projectFileInputRef.current?.click()}
-            disabled={projectActionsDisabled}
-            className="studio-control studio-button"
-            title="Import a saved Studio JSON project"
-          >
-            <FileUp size={17} />
-            Import JSON
-          </button>
-
-          {/* Download JSON */}
-          <button
-            type="button"
-            onClick={exportProjectJson}
-            disabled={editorLocked}
-            className="studio-control studio-button"
-            title="Download an editable Studio JSON backup"
-          >
-            <FileDown size={17} />
-            Download JSON
-          </button>
-
-          {/* Context-aware cloud save */}
-          <button
-            type="button"
-            onClick={saveProjectToCloud}
-            disabled={cloudSaveButtonDisabled}
-            className="studio-control studio-button"
-            aria-live="polite"
-            title={
-              cloudHasConflict
-                ? "Resolve the cloud revision conflict before saving"
-                : cloudIsSynced
-                  ? "All project changes are saved to the cloud"
-                  : cloudSession
-                    ? "Synchronize current changes to the cloud"
-                    : "Create a cloud-saved project"
-            }
-          >
-            <CloudSaveIcon size={17} className={cloudSaving ? "animate-spin" : ""} />
-
-            {cloudSaveButtonLabel}
-          </button>
-
-          {/* Save as Copy */}
-          {cloudSession && (
-            <button
-              type="button"
-              onClick={saveProjectAsCopy}
-              disabled={projectActionsDisabled || cloudLoading}
-              className="studio-control studio-button"
-              title="Save this design as a separate cloud project"
+          <div className="studio-toolbar-menus">
+            <StudioToolbarGroup
+              label="File"
+              open={activeToolbarMenu === "file"}
+              onToggle={() => toggleToolbarMenu("file")}
             >
-              <Copy size={17} />
-              Save as Copy
-            </button>
-          )}
-
-          <button
-            type="button"
-            onClick={() => void exportSlidePng()}
-            disabled={projectActionsDisabled}
-            className="studio-control studio-button disabled:opacity-40"
-            title="Export active slide as PNG"
-          >
-            <ImageDown size={17} /> {exportingPng ? "Exporting…" : "Export PNG"}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => void exportAllSlidesZip()}
-            disabled={projectActionsDisabled || project.slides.length === 0}
-            className="studio-control studio-button disabled:opacity-40"
-            title="Export every slide as a PNG inside one ZIP file"
-          >
-            <ImageDown size={17} />
-            {exportingAllSlides ? "Exporting Slides…" : `Export All (${project.slides.length})`}
-          </button>
-
-          <button type="button" onClick={addText} className="studio-control studio-button">
-            <Type size={17} strokeWidth={1.8} />
-            <span>Add Text</span>
-          </button>
-
-          <button type="button" onClick={addCard} className="studio-control studio-button">
-            <SquarePlus size={17} strokeWidth={1.8} />
-            <span>Add Card</span>
-          </button>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <select
-              aria-label="Add a shape"
-              defaultValue=""
-              className="studio-field text-sm"
-              onChange={(event) => {
-                if (!event.target.value) return;
-
-                addShape(event.target.value as StudioShapeType);
-                event.target.value = "";
-              }}
-            >
-              <option value="" disabled>
-                + Add Shape
-              </option>
-              <option value="rectangle">Rectangle</option>
-              <option value="rounded-rectangle">Rounded Rectangle</option>
-              <option value="ellipse">Ellipse / Circle</option>
-              <option value="triangle">Triangle</option>
-              <option value="diamond">Diamond</option>
-              <option value="line">Line</option>
-            </select>
-          </div>
-
-          <button
-            type="button"
-            onClick={duplicateSelected}
-            disabled={!selected || selected.locked}
-            className="studio-control studio-button disabled:cursor-not-allowed disabled:opacity-40"
-            title="Duplicate selected element"
-          >
-            <Copy size={17} strokeWidth={1.8} />
-            <span>Duplicate</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={copySelected}
-            disabled={!selected}
-            className="studio-control studio-button disabled:cursor-not-allowed disabled:opacity-40"
-            title="Copy selected element"
-          >
-            <Copy size={17} strokeWidth={1.8} />
-            <span>Copy</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={pasteCopied}
-            disabled={!hasCopiedElement}
-            className="studio-control studio-button disabled:cursor-not-allowed disabled:opacity-40"
-            title="Paste copied element"
-          >
-            <ClipboardPaste size={17} strokeWidth={1.8} />
-            <span>Paste</span>
-          </button>
-
-          <select
-            aria-label="Canvas format"
-            value={canvasPreset}
-            onChange={(event) => updateCanvasPreset(event.target.value as CanvasPreset)}
-            className="studio-field w-auto px-3 py-2 text-sm"
-          >
-            {Object.entries(canvasPresets).map(([key, preset]) => (
-              <option key={key} value={key}>
-                {preset.label} ({preset.width} × {preset.height})
-              </option>
-            ))}
-          </select>
-
-          <div className="studio-control-group flex-wrap gap-3 px-3 py-2">
-            <label className="flex cursor-pointer items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={showGrid}
-                onChange={(event) => setShowGrid(event.target.checked)}
-                className="cursor-pointer accent-[#ED3F98]"
-              />
-              Show Grid
-            </label>
-
-            <label className="flex cursor-pointer items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={snapToGrid}
-                onChange={(event) => setSnapToGrid(event.target.checked)}
-                className="cursor-pointer accent-[#ED3F98]"
-              />
-              Snap
-            </label>
-
-            <label className="flex cursor-pointer items-center gap-2 text-sm accent-[#ED3F98]">
-              <input
-                type="checkbox"
-                checked={showCenterlines}
-                onChange={(event) => setShowCenterlines(event.target.checked)}
-                className="cursor-pointer accent-[#ED3F98]"
-              />
-              Centerlines
-            </label>
-
-            <label className="flex cursor-pointer items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={showOverflow}
-                onChange={(event) => setShowOverflow(event.target.checked)}
-                className="cursor-pointer accent-[#ED3F98]"
-              />
-              Show Overflow
-            </label>
-
-            <label className="flex items-center gap-2 text-sm">
-              Spacing
-              <select
-                aria-label="Grid spacing"
-                value={gridSize}
-                onChange={(event) => setGridSize(Number(event.target.value))}
-                className="studio-field w-auto px-2 py-1 text-sm"
+              {/* New Project */}
+              <button
+                type="button"
+                onClick={createNewProject}
+                disabled={projectActionsDisabled || cloudLoading}
+                className="studio-control studio-button"
+                title="Create a new blank Studio project"
               >
-                {[10, 20, 25, 40, 50, 100].map((size) => (
-                  <option key={size} value={size}>
-                    {size}px
+                <FilePlus size={17} />
+                New Project
+              </button>
+
+              {/* Cloud Library */}
+              <button
+                type="button"
+                onClick={() => {
+                  setCloudLibraryOpen(true);
+                  setCloudNotice(null);
+                  void refreshCloudLibrary();
+                }}
+                disabled={projectActionsDisabled || cloudLoading}
+                className="studio-control studio-button"
+                title="Browse your saved cloud projects"
+              >
+                <FolderOpen size={17} />
+                Cloud Library
+              </button>
+
+              {/* Import JSON */}
+              <button
+                type="button"
+                onClick={() => projectFileInputRef.current?.click()}
+                disabled={projectActionsDisabled}
+                className="studio-control studio-button"
+                title="Import a saved Studio JSON project"
+              >
+                <FileUp size={17} />
+                Import JSON
+              </button>
+
+              {/* Download JSON */}
+              <button
+                type="button"
+                onClick={exportProjectJson}
+                disabled={editorLocked}
+                className="studio-control studio-button"
+                title="Download an editable Studio JSON backup"
+              >
+                <FileDown size={17} />
+                Download JSON
+              </button>
+
+              {/* Context-aware cloud save */}
+              <button
+                type="button"
+                onClick={saveProjectToCloud}
+                disabled={cloudSaveButtonDisabled}
+                className="studio-control studio-button"
+                aria-live="polite"
+                title={
+                  cloudHasConflict
+                    ? "Resolve the cloud revision conflict before saving"
+                    : cloudIsSynced
+                      ? "All project changes are saved to the cloud"
+                      : cloudSession
+                        ? "Synchronize current changes to the cloud"
+                        : "Create a cloud-saved project"
+                }
+              >
+                <CloudSaveIcon size={17} className={cloudSaving ? "animate-spin" : ""} />
+
+                {cloudSaveButtonLabel}
+              </button>
+
+              {/* Save as Copy */}
+              {cloudSession && (
+                <button
+                  type="button"
+                  onClick={saveProjectAsCopy}
+                  disabled={projectActionsDisabled || cloudLoading}
+                  className="studio-control studio-button"
+                  title="Save this design as a separate cloud project"
+                >
+                  <Copy size={17} />
+                  Save as Copy
+                </button>
+              )}
+            </StudioToolbarGroup>
+
+            <StudioToolbarGroup
+              label="Export"
+              open={activeToolbarMenu === "export"}
+              onToggle={() => toggleToolbarMenu("export")}
+            >
+              <button
+                type="button"
+                onClick={() => void exportSlidePng()}
+                disabled={projectActionsDisabled}
+                className="studio-control studio-button disabled:opacity-40"
+                title="Export active slide as PNG"
+              >
+                <ImageDown size={17} /> {exportingPng ? "Exporting…" : "Export PNG"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => void exportAllSlidesZip()}
+                disabled={projectActionsDisabled || project.slides.length === 0}
+                className="studio-control studio-button disabled:opacity-40"
+                title="Export every slide as a PNG inside one ZIP file"
+              >
+                <ImageDown size={17} />
+                {exportingAllSlides ? "Exporting Slides…" : `Export All (${project.slides.length})`}
+              </button>
+            </StudioToolbarGroup>
+
+            <StudioToolbarGroup
+              label="Add"
+              open={activeToolbarMenu === "add"}
+              onToggle={() => toggleToolbarMenu("add")}
+            >
+              <button type="button" onClick={addText} className="studio-control studio-button">
+                <Type size={17} strokeWidth={1.8} />
+                <span>Add Text</span>
+              </button>
+
+              <button type="button" onClick={addCard} className="studio-control studio-button">
+                <SquarePlus size={17} strokeWidth={1.8} />
+                <span>Add Card</span>
+              </button>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <select
+                  aria-label="Add a shape"
+                  defaultValue=""
+                  className="studio-field text-sm"
+                  onChange={(event) => {
+                    if (!event.target.value) return;
+
+                    addShape(event.target.value as StudioShapeType);
+                    event.target.value = "";
+                  }}
+                >
+                  <option value="" disabled>
+                    + Add Shape
+                  </option>
+                  <option value="rectangle">Rectangle</option>
+                  <option value="rounded-rectangle">Rounded Rectangle</option>
+                  <option value="ellipse">Ellipse / Circle</option>
+                  <option value="triangle">Triangle</option>
+                  <option value="diamond">Diamond</option>
+                  <option value="line">Line</option>
+                </select>
+              </div>
+            </StudioToolbarGroup>
+
+            <StudioToolbarGroup
+              label="Edit"
+              open={activeToolbarMenu === "edit"}
+              onToggle={() => toggleToolbarMenu("edit")}
+            >
+              <button
+                type="button"
+                onClick={duplicateSelected}
+                disabled={!selected || selected.locked}
+                className="studio-control studio-button disabled:cursor-not-allowed disabled:opacity-40"
+                title="Duplicate selected element"
+              >
+                <Copy size={17} strokeWidth={1.8} />
+                <span>Duplicate</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={copySelected}
+                disabled={!selected}
+                className="studio-control studio-button disabled:cursor-not-allowed disabled:opacity-40"
+                title="Copy selected element"
+              >
+                <Copy size={17} strokeWidth={1.8} />
+                <span>Copy</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={pasteCopied}
+                disabled={!hasCopiedElement}
+                className="studio-control studio-button disabled:cursor-not-allowed disabled:opacity-40"
+                title="Paste copied element"
+              >
+                <ClipboardPaste size={17} strokeWidth={1.8} />
+                <span>Paste</span>
+              </button>
+            </StudioToolbarGroup>
+
+            <StudioToolbarGroup
+              label="View"
+              open={activeToolbarMenu === "view"}
+              onToggle={() => toggleToolbarMenu("view")}
+            >
+              <select
+                aria-label="Canvas format"
+                value={canvasPreset}
+                onChange={(event) => updateCanvasPreset(event.target.value as CanvasPreset)}
+                className="studio-field w-auto px-3 py-2 text-sm"
+              >
+                {Object.entries(canvasPresets).map(([key, preset]) => (
+                  <option key={key} value={key}>
+                    {preset.label} ({preset.width} × {preset.height})
                   </option>
                 ))}
               </select>
-            </label>
+
+              <div className="studio-control-group flex-wrap gap-3 px-3 py-2">
+                <label className="flex cursor-pointer items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={showGrid}
+                    onChange={(event) => setShowGrid(event.target.checked)}
+                    className="cursor-pointer accent-[#ED3F98]"
+                  />
+                  Show Grid
+                </label>
+
+                <label className="flex cursor-pointer items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={snapToGrid}
+                    onChange={(event) => setSnapToGrid(event.target.checked)}
+                    className="cursor-pointer accent-[#ED3F98]"
+                  />
+                  Snap
+                </label>
+
+                <label className="flex cursor-pointer items-center gap-2 text-sm accent-[#ED3F98]">
+                  <input
+                    type="checkbox"
+                    checked={showCenterlines}
+                    onChange={(event) => setShowCenterlines(event.target.checked)}
+                    className="cursor-pointer accent-[#ED3F98]"
+                  />
+                  Centerlines
+                </label>
+
+                <label className="flex cursor-pointer items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={showOverflow}
+                    onChange={(event) => setShowOverflow(event.target.checked)}
+                    className="cursor-pointer accent-[#ED3F98]"
+                  />
+                  Show Overflow
+                </label>
+
+                <label className="flex items-center gap-2 text-sm">
+                  Spacing
+                  <select
+                    aria-label="Grid spacing"
+                    value={gridSize}
+                    onChange={(event) => setGridSize(Number(event.target.value))}
+                    className="studio-field w-auto px-2 py-1 text-sm"
+                  >
+                    {[10, 20, 25, 40, 50, 100].map((size) => (
+                      <option key={size} value={size}>
+                        {size}px
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            </StudioToolbarGroup>
           </div>
 
-          <div className="studio-control-group p-1">
-            <button
-              type="button"
-              onClick={() => setActiveTool("select")}
-              aria-pressed={activeTool === "select"}
-              className={`hover:text-foreground cursor-pointer rounded-lg px-3 py-2 text-sm transition-colors hover:bg-pink-50 ${
-                activeTool === "select" && "studio-control studio-button"
-              }`}
+          <div className="studio-essential-controls">
+            {/* Selection and Hand Tools */}
+            <div
+              className="studio-control-group studio-tool-controls"
+              role="group"
+              aria-label="Canvas interaction tools"
             >
-              Select
-            </button>
+              <button
+                type="button"
+                onClick={() => setActiveTool("select")}
+                aria-pressed={activeTool === "select"}
+                aria-label="Select tool"
+                title="Select tool"
+                className="studio-tool-button"
+              >
+                <MousePointer2
+                  size={17}
+                  strokeWidth={1.8}
+                  className="studio-tool-symbol"
+                  aria-hidden="true"
+                />
 
-            <button
-              type="button"
-              onClick={() => setActiveTool("hand")}
-              aria-pressed={activeTool === "hand"}
-              className={`hover:text-foreground cursor-pointer rounded-lg px-3 py-2 text-sm transition-colors hover:bg-pink-50 ${
-                activeTool === "hand" && "studio-control studio-button"
-              }`}
+                <span className="studio-tool-label">Select</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTool("hand")}
+                aria-pressed={activeTool === "hand"}
+                aria-label="Hand tool"
+                title="Hand tool"
+                className="studio-tool-button"
+              >
+                <Hand
+                  size={17}
+                  strokeWidth={1.8}
+                  className="studio-tool-symbol"
+                  aria-hidden="true"
+                />
+
+                <span className="studio-tool-label">Hand</span>
+              </button>
+            </div>
+
+            {/* Zoom Controls */}
+            <div
+              className="studio-control-group studio-zoom-controls"
+              role="group"
+              aria-label="Canvas zoom"
             >
-              Hand
-            </button>
-          </div>
+              <button
+                type="button"
+                onClick={() => changeZoom(displayedZoom - zoomStep)}
+                disabled={displayedZoom <= MIN_ZOOM}
+                aria-label="Zoom out"
+                title="Zoom out"
+                className="studio-control studio-zoom-button"
+              >
+                −
+              </button>
 
-          <div className="studio-control-group px-3 py-2">
-            <button
-              type="button"
-              onClick={() => changeZoom(displayedZoom - 25)}
-              disabled={displayedZoom <= 25}
-              aria-label="Zoom out"
-              className="studio-control px-2 py-1"
+              <span className="studio-zoom-value">{displayedZoom}%</span>
+
+              <button
+                type="button"
+                onClick={() => changeZoom(displayedZoom + zoomStep)}
+                disabled={displayedZoom >= MAX_ZOOM}
+                aria-label="Zoom in"
+                title="Zoom in"
+                className="studio-control studio-zoom-button"
+              >
+                +
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setZoom("fit")}
+                aria-pressed={zoom === "fit"}
+                aria-label="Fit canvas to workspace"
+                title="Fit canvas to workspace"
+                className="studio-control studio-zoom-button"
+              >
+                Fit
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setZoom(100)}
+                aria-pressed={zoom === 100}
+                aria-label="Actual size, 100 percent"
+                title="Actual size"
+                className="studio-control studio-zoom-button studio-actual-size"
+              >
+                100%
+              </button>
+            </div>
+
+            {/* History Controls */}
+            <div
+              className="studio-control-group studio-history-controls"
+              role="group"
+              aria-label="Editing history"
             >
-              −
-            </button>
+              <button
+                type="button"
+                onClick={undo}
+                disabled={past.length === 0}
+                aria-label="Undo"
+                title="Undo"
+                className="studio-control studio-icon-button disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <Undo2 size={17} strokeWidth={1.8} />
+              </button>
 
-            <span className="min-w-12 text-center text-sm tabular-nums">{displayedZoom}%</span>
-
-            <button
-              type="button"
-              onClick={() => changeZoom(displayedZoom + 25)}
-              disabled={displayedZoom >= 400}
-              aria-label="Zoom in"
-              className="studio-control px-2 py-1"
-            >
-              +
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setZoom("fit")}
-              className="studio-control px-2 py-1"
-            >
-              Fit
-            </button>
-
-            <button type="button" onClick={() => setZoom(100)} className="studio-control px-2 py-1">
-              100%
-            </button>
-          </div>
-
-          <div className="studio-control-group gap-1 p-1">
-            <button
-              type="button"
-              onClick={undo}
-              disabled={past.length === 0}
-              aria-label="Undo"
-              title="Undo"
-              className="studio-control studio-icon-button disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <Undo2 size={17} strokeWidth={1.8} />
-            </button>
-
-            <button
-              type="button"
-              onClick={redo}
-              disabled={future.length === 0}
-              aria-label="Redo"
-              title="Redo"
-              className="studio-control studio-icon-button disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <Redo2 size={17} strokeWidth={1.8} />
-            </button>
+              <button
+                type="button"
+                onClick={redo}
+                disabled={future.length === 0}
+                aria-label="Redo"
+                title="Redo"
+                className="studio-control studio-icon-button disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <Redo2 size={17} strokeWidth={1.8} />
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
+      <div className="studio-panel-toolbar" role="group" aria-label="Workspace panels">
+        <button
+          type="button"
+          onClick={toggleLayersPanel}
+          aria-pressed={layersVisible}
+          aria-controls="studio-layers-panel"
+          title="Toggle layers panel"
+          className="studio-control studio-button"
+        >
+          <PanelLeft size={17} strokeWidth={1.8} />
+          <span>Layers</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={togglePropertiesPanel}
+          aria-pressed={propertiesVisible}
+          aria-controls="studio-properties-panel"
+          title="Toggle properties panel"
+          className="studio-control studio-button"
+        >
+          <PanelRight size={17} strokeWidth={1.8} />
+          <span>Properties</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setSlidesPanelOpen((current) => !current)}
+          aria-pressed={slidesPanelOpen}
+          aria-controls="studio-slides-panel"
+          title="Toggle slides panel"
+          className="studio-control studio-button"
+        >
+          <GalleryHorizontalEnd size={17} strokeWidth={1.8} />
+          <span>Slides</span>
+        </button>
+
+        <div className="studio-panel-toolbar-spacer" />
+
+        <span className="text-muted hidden text-xs sm:inline">
+          {canvasSize.width} × {canvasSize.height}
+        </span>
+      </div>
+
       <div
-        className="text-muted flex flex-wrap items-center justify-between gap-3 px-4 py-2 text-xs"
+        className="studio-save-status text-muted flex flex-wrap items-center justify-between gap-3 px-4 py-2 text-xs"
         aria-live="polite"
       >
         <div className="flex flex-wrap items-center gap-2">
@@ -3825,12 +4074,41 @@ export default function StudioEditor() {
       )}
 
       <div
-        className="grid min-h-150 items-start gap-4 lg:grid-cols-[220px_minmax(0,1fr)_280px]"
+        className="studio-editor-body"
+        data-compact={compactLayout}
+        data-layers-open={layersVisible}
+        data-properties-open={propertiesVisible}
         style={{ color: brandColor("foreground") }}
       >
+        {compactLayout && activeCompactPanel !== null && (
+          <button
+            type="button"
+            className="studio-panel-backdrop"
+            aria-label="Close editing panel"
+            onClick={() => setActiveCompactPanel(null)}
+          />
+        )}
+
         {/* Layers */}
-        <aside className="studio-panel flex h-150 min-h-0 flex-col p-4">
-          <h2 className="mb-4 shrink-0 font-bold">Layers</h2>
+        <aside
+          id="studio-layers-panel"
+          className="studio-panel studio-layers-panel"
+          hidden={!layersVisible}
+          aria-label="Layers"
+        >
+          <div className="studio-panel-heading">
+            <h2 className="font-bold">Layers</h2>
+
+            <button
+              type="button"
+              onClick={toggleLayersPanel}
+              className="studio-control studio-icon-button"
+              aria-label="Close layers panel"
+              title="Close layers panel"
+            >
+              <X size={16} />
+            </button>
+          </div>
 
           <div className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain pr-1">
             {[...elements].reverse().map((element) => (
@@ -3980,7 +4258,7 @@ export default function StudioEditor() {
         {/* Canvas */}
         <section
           ref={workspaceRef}
-          className="studio-workspace h-150 min-w-0 overflow-auto p-6"
+          className="studio-workspace studio-adaptive-workspace"
           onClick={(event) => {
             if (activeTool !== "select") return;
 
@@ -4001,12 +4279,21 @@ export default function StudioEditor() {
           style={{
             cursor: activeTool === "hand" ? "grab" : "default",
             touchAction: activeTool === "hand" ? "none" : "auto",
+            padding: workspacePadding,
           }}
         >
           <div
-            className="flex min-h-full w-max min-w-full items-center justify-center"
+            className="studio-canvas-stage"
             style={{
-              padding: showOverflow && !canvasClipped ? 160 : 0,
+              padding: overflowPadding,
+              minWidth: Math.max(
+                workspaceSize.width - workspacePadding * 2,
+                previewWidth + overflowPadding * 2,
+              ),
+              minHeight: Math.max(
+                workspaceSize.height - workspacePadding * 2,
+                previewHeight + overflowPadding * 2,
+              ),
             }}
           >
             <div
@@ -4440,8 +4727,25 @@ export default function StudioEditor() {
         </section>
 
         {/* Properties */}
-        <aside className="studio-panel min-h-0 p-4 lg:h-150 lg:overflow-y-auto">
-          <h2 className="mb-4 font-bold">Properties</h2>
+        <aside
+          id="studio-properties-panel"
+          className="studio-panel studio-properties-panel"
+          hidden={!propertiesVisible}
+          aria-label="Properties"
+        >
+          <div className="studio-panel-heading">
+            <h2 className="font-bold">Properties</h2>
+
+            <button
+              type="button"
+              onClick={togglePropertiesPanel}
+              className="studio-control studio-icon-button"
+              aria-label="Close properties panel"
+              title="Close properties panel"
+            >
+              <X size={16} />
+            </button>
+          </div>
 
           {selected ? (
             <div className="space-y-5">
@@ -6423,8 +6727,13 @@ export default function StudioEditor() {
         </aside>
       </div>
       {/* Slides Filmstrip */}
-      <aside className="studio-panel mt-4 min-w-0 p-4">
-        <div className="mb-4 flex items-center justify-between gap-3">
+      <aside
+        id="studio-slides-panel"
+        className="studio-panel studio-slides-panel"
+        hidden={!slidesPanelOpen}
+        aria-label="Slides"
+      >
+        <div className="studio-filmstrip-heading">
           <div className="flex items-center gap-3">
             <h2 className="font-bold">Slides</h2>
 
@@ -6445,14 +6754,14 @@ export default function StudioEditor() {
           </button>
         </div>
 
-        <div className="flex min-w-0 gap-3 overflow-x-auto overscroll-x-contain pb-3">
+        <div className="studio-filmstrip-track">
           {project.slides.map((slide, index) => {
             const isActive = project.activeSlideId === slide.id;
 
             return (
               <div
                 key={slide.id}
-                className="studio-layer relative w-40 shrink-0 flex-col items-stretch gap-2"
+                className="studio-layer studio-slide-card relative shrink-0 flex-col items-stretch gap-2"
                 data-selected={isActive}
                 onDragOver={(event) => {
                   if (!draggedSlideId || draggedSlideId === slide.id) return;
@@ -6508,24 +6817,31 @@ export default function StudioEditor() {
                   aria-current={isActive ? "true" : undefined}
                   title={`Open ${slide.name}`}
                 >
-                  <div
-                    className="border-default flex aspect-4/5 w-full items-center justify-center rounded-lg border"
-                    style={{
-                      backgroundColor: brandColor(slide.backgroundColor),
-                    }}
-                  >
-                    <span className="text-muted text-xs">
-                      {slide.elements.length} {slide.elements.length === 1 ? "element" : "elements"}
-                    </span>
+                  <div className="studio-slide-thumbnail border-default rounded-lg border">
+                    <div
+                      className="studio-slide-preview-frame"
+                      style={{
+                        width: `${(88 * canvasSize.width) / canvasSize.height}px`,
+                      }}
+                    >
+                      <StudioSlidePreview
+                        project={project}
+                        slideId={slide.id}
+                        className="shadow-sm"
+                      />
+                    </div>
                   </div>
                 </button>
 
-                <div className="flex w-full items-center justify-between gap-1">
-                  <span className="min-w-0 flex-1 truncate text-xs font-medium">
+                <div className="studio-slide-footer">
+                  <span
+                    className="w-full truncate text-xs font-medium"
+                    title={`${index + 1}. ${slide.name}`}
+                  >
                     {index + 1}. {slide.name}
                   </span>
 
-                  <div className="flex shrink-0 items-center gap-1">
+                  <div className="studio-slide-actions">
                     <button
                       type="button"
                       onClick={() => moveSlide(slide.id, "left")}

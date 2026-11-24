@@ -846,3 +846,71 @@
     border-radius: 50%;
   }
 }
+
+/* ============================================================
+   Studio — Responsive Application Shell
+   Checkpoint 27.1
+============================================================ */
+
+body:has([data-studio-private]) > [data-site-chrome] {
+  display: none;
+}
+
+body:has([data-studio-private]) {
+  overflow: hidden;
+}
+
+body:has([data-studio-private]) #main-content {
+  height: 100dvh;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.studio-app-shell {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100dvh;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--color-background);
+}
+
+.studio-app-header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.625rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.studio-page {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 0.75rem;
+}
+
+.studio-page-content {
+  width: 100%;
+  min-width: 0;
+  margin-inline: auto;
+}
+
+@media (max-width: 639px) {
+  .studio-app-header {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .studio-page {
+    padding: 0.5rem;
+  }
+}
