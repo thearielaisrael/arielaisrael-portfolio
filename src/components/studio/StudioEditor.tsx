@@ -77,6 +77,8 @@ import type {
 import StudioCloudProjectPreview from "./StudioCloudProjectPreview";
 import StudioSlidePreview from "./StudioSlidePreview";
 import StudioToolbarGroup from "./StudioToolbarGroup";
+import { createId } from "@/lib/studio/createId";
+import useStudioCanvasGestures from "@/lib/studio/hooks/useStudioCanvasGestures";
 
 const STUDIO_STORAGE_KEY = "arielaisrael-studio-project-v1";
 
@@ -350,6 +352,14 @@ export default function StudioEditor() {
   const [editingDraft, setEditingDraft] = useState("");
   const [overflowingTextIds, setOverflowingTextIds] = useState<string[]>([]);
   const inlineEditorRef = useRef<HTMLTextAreaElement | null>(null);
+  const lastTextTapRef = useRef<{
+    elementId: string;
+    pointerType: string;
+    time: number;
+    x: number;
+    y: number;
+  } | null>(null);
+
   const [backgroundColor, setBackgroundColor] = useState<BrandColorToken>("blush-paper");
   const [canvasPreset, setCanvasPreset] = useState<CanvasPreset>("instagramPortrait");
 
@@ -1226,10 +1236,10 @@ export default function StudioEditor() {
 
     if (!window.confirm(message)) return;
 
-    const slideId = crypto.randomUUID();
+    const slideId = createId();
 
     const nextProject: StudioProject = {
-      id: crypto.randomUUID(),
+      id: createId(),
       name: "Untitled Design",
       canvasPreset: "instagramPortrait",
       activeSlideId: slideId,
@@ -1608,7 +1618,7 @@ export default function StudioEditor() {
 
   function addCardEffect(cardId: string, type: "grid" | "pattern") {
     const base: StudioBackgroundEffect = {
-      id: crypto.randomUUID(),
+      id: createId(),
       type,
       enabled: true,
       seed: 1,
@@ -1700,7 +1710,7 @@ export default function StudioEditor() {
     if (!firstStop || !lastStop) return;
 
     const newEffect: StudioBackgroundEffect = {
-      id: crypto.randomUUID(),
+      id: createId(),
       type: "gradient",
       enabled: true,
       seed: 1,
@@ -1731,7 +1741,7 @@ export default function StudioEditor() {
     if (!preset) return;
 
     const newEffect: StudioBackgroundEffect = {
-      id: crypto.randomUUID(),
+      id: createId(),
       type: "ambient-glow",
       enabled: true,
       seed: 1,
@@ -1834,7 +1844,7 @@ export default function StudioEditor() {
 
   function addParticleEffect() {
     const newEffect: StudioBackgroundEffect = {
-      id: crypto.randomUUID(),
+      id: createId(),
       type: "particles",
       enabled: true,
       seed: 1,
@@ -1865,7 +1875,7 @@ export default function StudioEditor() {
 
   function addGridEffect() {
     const newEffect: StudioBackgroundEffect = {
-      id: crypto.randomUUID(),
+      id: createId(),
       type: "grid",
       enabled: true,
       seed: 1,
@@ -1895,7 +1905,7 @@ export default function StudioEditor() {
 
   function addPatternEffect() {
     const newEffect: StudioBackgroundEffect = {
-      id: crypto.randomUUID(),
+      id: createId(),
       type: "pattern",
       enabled: true,
       seed: 1,
@@ -1926,7 +1936,7 @@ export default function StudioEditor() {
 
   function addGradientEffect() {
     const newEffect: StudioBackgroundEffect = {
-      id: crypto.randomUUID(),
+      id: createId(),
       type: "gradient",
       enabled: true,
       seed: 1,
@@ -1983,7 +1993,7 @@ export default function StudioEditor() {
   }
 
   function addSlide() {
-    const newSlideId = crypto.randomUUID();
+    const newSlideId = createId();
 
     setNumericDrafts({});
 
@@ -2041,7 +2051,7 @@ export default function StudioEditor() {
 
     setNumericDrafts({});
 
-    const newSlideId = crypto.randomUUID();
+    const newSlideId = createId();
 
     const duplicatedSlide = {
       ...sourceSlide,
@@ -2049,7 +2059,7 @@ export default function StudioEditor() {
       name: `${sourceSlide.name} Copy`,
       elements: sourceSlide.elements.map((element) => ({
         ...element,
-        id: crypto.randomUUID(),
+        id: createId(),
       })),
     };
 
@@ -2239,9 +2249,36 @@ export default function StudioEditor() {
 
     event.stopPropagation();
 
-    if (element.type === "text" && event.detail >= 2) {
-      startTextEditing(element);
-      return;
+    if (element.type === "text" && (event.pointerType === "touch" || event.pointerType === "pen")) {
+      const now = performance.now();
+      const previousTap = lastTextTapRef.current;
+
+      const isDoubleTap =
+        previousTap !== null &&
+        previousTap.elementId === element.id &&
+        previousTap.pointerType === event.pointerType &&
+        now - previousTap.time <= 350 &&
+        Math.hypot(event.clientX - previousTap.x, event.clientY - previousTap.y) <= 16;
+
+      if (isDoubleTap) {
+        lastTextTapRef.current = null;
+
+        event.preventDefault();
+
+        startTextEditing(element);
+
+        return;
+      }
+
+      lastTextTapRef.current = {
+        elementId: element.id,
+        pointerType: event.pointerType,
+        time: now,
+        x: event.clientX,
+        y: event.clientY,
+      };
+    } else {
+      lastTextTapRef.current = null;
     }
 
     event.preventDefault();
@@ -2278,6 +2315,12 @@ export default function StudioEditor() {
 
     if (!session || session.pointerId !== event.pointerId) {
       return;
+    }
+
+    if (
+      Math.hypot(event.clientX - session.startClientX, event.clientY - session.startClientY) > 8
+    ) {
+      lastTextTapRef.current = null;
     }
 
     const deltaX = (event.clientX - session.startClientX) / session.scale;
@@ -2648,6 +2691,44 @@ export default function StudioEditor() {
     setZoom(Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, nextZoom)));
   }
 
+  function cancelCanvasInteraction() {
+    const startingElements = canvasInteractionStartRef.current;
+
+    // Clear sessions before pointer capture changes.
+    dragSession.current = null;
+    resizeSession.current = null;
+    rotationSession.current = null;
+    panSession.current = null;
+
+    canvasInteractionStartRef.current = null;
+    lastTextTapRef.current = null;
+
+    setAlignmentGuides({
+      vertical: null,
+      horizontal: null,
+    });
+
+    // Restore artwork if a second finger interrupted an edit.
+    if (startingElements) {
+      latestElementsRef.current = startingElements;
+
+      setElements(startingElements);
+
+      syncActiveSlide(startingElements);
+    }
+  }
+
+  const canvasGestures = useStudioCanvasGestures({
+    workspaceRef,
+    canvasRef: canvasExportRef,
+    scale,
+    minZoom: MIN_ZOOM,
+    maxZoom: MAX_ZOOM,
+    disabled: editorLocked,
+    onZoomChange: changeZoom,
+    onCancelInteraction: cancelCanvasInteraction,
+  });
+
   const selected = elements.find((el) => el.id === selectedId);
 
   function updateElement(id: string, changes: Partial<StudioElement>) {
@@ -2745,7 +2826,7 @@ export default function StudioEditor() {
   }, [editingTextId]);
 
   function addText() {
-    const id = crypto.randomUUID();
+    const id = createId();
 
     commitElements([
       ...elements,
@@ -2776,7 +2857,7 @@ export default function StudioEditor() {
   }
 
   function addCard() {
-    const id = crypto.randomUUID();
+    const id = createId();
 
     commitElements([
       ...elements,
@@ -2800,7 +2881,7 @@ export default function StudioEditor() {
   }
 
   function addShape(shape: StudioShapeType) {
-    const id = crypto.randomUUID();
+    const id = createId();
     const isLine = shape === "line";
 
     const width = isLine ? 360 : 280;
@@ -2842,7 +2923,7 @@ export default function StudioEditor() {
 
     const duplicate: StudioElement = {
       ...source,
-      id: crypto.randomUUID(),
+      id: createId(),
       x: source.x + offset,
       y: source.y + offset,
     };
@@ -2879,7 +2960,7 @@ export default function StudioEditor() {
 
     const duplicate: StudioElement = {
       ...source,
-      id: crypto.randomUUID(),
+      id: createId(),
       locked: false,
       visible: true,
       x: source.x + offset,
@@ -3166,7 +3247,7 @@ export default function StudioEditor() {
 
         const duplicate: StudioElement = {
           ...source,
-          id: crypto.randomUUID(),
+          id: createId(),
           locked: false,
           visible: true,
           x: source.x + offset,
@@ -3196,7 +3277,7 @@ export default function StudioEditor() {
 
         const duplicate: StudioElement = {
           ...source,
-          id: crypto.randomUUID(),
+          id: createId(),
           x: source.x + 24,
           y: source.y + 24,
         };
@@ -4256,9 +4337,12 @@ export default function StudioEditor() {
         </aside>
 
         {/* Canvas */}
+
         <section
           ref={workspaceRef}
           className="studio-workspace studio-adaptive-workspace"
+          onClickCapture={canvasGestures.handleClickCapture}
+          onDoubleClickCapture={canvasGestures.handleClickCapture}
           onClick={(event) => {
             if (activeTool !== "select") return;
 
@@ -4269,16 +4353,34 @@ export default function StudioEditor() {
             }
           }}
           onPointerDownCapture={(event) => {
+            const handled = canvasGestures.handlePointerDownCapture(event);
+
+            if (handled) return;
+
             if (activeTool === "hand") {
               handlePanStart(event);
             }
           }}
+          onPointerMoveCapture={(event) => {
+            canvasGestures.handlePointerMoveCapture(event);
+          }}
+          onPointerUpCapture={(event) => {
+            canvasGestures.handlePointerEndCapture(event);
+          }}
+          onPointerCancelCapture={(event) => {
+            canvasGestures.handlePointerEndCapture(event);
+          }}
           onPointerMove={handlePanMove}
           onPointerUp={handlePanEnd}
           onPointerCancel={handlePanEnd}
+          onLostPointerCapture={(event) => {
+            if (panSession.current?.pointerId === event.pointerId) {
+              panSession.current = null;
+            }
+          }}
           style={{
             cursor: activeTool === "hand" ? "grab" : "default",
-            touchAction: activeTool === "hand" ? "none" : "auto",
+            touchAction: "none",
             padding: workspacePadding,
           }}
         >
@@ -4475,7 +4577,7 @@ export default function StudioEditor() {
                                 resizeSession.current = null;
                               }
                             }}
-                            className="absolute -right-1.5 -bottom-1.5 z-10 size-3 cursor-nwse-resize rounded-sm border-2 border-white bg-[#C42B70] shadow-sm"
+                            className="studio-resize-handle"
                             style={{ touchAction: "none" }}
                           />
                         )}
@@ -4568,7 +4670,7 @@ export default function StudioEditor() {
                                 resizeSession.current = null;
                               }
                             }}
-                            className="absolute -right-1.5 -bottom-1.5 z-10 size-3 cursor-nwse-resize rounded-sm border-2 border-white bg-[#C42B70] shadow-sm"
+                            className="studio-resize-handle"
                             style={{ touchAction: "none" }}
                           />
                         )}
@@ -4703,7 +4805,7 @@ export default function StudioEditor() {
                               resizeSession.current = null;
                             }
                           }}
-                          className="absolute -right-1.5 -bottom-1.5 z-10 size-3 cursor-nwse-resize rounded-sm border-2 border-white bg-[#C42B70] shadow-sm"
+                          className="studio-resize-handle"
                           style={{ touchAction: "none" }}
                         />
                       )}

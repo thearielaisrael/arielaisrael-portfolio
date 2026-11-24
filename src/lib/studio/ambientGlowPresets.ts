@@ -1,4 +1,5 @@
 import type { StudioAmbientGlowPreset, StudioAmbientGlowSource } from "./types";
+import { createId } from "@/lib/studio/createId";
 
 type GlowSourceInput = Omit<StudioAmbientGlowSource, "id">;
 
@@ -84,6 +85,6 @@ export function cloneAmbientGlowSources(
 ): StudioAmbientGlowSource[] {
   return preset.sources.map((source) => ({
     ...source,
-    id: crypto.randomUUID(),
+    id: createId(),
   }));
 }

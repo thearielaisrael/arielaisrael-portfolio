@@ -1037,3 +1037,185 @@
     min-height: 44px;
   }
 }
+
+/* ============================================================
+   Checkpoint 27.2 — Canvas Interaction Handles
+============================================================ */
+
+.studio-resize-handle {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 12px;
+  height: 12px;
+  padding: 0;
+
+  transform: translate(50%, 50%);
+
+  border: 0;
+  background: transparent;
+
+  cursor: nwse-resize;
+  touch-action: none;
+}
+
+.studio-resize-handle::before {
+  content: "";
+
+  display: block;
+  width: 12px;
+  height: 12px;
+  box-sizing: border-box;
+
+  border: 2px solid white;
+  border-radius: 3px;
+  background: #c42b70;
+
+  box-shadow: 0 1px 3px rgb(0 0 0 / 18%);
+
+  pointer-events: none;
+}
+
+.studio-resize-handle:focus-visible {
+  outline: 2px solid var(--color-focus-brand);
+  outline-offset: 2px;
+}
+
+/* Devices with touch input */
+
+@media (any-pointer: coarse) {
+  .studio-resize-handle {
+    width: 44px;
+    height: 44px;
+  }
+
+  .studio-resize-handle::before {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+/* Rotation control */
+
+.studio-rotation-control {
+  --rotation-target-size: 28px;
+}
+
+.studio-rotation-handle {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: var(--rotation-target-size);
+  height: var(--rotation-target-size);
+  padding: 0;
+
+  border: 0;
+  background: transparent;
+
+  cursor: grab;
+  touch-action: none;
+}
+
+.studio-rotation-handle:active {
+  cursor: grabbing;
+}
+
+.studio-rotation-symbol {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 28px;
+  height: 28px;
+  box-sizing: border-box;
+
+  border: 2px solid white;
+  border-radius: 50%;
+  background: #c42b70;
+  color: white;
+
+  box-shadow: 0 2px 5px rgb(0 0 0 / 20%);
+
+  pointer-events: none;
+}
+
+.studio-rotation-handle:hover .studio-rotation-symbol {
+  background: #a91f60;
+}
+
+.studio-rotation-stem {
+  position: absolute;
+  top: calc(var(--rotation-target-size) / 2 + 14px);
+  left: 50%;
+
+  width: 1px;
+  min-height: 12px;
+
+  transform: translateX(-50%);
+
+  background: #c42b70;
+
+  pointer-events: none;
+}
+
+.studio-rotation-handle:focus-visible {
+  outline: 2px solid var(--color-focus-brand);
+  outline-offset: 2px;
+  border-radius: 50%;
+}
+
+@media (any-pointer: coarse) {
+  .studio-rotation-control {
+    --rotation-target-size: 44px;
+  }
+}
+
+/* ============================================================
+   Checkpoint 27.2 — Native Touch Interaction
+============================================================ */
+
+.studio-adaptive-workspace {
+  touch-action: none;
+  overscroll-behavior: contain;
+  overflow-anchor: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.studio-canvas-stage {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.studio-adaptive-workspace textarea,
+.studio-adaptive-workspace input,
+.studio-adaptive-workspace [contenteditable="true"] {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.studio-properties-panel,
+.studio-layers-panel,
+.studio-filmstrip-track {
+  touch-action: auto;
+}
+
+@media (any-pointer: coarse) {
+  .studio-tool-button,
+  .studio-zoom-button {
+    min-height: 40px;
+  }
+
+  .studio-panel-heading .studio-icon-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

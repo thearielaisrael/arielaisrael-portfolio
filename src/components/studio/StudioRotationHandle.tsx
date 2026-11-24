@@ -23,7 +23,7 @@ export default function StudioRotationHandle({
   return (
     <div
       data-studio-export-ignore="true"
-      className="absolute left-1/2 z-50 overflow-visible"
+      className="studio-rotation-control absolute left-1/2 z-50 overflow-visible"
       style={{
         top: 0,
         transform: "translate(-50%, -100%)",
@@ -31,11 +31,9 @@ export default function StudioRotationHandle({
       }}
     >
       <div
-        className="absolute left-1/2 w-px bg-[#C42B70]"
+        className="studio-rotation-stem"
         style={{
-          top: 28,
           height: Math.max(4, 48 * scale - 28),
-          transform: "translateX(-50%)",
         }}
       />
 
@@ -47,6 +45,7 @@ export default function StudioRotationHandle({
         onDoubleClick={(event) => {
           event.preventDefault();
           event.stopPropagation();
+
           onReset();
         }}
         onPointerDown={onPointerDown}
@@ -54,10 +53,11 @@ export default function StudioRotationHandle({
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerCancel}
         onLostPointerCapture={onLostPointerCapture}
-        className="relative flex size-7 items-center justify-center rounded-full border-2 border-white bg-[#C42B70] text-white shadow-md hover:bg-[#A91F60]"
-        style={{ touchAction: "none", cursor: "grab" }}
+        className="studio-rotation-handle"
       >
-        <RotateCw size={14} strokeWidth={2.2} />
+        <span className="studio-rotation-symbol">
+          <RotateCw size={14} strokeWidth={2.2} />
+        </span>
       </button>
     </div>
   );

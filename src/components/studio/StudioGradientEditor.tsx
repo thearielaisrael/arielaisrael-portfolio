@@ -1,6 +1,7 @@
 "use client";
 
 import type { StudioGradient } from "@/lib/studio/types";
+import { createId } from "@/lib/studio/createId";
 
 type StudioGradientEditorProps = {
   gradient: StudioGradient;
@@ -43,7 +44,7 @@ export default function StudioGradientEditor({
     }
 
     updateGradient({
-      stops: [...gradient.stops, { id: crypto.randomUUID(), color, position }],
+      stops: [...gradient.stops, { id: createId(), color, position }],
     });
   }
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import type { StudioProject } from "@/lib/studio/types";
+import { createId } from "@/lib/studio/createId";
 
 export const dynamic = "force-dynamic";
 
@@ -71,7 +72,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid Studio project." }, { status: 400 });
   }
 
-  const id = crypto.randomUUID();
+  const id = createId();
 
   const cloudProject = {
     ...project,

@@ -46,6 +46,8 @@ const turbopackSvgrOptions = {
 };
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: ["localhost", "127.0.0.1", "10.0.0.235"],
+
   webpack(config) {
     const fileLoaderRule = config.module.rules.find((rule: { test?: RegExp }) =>
       rule.test?.test?.(".svg"),
