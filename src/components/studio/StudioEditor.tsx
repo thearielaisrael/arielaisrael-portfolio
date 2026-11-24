@@ -359,6 +359,10 @@ export default function StudioEditor() {
 
   const [showCenterlines, setShowCenterlines] = useState(false);
 
+  const [showOverflow, setShowOverflow] = useState(true);
+
+  const canvasClipped = !showOverflow || exportingPng || exportingAllSlides;
+
   const [alignmentGuides, setAlignmentGuides] = useState<AlignmentGuides>({
     vertical: null,
     horizontal: null,
@@ -1247,7 +1251,10 @@ export default function StudioEditor() {
     }
 
     exportBusyRef.current = true;
-    setExportingPng(true);
+
+    flushSync(() => {
+      setExportingPng(true);
+    });
     const previouslySelected = selectedId;
     const previousGrid = showGrid;
     const previousCenterlines = showCenterlines;
@@ -1263,7 +1270,11 @@ export default function StudioEditor() {
       if (!node) throw new Error("Canvas is unavailable.");
       const image = await toPng(node, {
         cacheBust: true,
-        pixelRatio: 1 / scale,
+        width: previewWidth,
+        height: previewHeight,
+        canvasWidth: canvasSize.width,
+        canvasHeight: canvasSize.height,
+        pixelRatio: 1,
         backgroundColor: brandColor(backgroundColor),
         filter: (element) =>
           !(element instanceof HTMLElement && element.dataset.studioExportIgnore === "true"),
@@ -1362,7 +1373,11 @@ export default function StudioEditor() {
 
         const dataUrl = await toPng(canvas, {
           cacheBust: true,
-          pixelRatio: 1 / scale,
+          width: previewWidth,
+          height: previewHeight,
+          canvasWidth: canvasSize.width,
+          canvasHeight: canvasSize.height,
+          pixelRatio: 1,
           backgroundColor: brandColor(slide.backgroundColor),
           filter: (node) =>
             !(node instanceof HTMLElement && node.dataset.studioExportIgnore === "true"),
@@ -2212,16 +2227,13 @@ export default function StudioEditor() {
     const updated = latestElementsRef.current.map((element) => {
       if (element.id !== session.elementId) return element;
 
-      const maxX = Math.max(0, canvasSize.width - element.width);
-      const maxY = Math.max(0, canvasSize.height - element.height);
-
       const nextX = snapValue(session.startX + deltaX);
       const nextY = snapValue(session.startY + deltaY);
 
       return {
         ...element,
-        x: Math.max(0, Math.min(maxX, nextX)),
-        y: Math.max(0, Math.min(maxY, nextY)),
+        x: nextX,
+        y: nextY,
       };
     });
 
@@ -2307,19 +2319,18 @@ export default function StudioEditor() {
         return element;
       }
 
-      const maxWidth = Math.max(80, canvasSize.width - element.x);
-      const maxHeight = Math.max(40, canvasSize.height - element.y);
-
-      const newWidth = Math.max(
-        80,
-        Math.min(maxWidth, snapValue(element.x + session.startWidth + deltaX) - element.x),
-      );
+      const minimumWidth = element.type === "shape" ? 12 : 80;
 
       const minimumHeight = element.type === "card" ? 60 : element.type === "shape" ? 12 : 40;
 
+      const newWidth = Math.max(
+        minimumWidth,
+        snapValue(element.x + session.startWidth + deltaX) - element.x,
+      );
+
       const newHeight = Math.max(
         minimumHeight,
-        Math.min(maxHeight, snapValue(element.y + session.startHeight + deltaY) - element.y),
+        snapValue(element.y + session.startHeight + deltaY) - element.y,
       );
 
       return {
@@ -2543,29 +2554,34 @@ export default function StudioEditor() {
   function commitNumericDraft(
     key: string,
     elementId: string,
-    property: "fontSize" | "lineHeight" | "letterSpacing" | "width" | "height",
+    property: "fontSize" | "lineHeight" | "letterSpacing" | "width" | "height" | "x" | "y",
     currentValue: number,
-    min: number,
-    max: number,
+    min = Number.NEGATIVE_INFINITY,
+    max = Number.POSITIVE_INFINITY,
   ) {
     const draft = numericDrafts[key];
 
     if (draft === undefined) return;
 
     const trimmed = draft.trim();
+
     const parsed = trimmed === "" ? NaN : Number(trimmed);
 
     if (Number.isFinite(parsed)) {
       const clamped = Math.max(min, Math.min(max, parsed));
 
       if (clamped !== currentValue) {
-        commitElementUpdate(elementId, { [property]: clamped });
+        commitElementUpdate(elementId, {
+          [property]: clamped,
+        });
       }
     }
 
     setNumericDrafts((previous) => {
       const next = { ...previous };
+
       delete next[key];
+
       return next;
     });
   }
@@ -2698,8 +2714,8 @@ export default function StudioEditor() {
     const duplicate: StudioElement = {
       ...source,
       id: crypto.randomUUID(),
-      x: Math.max(0, Math.min(canvasSize.width - source.width, source.x + offset)),
-      y: Math.max(0, Math.min(canvasSize.height - source.height, source.y + offset)),
+      x: source.x + offset,
+      y: source.y + offset,
     };
 
     const sourceIndex = elements.findIndex((element) => element.id === selectedId);
@@ -2737,8 +2753,8 @@ export default function StudioEditor() {
       id: crypto.randomUUID(),
       locked: false,
       visible: true,
-      x: Math.max(0, Math.min(canvasSize.width - source.width, source.x + offset)),
-      y: Math.max(0, Math.min(canvasSize.height - source.height, source.y + offset)),
+      x: source.x + offset,
+      y: source.y + offset,
     };
 
     commitElements([...elements, duplicate]);
@@ -2909,6 +2925,56 @@ export default function StudioEditor() {
 
       if (editingTextId !== null) return;
 
+      // Arrow keys nudge the selected element.
+      if (
+        ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key) &&
+        !event.metaKey &&
+        !event.ctrlKey &&
+        !event.altKey
+      ) {
+        if (!selectedId) return;
+
+        const currentElements = latestElementsRef.current;
+
+        const selectedElement = currentElements.find((element) => element.id === selectedId);
+
+        if (!selectedElement || selectedElement.locked || !selectedElement.visible) {
+          return;
+        }
+
+        event.preventDefault();
+
+        const distance = event.shiftKey ? 10 : 1;
+
+        const deltaX =
+          event.key === "ArrowLeft" ? -distance : event.key === "ArrowRight" ? distance : 0;
+
+        const deltaY =
+          event.key === "ArrowUp" ? -distance : event.key === "ArrowDown" ? distance : 0;
+
+        const updated = currentElements.map((element) =>
+          element.id === selectedId
+            ? {
+                ...element,
+                x: element.x + deltaX,
+                y: element.y + deltaY,
+              }
+            : element,
+        );
+
+        setPast((previous) => [...previous.slice(-49), currentElements]);
+
+        setFuture([]);
+
+        latestElementsRef.current = updated;
+
+        setElements(updated);
+
+        syncActiveSlide(updated);
+
+        return;
+      }
+
       // Delete or Backspace removes the selected canvas element.
       if (
         (event.key === "Delete" || event.key === "Backspace") &&
@@ -2974,8 +3040,8 @@ export default function StudioEditor() {
           id: crypto.randomUUID(),
           locked: false,
           visible: true,
-          x: Math.max(0, Math.min(canvasSize.width - source.width, source.x + offset)),
-          y: Math.max(0, Math.min(canvasSize.height - source.height, source.y + offset)),
+          x: source.x + offset,
+          y: source.y + offset,
         };
 
         const updated = [...elements, duplicate];
@@ -3002,8 +3068,8 @@ export default function StudioEditor() {
         const duplicate: StudioElement = {
           ...source,
           id: crypto.randomUUID(),
-          x: Math.max(0, Math.min(canvasSize.width - source.width, source.x + 24)),
-          y: Math.max(0, Math.min(canvasSize.height - source.height, source.y + 24)),
+          x: source.x + 24,
+          y: source.y + 24,
         };
 
         const sourceIndex = elements.findIndex((element) => element.id === selectedId);
@@ -3057,17 +3123,7 @@ export default function StudioEditor() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [
-    elements,
-    past,
-    future,
-    editingTextId,
-    selectedId,
-    canvasSize.width,
-    canvasSize.height,
-    syncActiveSlide,
-    editorLocked,
-  ]);
+  }, [elements, past, future, editingTextId, selectedId, syncActiveSlide, editorLocked]);
 
   useEffect(() => {
     const workspace = workspaceRef.current;
@@ -3377,6 +3433,16 @@ export default function StudioEditor() {
                 className="cursor-pointer accent-[#ED3F98]"
               />
               Centerlines
+            </label>
+
+            <label className="flex cursor-pointer items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={showOverflow}
+                onChange={(event) => setShowOverflow(event.target.checked)}
+                className="cursor-pointer accent-[#ED3F98]"
+              />
+              Show Overflow
             </label>
 
             <label className="flex items-center gap-2 text-sm">
@@ -3937,28 +4003,41 @@ export default function StudioEditor() {
             touchAction: activeTool === "hand" ? "none" : "auto",
           }}
         >
-          <div className="flex min-h-full w-max min-w-full items-center justify-center">
+          <div
+            className="flex min-h-full w-max min-w-full items-center justify-center"
+            style={{
+              padding: showOverflow && !canvasClipped ? 160 : 0,
+            }}
+          >
             <div
-              className="relative shrink-0 overflow-hidden shadow-xl"
+              className={`relative isolate shrink-0 shadow-xl ${
+                canvasClipped ? "overflow-hidden" : "overflow-visible"
+              }`}
               style={{
                 width: previewWidth,
                 height: previewHeight,
-
                 background: brandColor(backgroundColor),
               }}
               ref={canvasExportRef}
               data-studio-canvas="true"
+
               onClick={() => {
                 if (activeTool === "select") {
                   setSelectedId(null);
                 }
               }}
             >
-              <StudioBackgroundEffects
-                effects={activeSlide?.backgroundEffects ?? []}
-                canvasWidth={canvasSize.width}
-                canvasHeight={canvasSize.height}
-              />
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 overflow-hidden"
+              >
+                <StudioBackgroundEffects
+                  effects={activeSlide?.backgroundEffects ?? []}
+                  canvasWidth={canvasSize.width}
+                  canvasHeight={canvasSize.height}
+                />
+              </div>
+
               {showGrid && (
                 <div
                   aria-hidden="true"
@@ -4344,6 +4423,18 @@ export default function StudioEditor() {
                     </div>
                   );
                 })}
+
+              {showOverflow && !canvasClipped && (
+                <div
+                  aria-hidden="true"
+                  data-studio-export-ignore="true"
+                  className="pointer-events-none absolute inset-0 z-40"
+                  style={{
+                    outline: "1px solid var(--color-border-strong)",
+                    outlineOffset: -1,
+                  }}
+                />
+              )}
             </div>
           </div>
         </section>
@@ -5040,76 +5131,121 @@ export default function StudioEditor() {
                 </label>
               )}
 
-              <label className="block text-sm">
-                Width: {selected.width}px
-                <input
-                  type="number"
-                  min={80}
-                  max={canvasSize.width - selected.x}
-                  value={numericDrafts[`${selected.id}-width`] ?? selected.width}
-                  disabled={selected.locked}
-                  onChange={(event) => {
-                    setNumericDrafts((previous) => ({
-                      ...previous,
-                      [`${selected.id}-width`]: event.target.value,
-                    }));
-                  }}
-                  onBlur={() =>
-                    commitNumericDraft(
-                      `${selected.id}-width`,
-                      selected.id,
-                      "width",
-                      selected.width,
-                      80,
-                      Math.max(80, canvasSize.width - selected.x),
-                    )
-                  }
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") {
-                      event.currentTarget.blur();
-                    }
-                  }}
-                  className="studio-field"
-                />
-              </label>
+              <div className="grid grid-cols-2 gap-3">
+                {(["x", "y"] as const).map((property) => {
+                  const draftKey = `${selected.id}-${property}`;
 
-              <label className="block text-sm">
-                Height: {selected.height}px
-                <input
-                  type="number"
-                  min={selected.type === "card" ? 60 : 40}
-                  max={canvasSize.height - selected.y}
-                  value={numericDrafts[`${selected.id}-height`] ?? selected.height}
-                  disabled={selected.locked}
-                  onChange={(event) => {
-                    setNumericDrafts((previous) => ({
-                      ...previous,
-                      [`${selected.id}-height`]: event.target.value,
-                    }));
-                  }}
-                  onBlur={() =>
-                    commitNumericDraft(
-                      `${selected.id}-height`,
-                      selected.id,
-                      "height",
-                      selected.height,
-                      selected.type === "card" ? 60 : 40,
-                      Math.max(selected.type === "card" ? 60 : 40, canvasSize.height - selected.y),
-                    )
-                  }
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") {
-                      event.currentTarget.blur();
-                    }
-                  }}
-                  className="studio-field"
-                />
-              </label>
+                  return (
+                    <label key={property} className="block min-w-0 text-sm">
+                      <span className="uppercase">{property}</span>
 
-              {(["x", "y", "rotation", "opacity"] as const).map((property) => {
+                      <div className="relative mt-1">
+                        <input
+                          type="number"
+                          step={1}
+                          value={numericDrafts[draftKey] ?? selected[property]}
+                          disabled={selected.locked}
+                          onChange={(event) => {
+                            setNumericDrafts((previous) => ({
+                              ...previous,
+                              [draftKey]: event.target.value,
+                            }));
+                          }}
+                          onBlur={() =>
+                            commitNumericDraft(draftKey, selected.id, property, selected[property])
+                          }
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter") {
+                              event.currentTarget.blur();
+                            }
+                          }}
+                          className="studio-field w-full pr-9"
+                        />
+
+                        <span className="text-muted pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs">
+                          px
+                        </span>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                {(["width", "height"] as const).map((property) => {
+                  const minimum =
+                    property === "width"
+                      ? selected.type === "shape"
+                        ? 12
+                        : 80
+                      : selected.type === "card"
+                        ? 60
+                        : selected.type === "shape"
+                          ? 12
+                          : 40;
+
+                  const draftKey = `${selected.id}-${property}`;
+
+                  return (
+                    <label key={property} className="block min-w-0 text-sm">
+                      <span className="capitalize">{property}</span>
+
+                      <div className="relative mt-1">
+                        <input
+                          type="number"
+                          min={minimum}
+                          step={1}
+                          value={numericDrafts[draftKey] ?? selected[property]}
+                          disabled={selected.locked}
+                          onChange={(event) => {
+                            setNumericDrafts((previous) => ({
+                              ...previous,
+                              [draftKey]: event.target.value,
+                            }));
+                          }}
+                          onBlur={() =>
+                            commitNumericDraft(
+                              draftKey,
+                              selected.id,
+                              property,
+                              selected[property],
+                              minimum,
+                            )
+                          }
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter") {
+                              event.currentTarget.blur();
+                            }
+                          }}
+                          className="studio-field w-full pr-9"
+                        />
+
+                        <span className="text-muted pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs">
+                          px
+                        </span>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+
+              <button
+                type="button"
+                disabled={selected.locked}
+                onClick={() => {
+                  commitElementUpdate(selected.id, {
+                    x: Math.round((canvasSize.width - selected.width) / 2),
+                    y: Math.round((canvasSize.height - selected.height) / 2),
+                  });
+                }}
+                className="studio-control studio-button w-full text-xs"
+                title="Move the selected element to the center of the canvas"
+              >
+                Center on Canvas
+              </button>
+
+              {(["rotation", "opacity"] as const).map((property) => {
                 const ranges = {
-                  x: [0, canvasSize.width],
-                  y: [0, canvasSize.height],
                   rotation: [-180, 180],
                   opacity: [0, 100],
                 };

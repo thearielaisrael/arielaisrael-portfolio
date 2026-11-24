@@ -72,6 +72,9 @@
   --color-text-charcoal: #241c22;
   --color-deep-plum: #351827;
 
+  /* Studio workspace */
+  --color-studio-workspace: #e5e5e5;
+
   /* ----------------------------------------------------------
      Pink Academia interface mappings
   ---------------------------------------------------------- */
@@ -216,6 +219,8 @@
 
   --color-muted: var(--color-muted-orchid-gray);
   --color-subtle: rgba(217, 200, 210, 0.78);
+
+  --color-studio-workspace: #292929;
 
   /* ----------------------------------------------------------
      Dark mode brand mappings
@@ -816,8 +821,9 @@
   .studio-workspace {
     border: 1px solid var(--color-border);
     border-radius: 1.25rem;
-    background-color: var(--color-aura-mist);
+    background-color: var(--color-studio-workspace);
   }
+
   /* Color Swatch */
   .studio-color-swatch {
     appearance: none;
