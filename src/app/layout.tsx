@@ -1,66 +1,10 @@
 import type { Metadata, Viewport } from "next";
 
-import {
-  Cormorant_Garamond,
-  DM_Sans,
-  Geist_Mono,
-  Great_Vibes,
-  Nunito_Sans,
-  Playfair_Display,
-  Plus_Jakarta_Sans,
-} from "next/font/google";
-
+import "./fonts.css";
 import "./globals.css";
 
 import Footer from "../components/nav/Footer";
 import Header from "../components/nav/Header";
-
-const plusJakartaSans = Plus_Jakarta_Sans({
-  variable: "--font-heading",
-  subsets: ["latin"],
-  weight: ["200", "300", "400", "500", "600", "700", "800"],
-  style: ["normal", "italic"],
-});
-
-const nunitoSans = Nunito_Sans({
-  variable: "--font-nunito-sans",
-  subsets: ["latin"],
-  weight: ["200", "300", "400", "500", "600", "700", "800", "900"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
-});
-
-const cormorantGaramond = Cormorant_Garamond({
-  variable: "--font-cormorant-garamond",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  display: "swap",
-});
-
-const playfairDisplay = Playfair_Display({
-  variable: "--font-playfair-display",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
-  display: "swap",
-});
-
-const dmSans = DM_Sans({
-  variable: "--font-dm-sans",
-  subsets: ["latin"],
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
-  display: "swap",
-});
-
-const greatVibes = Great_Vibes({
-  variable: "--font-great-vibes",
-  subsets: ["latin"],
-  weight: "400",
-  display: "swap",
-});
 
 const siteUrl = "https://www.thearielaisrael.com";
 
@@ -203,9 +147,7 @@ export default function RootLayout({
         />
       </head>
 
-      <body
-        className={`${plusJakartaSans.variable} ${nunitoSans.variable} ${geistMono.variable} ${cormorantGaramond.variable} ${playfairDisplay.variable} ${dmSans.variable} ${greatVibes.variable} bg-background text-foreground overflow-x-hidden overflow-y-scroll antialiased`}
-      >
+      <body className="bg-background text-foreground overflow-x-hidden overflow-y-scroll antialiased">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

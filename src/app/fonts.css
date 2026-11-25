@@ -1,0 +1,61 @@
+
+/* ============================================================
+   Ariela Israel
+   Shared Portfolio & Social Design Studio Typography
+
+   Self-hosted font assets via Fontsource.
+============================================================ */
+
+/* ============================================================
+   Font assets
+============================================================ */
+
+@import "@fontsource-variable/plus-jakarta-sans";
+@import "@fontsource-variable/plus-jakarta-sans/wght-italic.css";
+
+@import "@fontsource-variable/nunito-sans";
+@import "@fontsource-variable/geist-mono";
+@import "@fontsource-variable/cormorant-garamond";
+@import "@fontsource-variable/playfair-display";
+@import "@fontsource-variable/dm-sans";
+
+@import "@fontsource/great-vibes/400.css";
+
+/* ============================================================
+   Shared typography tokens
+============================================================ */
+
+:root {
+  --font-heading:
+    "Plus Jakarta Sans Variable",
+    Arial,
+    sans-serif;
+
+  --font-nunito-sans:
+    "Nunito Sans Variable",
+    Arial,
+    sans-serif;
+
+  --font-geist-mono:
+    "Geist Mono Variable",
+    monospace;
+
+  --font-cormorant-garamond:
+    "Cormorant Garamond Variable",
+    Georgia,
+    serif;
+
+  --font-playfair-display:
+    "Playfair Display Variable",
+    Georgia,
+    serif;
+
+  --font-dm-sans:
+    "DM Sans Variable",
+    Arial,
+    sans-serif;
+
+  --font-great-vibes:
+    "Great Vibes",
+    cursive;
+}
