@@ -12,6 +12,8 @@ import StudioProjectCard from "./StudioProjectCard";
 import StudioSidebar from "../workspace/StudioSidebar";
 import StudioRecentTemplates from "./StudioRecentTemplates";
 
+import StudioInstallCard from "../pwa/StudioInstallCard";
+
 type LibraryState =
   | { status: "loading" }
   | {
@@ -119,6 +121,8 @@ export default function StudioDashboard() {
           </div>
         </section>
 
+        <StudioInstallCard />
+
         <StudioQuickCreate />
 
         <section aria-labelledby="studio-projects-heading" aria-busy={library.status === "loading"}>
@@ -197,7 +201,7 @@ export default function StudioDashboard() {
             </div>
           )}
         </section>
-        
+
         <StudioRecentTemplates />
       </div>
     </main>

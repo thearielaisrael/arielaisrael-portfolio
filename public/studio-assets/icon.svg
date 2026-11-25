@@ -1,0 +1,83 @@
+
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="512"
+  height="512"
+  viewBox="0 0 512 512"
+>
+  <defs>
+    <linearGradient
+      id="background"
+      x1="0"
+      y1="0"
+      x2="1"
+      y2="1"
+    >
+      <stop offset="0%" stop-color="#F49CC5"/>
+      <stop offset="52%" stop-color="#D94F94"/>
+      <stop offset="100%" stop-color="#A91F60"/>
+    </linearGradient>
+  </defs>
+
+  <rect
+    width="512"
+    height="512"
+    rx="110"
+    fill="url(#background)"
+  />
+
+  <rect
+    x="154"
+    y="119"
+    width="189"
+    height="245"
+    rx="21"
+    stroke="#FFE5F2"
+    stroke-width="10"
+    fill="none"
+    transform="rotate(12 248 241)"
+  />
+
+  <rect
+    x="129"
+    y="145"
+    width="189"
+    height="245"
+    rx="21"
+    fill="#FFF4FA"
+  />
+
+  <path
+    d="M223 187
+       Q237 234 278 245
+       Q237 258 223 301
+       Q210 258 168 245
+       Q210 234 223 187Z"
+    fill="#C42B70"
+  />
+
+  <path
+    d="M324 98
+       Q331 124 355 132
+       Q331 139 324 164
+       Q317 139 293 132
+       Q317 124 324 98Z"
+    fill="#FFFFFF"
+  />
+
+  <path
+    d="M346 185
+       Q350 200 365 205
+       Q350 209 346 225
+       Q342 209 327 205
+       Q342 200 346 185Z"
+    fill="#FFE7F3"
+  />
+
+  <path
+    d="M166 330 H280 M166 348 H252"
+    stroke="#D78AAF"
+    stroke-width="9"
+    stroke-linecap="round"
+  />
+</svg>

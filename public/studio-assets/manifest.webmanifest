@@ -1,0 +1,53 @@
+{
+  "id": "/studio",
+  "name": "Social Design Studio",
+  "short_name": "Social Studio",
+  "description": "Your private creative workspace for designing beautiful social media content.",
+  "lang": "en-US",
+  "dir": "ltr",
+  "start_url": "/studio",
+  "scope": "/studio",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#FFF7FA",
+  "theme_color": "#FFF7FA",
+  "prefer_related_applications": false,
+  "categories": ["design", "productivity", "graphics"],
+  "icons": [
+    {
+      "src": "/studio-assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/studio-assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/studio-assets/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Create a design",
+      "short_name": "Create",
+      "url": "/studio/editor?preset=instagramPortrait"
+    },
+    {
+      "name": "My projects",
+      "short_name": "Projects",
+      "url": "/studio/projects"
+    },
+    {
+      "name": "My templates",
+      "short_name": "Templates",
+      "url": "/studio/templates"
+    }
+  ]
+}
