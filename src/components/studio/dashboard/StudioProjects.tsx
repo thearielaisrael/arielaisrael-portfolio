@@ -15,6 +15,7 @@ import {
   Search,
   Star,
   Trash2,
+  LayoutTemplate,
 } from "lucide-react";
 
 import { canvasPresets } from "@/lib/studio/canvasPresets";
@@ -41,6 +42,7 @@ import {
 import StudioSidebar from "../workspace/StudioSidebar";
 import StudioLibraryDialog from "./StudioLibraryDialog";
 import StudioLibraryProjectCard from "./StudioLibraryProjectCard";
+import { createStudioTemplate } from "@/lib/studio/templateLibrary";
 
 type LibraryData = {
   projects: CloudProjectSummary[];
@@ -55,7 +57,11 @@ type LibraryDialog =
   | { type: "delete-project"; project: CloudProjectSummary }
   | { type: "create-folder" }
   | { type: "rename-folder"; folder: StudioFolder }
-  | { type: "delete-folder"; folder: StudioFolder };
+  | { type: "delete-folder"; folder: StudioFolder }
+  | {
+      type: "save-template";
+      project: CloudProjectSummary;
+    };
 
 export default function StudioProjects() {
   const [library, setLibrary] = useState<LibraryData>({
@@ -79,6 +85,10 @@ export default function StudioProjects() {
   const [dialog, setDialog] = useState<LibraryDialog | null>(null);
 
   const [draft, setDraft] = useState("");
+
+  const [templateDescription, setTemplateDescription] = useState("");
+
+  const [templateCategory, setTemplateCategory] = useState("");
   const [dialogError, setDialogError] = useState<string | null>(null);
 
   const [busy, setBusy] = useState(false);
@@ -204,6 +214,8 @@ export default function StudioProjects() {
 
     setDialog(nextDialog);
     setDraft(initialDraft);
+    setTemplateDescription("");
+    setTemplateCategory("");
     setDialogError(null);
     setActionError(null);
     setNotice(null);
@@ -278,7 +290,8 @@ export default function StudioProjects() {
       dialog.type === "rename-project" ||
       dialog.type === "duplicate-project" ||
       dialog.type === "create-folder" ||
-      dialog.type === "rename-folder";
+      dialog.type === "rename-folder" ||
+      dialog.type === "save-template";
 
     if (needsName && !value) {
       setDialogError("Please enter a name.");
@@ -363,6 +376,22 @@ export default function StudioProjects() {
           true,
         );
         break;
+
+      case "save-template":
+        void runMutation(
+          async () => {
+            await createStudioTemplate({
+              projectId: dialog.project.id,
+              expectedRevision: dialog.project.revision,
+              name: value,
+              description: templateDescription,
+              category: templateCategory,
+            });
+          },
+          "Template saved. Find it in your Templates library.",
+          true,
+        );
+        break;
     }
   }
 
@@ -375,6 +404,7 @@ export default function StudioProjects() {
     "create-folder": "Create folder",
     "rename-folder": "Rename folder",
     "delete-folder": "Delete folder",
+    "save-template": "Save as template",
   };
 
   const destructive = dialog?.type === "delete-project" || dialog?.type === "delete-folder";
@@ -812,6 +842,22 @@ export default function StudioProjects() {
                 onClick={() =>
                   openDialog(
                     {
+                      type: "save-template",
+                      project: dialog.project,
+                    },
+                    dialog.project.name,
+                  )
+                }
+              >
+                <LayoutTemplate size={18} />
+                Save as template
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  openDialog(
+                    {
                       type: "move-project",
                       project: dialog.project,
                     },
@@ -875,7 +921,13 @@ export default function StudioProjects() {
                 </p>
               ) : (
                 <label className="studio-library-field">
-                  <span>{folderNameDialog ? "Folder name" : "Project name"}</span>
+                  <span>
+                    {folderNameDialog
+                      ? "Folder name"
+                      : dialog.type === "save-template"
+                        ? "Template name"
+                        : "Project name"}
+                  </span>
 
                   <input
                     key={dialog.type}
@@ -887,6 +939,41 @@ export default function StudioProjects() {
                     onChange={(event) => setDraft(event.target.value)}
                   />
                 </label>
+              )}
+
+              {dialog.type === "save-template" && (
+                <>
+                  <p className="studio-library-confirmation">
+                    A reusable snapshot of your saved cloud design will be created. Your original
+                    project will remain unchanged.
+                  </p>
+
+                  <label className="studio-library-field">
+                    <span>Category (optional)</span>
+
+                    <input
+                      type="text"
+                      value={templateCategory}
+                      maxLength={100}
+                      placeholder="e.g. Research communication"
+                      disabled={busy}
+                      onChange={(event) => setTemplateCategory(event.target.value)}
+                    />
+                  </label>
+
+                  <label className="studio-library-field">
+                    <span>Description (optional)</span>
+
+                    <textarea
+                      value={templateDescription}
+                      maxLength={1000}
+                      rows={3}
+                      placeholder="Describe how this template can be used..."
+                      disabled={busy}
+                      onChange={(event) => setTemplateDescription(event.target.value)}
+                    />
+                  </label>
+                </>
               )}
 
               {dialogError && (
@@ -922,7 +1009,9 @@ export default function StudioProjects() {
                           ? "Duplicate"
                           : dialog.type === "move-project"
                             ? "Move project"
-                            : "Save changes"}
+                            : dialog.type === "save-template"
+                              ? "Save template"
+                              : "Save changes"}
                 </button>
               </div>
             </form>

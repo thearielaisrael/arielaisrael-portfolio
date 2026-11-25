@@ -3,7 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { FolderOpen, LayoutDashboard, PencilLine, Plus, Sparkles } from "lucide-react";
+import {
+  FolderOpen,
+  LayoutDashboard,
+  PencilLine,
+  Plus,
+  Sparkles,
+  LayoutTemplate,
+} from "lucide-react";
 
 const navigation = [
   {
@@ -15,6 +22,11 @@ const navigation = [
     label: "All projects",
     href: "/studio/projects",
     icon: FolderOpen,
+  },
+  {
+    label: "Templates",
+    href: "/studio/templates",
+    icon: LayoutTemplate,
   },
   {
     label: "Design editor",

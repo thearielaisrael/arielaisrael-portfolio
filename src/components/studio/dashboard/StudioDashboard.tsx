@@ -10,6 +10,7 @@ import type { CloudProjectSummary } from "@/lib/studio/cloudTypes";
 import StudioQuickCreate from "./StudioQuickCreate";
 import StudioProjectCard from "./StudioProjectCard";
 import StudioSidebar from "../workspace/StudioSidebar";
+import StudioRecentTemplates from "./StudioRecentTemplates";
 
 type LibraryState =
   | { status: "loading" }
@@ -196,6 +197,8 @@ export default function StudioDashboard() {
             </div>
           )}
         </section>
+        
+        <StudioRecentTemplates />
       </div>
     </main>
   );

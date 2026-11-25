@@ -1,0 +1,312 @@
+
+/* ============================================================
+   Social Design Studio
+   Checkpoint 28.3 — Template Library
+============================================================ */
+
+.studio-template-grid,
+.studio-template-recent-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(auto-fill, minmax(min(100%, 225px), 1fr));
+
+  gap: 1rem;
+}
+
+/* ============================================================
+   Template artwork
+============================================================ */
+
+.studio-template-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 192px;
+  min-width: 0;
+  padding: 8px;
+
+  overflow: hidden;
+
+  border-radius: 0.65rem;
+
+  background:
+    var(--color-studio-workspace, #e5e5e5);
+}
+
+.studio-template-preview-artwork {
+  flex-shrink: 0;
+  max-width: 100%;
+}
+
+.studio-template-preview-loading {
+  animation:
+    studio-dashboard-pulse
+    1.5s ease-in-out infinite;
+}
+
+.studio-template-preview-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+
+  color: var(--color-muted);
+
+  font-size: 0.7rem;
+  text-align: center;
+}
+
+/* ============================================================
+   Template cards
+============================================================ */
+
+.studio-template-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  min-width: 0;
+  padding: 0.75rem;
+
+  overflow: hidden;
+
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+
+  background: var(--color-surface-elevated);
+
+  transition:
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.studio-template-card:hover {
+  border-color: var(--color-accent);
+
+  box-shadow:
+    0 4px 18px rgba(196, 43, 112, 0.08);
+}
+
+.studio-template-card-preview {
+  position: relative;
+
+  min-width: 0;
+}
+
+.studio-template-preview-button {
+  display: block;
+
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+
+  border: 0;
+  border-radius: 0.65rem;
+
+  background: transparent;
+
+  cursor: pointer;
+}
+
+.studio-template-card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+
+  min-width: 0;
+}
+
+.studio-template-card-details h3 {
+  margin: 0;
+
+  overflow: hidden;
+
+  color: var(--color-foreground);
+
+  font-size: 0.95rem;
+  font-weight: 600;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.studio-template-category {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+
+  align-self: flex-start;
+  max-width: 100%;
+  padding: 0.35rem 0.6rem;
+
+  border-radius: 0.4rem;
+
+  background: var(--color-accent-muted);
+  color: var(--color-accent);
+
+  font-size: 0.7rem;
+  font-weight: 500;
+
+  overflow-wrap: anywhere;
+}
+
+.studio-template-category > svg {
+  flex-shrink: 0;
+}
+
+.studio-template-description {
+  display: -webkit-box;
+
+  margin: 0;
+
+  overflow: hidden;
+
+  color: var(--color-muted);
+
+  font-size: 0.75rem;
+  line-height: 1.5;
+
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+
+  overflow-wrap: anywhere;
+}
+
+.studio-template-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+
+  margin-top: auto;
+}
+
+.studio-template-card-actions
+> .studio-dashboard-primary {
+  flex: 1;
+}
+
+.studio-template-card-actions button:disabled,
+.studio-template-preview-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   Home dashboard
+============================================================ */
+
+.studio-template-home-empty {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+
+  padding: 1.25rem;
+
+  border: 1px dashed var(--color-border);
+  border-radius: 1rem;
+
+  background: var(--color-surface);
+}
+
+.studio-template-home-empty > svg {
+  flex-shrink: 0;
+  color: var(--color-accent);
+}
+
+.studio-template-home-empty > div {
+  flex: 1 1 180px;
+}
+
+.studio-template-home-empty strong {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.studio-template-home-empty p {
+  margin: 0.35rem 0 0;
+
+  color: var(--color-muted);
+
+  font-size: 0.8rem;
+}
+
+/* ============================================================
+   Tablet
+============================================================ */
+
+@media (max-width: 1023px) {
+  .studio-template-grid,
+  .studio-template-recent-grid {
+    grid-template-columns:
+      repeat(auto-fill, minmax(min(100%, 190px), 1fr));
+  }
+}
+
+/* ============================================================
+   Mobile
+============================================================ */
+
+@media (max-width: 767px) {
+  .studio-template-grid,
+  .studio-template-recent-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: 0.65rem;
+  }
+
+  .studio-template-card {
+    padding: 0.5rem;
+    border-radius: 0.75rem;
+  }
+
+  .studio-template-card-details h3 {
+    font-size: 0.8rem;
+  }
+
+  .studio-template-card-actions
+  > .studio-dashboard-primary {
+    gap: 0.25rem;
+
+    padding-inline: 0.45rem;
+
+    font-size: 0.7rem;
+  }
+
+  .studio-template-card-actions
+  > .studio-dashboard-primary svg {
+    display: none;
+  }
+
+  .studio-template-card-actions
+  > .studio-dashboard-icon-button {
+    min-width: 36px;
+    padding-inline: 0.25rem;
+  }
+
+  .studio-template-home-empty
+  > .studio-dashboard-secondary {
+    width: 100%;
+  }
+}
+
+@media (max-width: 360px) {
+  .studio-template-grid {
+    grid-template-columns:
+      minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-template-card {
+    transition: none;
+  }
+
+  .studio-template-preview-loading {
+    animation: none;
+  }
+}
