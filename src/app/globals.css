@@ -72,6 +72,9 @@
   --color-text-charcoal: #241c22;
   --color-deep-plum: #351827;
 
+  /* Studio workspace */
+  --color-studio-workspace: #e5e5e5;
+
   /* ----------------------------------------------------------
      Pink Academia interface mappings
   ---------------------------------------------------------- */
@@ -216,6 +219,8 @@
 
   --color-muted: var(--color-muted-orchid-gray);
   --color-subtle: rgba(217, 200, 210, 0.78);
+
+  --color-studio-workspace: #292929;
 
   /* ----------------------------------------------------------
      Dark mode brand mappings
@@ -575,5 +580,337 @@
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================================
+   Social Design Studio
+   Reusable panels, buttons, fields, and layer controls
+============================================================ */
+
+@layer components {
+  .studio-panel {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 1rem;
+  }
+
+  /* Studio checkbox styling */
+  .studio-panel input[type="checkbox"] {
+    accent-color: #ed3f98;
+    cursor: pointer;
+  }
+
+  .studio-panel input[type="checkbox"]:disabled {
+    cursor: not-allowed;
+  }
+
+  .studio-panel label:has(input[type="checkbox"]:not(:disabled)) {
+    cursor: pointer;
+  }
+
+  /* Studio checkbox styling */
+  .studio-panel input[type="checkbox"] {
+    accent-color: #ed3f98;
+    cursor: pointer;
+  }
+
+  .studio-panel input[type="checkbox"]:disabled {
+    cursor: not-allowed;
+  }
+
+  .studio-panel label:has(input[type="checkbox"]:not(:disabled)) {
+    cursor: pointer;
+  }
+
+  /* Studio-wide interactive controls */
+
+  .studio-panel button:not(:disabled),
+  .studio-panel [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
+  .studio-panel button:disabled,
+  .studio-panel [role="button"][aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+
+  .studio-panel button:disabled {
+    opacity: 0.4;
+  }
+
+  .studio-panel button:focus-visible,
+  .studio-panel [role="button"]:focus-visible {
+    outline: 2px solid var(--color-focus-brand);
+    outline-offset: 2px;
+  }
+
+  .studio-panel button:not(:disabled):active {
+    filter: brightness(0.96);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .studio-panel button:not(:disabled):active {
+      transform: scale(0.98);
+    }
+  }
+
+  /* Studio sliders and numeric fields */
+
+  .studio-panel input[type="range"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  .studio-panel input[type="range"]:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+  }
+
+  .studio-panel input[type="number"]:disabled,
+  .studio-panel select:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+  }
+
+  /* Standard Studio buttons */
+  .studio-control {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+
+    background-color: var(--color-surface);
+    color: var(--color-foreground);
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+
+    transition:
+      background-color 150ms ease,
+      border-color 150ms ease;
+  }
+
+  .studio-control:hover:not(:disabled) {
+    background-color: var(--color-surface-soft);
+    border-color: var(--color-border-strong);
+  }
+
+  .studio-control:active:not(:disabled) {
+    background-color: var(--color-aura-petal);
+  }
+
+  .studio-control[aria-pressed="true"],
+  .studio-control[data-active="true"] {
+    background-color: var(--color-aura-blush);
+    border-color: var(--color-accessible-rose);
+    color: var(--color-deep-plum);
+  }
+
+  .studio-control:focus-visible {
+    outline: 2px solid var(--color-focus-brand);
+    outline-offset: 2px;
+  }
+
+  .studio-control:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* Text and icon button variations */
+  .studio-button {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .studio-icon-button {
+    padding: 0.5rem;
+  }
+
+  .studio-field {
+    width: 100%;
+    background-color: var(--color-surface);
+    color: var(--color-foreground);
+    border: 1px solid var(--color-border);
+    border-radius: 0.75rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .studio-field:hover:not(:disabled) {
+    border-color: var(--color-signature-aura-pink);
+  }
+
+  .studio-field:focus-visible {
+    outline: 2px solid var(--color-focus-brand);
+    outline-offset: 2px;
+  }
+
+  /* Individual layer rows */
+  .studio-layer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 0.75rem;
+
+    transition:
+      background-color 150ms ease,
+      border-color 150ms ease;
+  }
+
+  .studio-layer:hover {
+    background-color: var(--color-surface-soft);
+    border-color: var(--color-border-strong);
+  }
+
+  .studio-layer[data-selected="true"]:hover {
+    background-color: var(--color-aura-blush);
+    border-color: var(--color-accessible-rose);
+  }
+
+  .studio-layer[data-selected="true"] {
+    background-color: var(--color-aura-blush);
+    border-color: var(--color-accessible-rose);
+    color: var(--color-deep-plum);
+  }
+
+  /* Small utility icons inside layer rows */
+  .studio-layer-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    padding: 0.375rem;
+    border: none;
+    border-radius: 0.375rem;
+    background: transparent;
+    color: var(--color-foreground);
+    cursor: pointer;
+
+    transition:
+      background-color 150ms ease,
+      color 150ms ease;
+  }
+
+  .studio-layer-icon:hover {
+    background-color: var(--color-aura-mist);
+    color: var(--color-accessible-rose);
+  }
+
+  .studio-layer-icon:focus-visible {
+    outline: 2px solid var(--color-focus-brand);
+    outline-offset: 2px;
+  }
+
+  /* Grouped toolbar controls */
+  .studio-control-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.75rem;
+    background-color: var(--color-surface);
+  }
+
+  /* Canvas workspace */
+  .studio-workspace {
+    border: 1px solid var(--color-border);
+    border-radius: 1.25rem;
+    background-color: var(--color-studio-workspace);
+  }
+
+  /* Color Swatch */
+  .studio-color-swatch {
+    appearance: none;
+    -webkit-appearance: none;
+    overflow: hidden;
+  }
+
+  .studio-color-swatch::-webkit-color-swatch-wrapper {
+    padding: 0;
+    border-radius: 50%;
+  }
+
+  .studio-color-swatch::-webkit-color-swatch {
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+  }
+
+  .studio-color-swatch::-moz-color-swatch {
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+  }
+}
+
+/* ============================================================
+   Studio — Responsive Application Shell
+   Checkpoint 27.1
+============================================================ */
+
+body:has([data-studio-private]) > [data-site-chrome] {
+  display: none;
+}
+
+body:has([data-studio-private]) {
+  overflow: hidden;
+}
+
+body:has([data-studio-private]) #main-content {
+  height: 100dvh;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.studio-app-shell {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100dvh;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--color-background);
+}
+
+.studio-app-header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.625rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.studio-page {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 0.75rem;
+}
+
+.studio-page-content {
+  width: 100%;
+  min-width: 0;
+  margin-inline: auto;
+}
+
+@media (max-width: 639px) {
+  .studio-app-header {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .studio-page {
+    padding: 0.5rem;
   }
 }

@@ -1,0 +1,300 @@
+/* ============================================================
+   Social Design Studio
+   Checkpoint 28.4 — PWA
+============================================================ */
+
+/* ============================================================
+   Installed application safe areas
+============================================================ */
+
+html[data-studio-standalone="true"] .studio-app-shell {
+  box-sizing: border-box;
+
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+
+  background: var(--color-background);
+}
+
+/* ============================================================
+   Apple standalone status bar refinement
+============================================================ */
+
+@supports (-webkit-touch-callout: none) {
+  html[data-studio-standalone="true"] .studio-app-shell {
+    --studio-status-bar-clearance: 16px;
+
+    padding-top: calc(env(safe-area-inset-top, 0px) + var(--studio-status-bar-clearance));
+  }
+}
+
+html[data-studio-standalone="true"],
+html[data-studio-standalone="true"] body {
+  background-color: var(--color-background);
+}
+
+/* ============================================================
+   Installation card
+============================================================ */
+
+.studio-pwa-install-card {
+  flex-shrink: 0;
+
+  padding: 1rem 1.15rem;
+
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+
+  background: var(--color-surface-elevated);
+}
+
+.studio-pwa-install-main {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+}
+
+.studio-pwa-install-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  width: 48px;
+  height: 48px;
+
+  border-radius: 0.85rem;
+
+  background: var(--color-accent-muted);
+  color: var(--color-accent);
+}
+
+.studio-pwa-install-copy {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+
+.studio-pwa-install-copy h2 {
+  margin: 0;
+
+  color: var(--color-foreground);
+
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.studio-pwa-install-copy p {
+  margin: 0.3rem 0 0;
+
+  color: var(--color-muted);
+
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.studio-pwa-install-main button svg {
+  transition: transform 150ms ease;
+}
+
+.studio-pwa-chevron-expanded {
+  transform: rotate(180deg);
+}
+
+/* ============================================================
+   Platform instructions
+============================================================ */
+
+.studio-pwa-install-instructions {
+  display: grid;
+
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  gap: 1rem;
+
+  margin-top: 1rem;
+  padding-top: 1rem;
+
+  border-top: 1px solid var(--color-border);
+}
+
+.studio-pwa-platform {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+
+  min-width: 0;
+  padding: 1rem;
+
+  border: 1px solid var(--color-border);
+  border-radius: 0.8rem;
+
+  background: var(--color-surface);
+}
+
+.studio-pwa-platform > svg {
+  flex-shrink: 0;
+
+  color: var(--color-accent);
+}
+
+.studio-pwa-platform > div {
+  min-width: 0;
+}
+
+.studio-pwa-platform h3 {
+  margin: 0 0 0.65rem;
+
+  color: var(--color-foreground);
+
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.studio-pwa-platform ol {
+  margin: 0;
+  padding-left: 1.15rem;
+
+  list-style: decimal;
+
+  color: var(--color-muted);
+
+  font-size: 0.8rem;
+  line-height: 1.7;
+}
+
+.studio-pwa-platform li + li {
+  margin-top: 0.35rem;
+}
+
+.studio-pwa-install-footnote {
+  grid-column: 1 / -1;
+
+  margin: 0;
+
+  color: var(--color-muted);
+
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+
+/* ============================================================
+   Installed status
+============================================================ */
+
+.studio-pwa-installed-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  flex-shrink: 0;
+
+  padding: 0.8rem 1rem;
+
+  border: 1px solid var(--color-border);
+  border-radius: 0.8rem;
+
+  background: var(--color-surface);
+}
+
+.studio-pwa-installed-card > svg {
+  flex-shrink: 0;
+
+  color: var(--color-accent);
+}
+
+.studio-pwa-installed-card strong {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.studio-pwa-installed-card p {
+  margin: 0.2rem 0 0;
+
+  color: var(--color-muted);
+
+  font-size: 0.75rem;
+}
+
+/* ============================================================
+   Connection status
+============================================================ */
+
+.studio-pwa-offline-notice {
+  position: fixed;
+  z-index: 1000;
+
+  top: calc(env(safe-area-inset-top, 0px) + 0.5rem);
+
+  left: 50%;
+
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+
+  width: max-content;
+  max-width: calc(100% - 2rem);
+
+  padding: 0.65rem 1rem;
+
+  transform: translateX(-50%);
+
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+
+  background: var(--color-surface-elevated);
+  color: var(--color-foreground);
+
+  box-shadow: 0 4px 20px rgb(0 0 0 / 12%);
+
+  font-size: 0.75rem;
+  line-height: 1.5;
+
+  pointer-events: none;
+}
+
+.studio-pwa-offline-notice > svg {
+  flex-shrink: 0;
+
+  color: var(--color-accent);
+}
+
+/* ============================================================
+   Mobile
+============================================================ */
+
+@media (max-width: 767px) {
+  .studio-pwa-install-card {
+    padding: 0.85rem;
+  }
+
+  .studio-pwa-install-main {
+    gap: 0.65rem;
+  }
+
+  .studio-pwa-install-main > .studio-dashboard-secondary {
+    width: 100%;
+  }
+
+  .studio-pwa-install-icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .studio-pwa-install-instructions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .studio-pwa-platform {
+    padding: 0.8rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-pwa-install-main button svg {
+    transition: none;
+  }
+}

@@ -1,4 +1,4 @@
-import { SocialIcon } from "../../data/navData";
+import { SocialIcon } from "@/data/navData";
 
 interface SocialLinksProps {
   icons: SocialIcon[];

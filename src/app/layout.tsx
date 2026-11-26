@@ -1,29 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Geist_Mono, Nunito_Sans, Plus_Jakarta_Sans } from "next/font/google";
 
+import "./fonts.css";
 import "./globals.css";
 
 import Footer from "../components/nav/Footer";
 import Header from "../components/nav/Header";
-
-const plusJakartaSans = Plus_Jakarta_Sans({
-  variable: "--font-heading",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  style: ["normal", "italic"],
-});
-
-const nunitoSans = Nunito_Sans({
-  variable: "--font-nunito-sans",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-});
 
 const siteUrl = "https://www.thearielaisrael.com";
 
@@ -166,9 +147,7 @@ export default function RootLayout({
         />
       </head>
 
-      <body
-        className={`${plusJakartaSans.variable} ${nunitoSans.variable} ${geistMono.variable} bg-background text-foreground overflow-x-hidden overflow-y-scroll antialiased`}
-      >
+      <body className="bg-background text-foreground overflow-x-hidden overflow-y-scroll antialiased">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -183,13 +162,17 @@ export default function RootLayout({
           Skip to main content
         </a>
 
-        <Header />
+        <div data-site-chrome className="contents">
+          <Header />
+        </div>
 
         <div id="main-content" tabIndex={-1} className="scroll-mt-24">
           {children}
         </div>
 
-        <Footer />
+        <div data-site-chrome className="contents">
+          <Footer />
+        </div>
       </body>
     </html>
   );

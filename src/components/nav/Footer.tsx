@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { SocialIcons } from "../../data/navData";
+import { SocialIcons } from "@/data/navData";
 import SocialLinks from "./SocialLinks";
 
 const footerLinks = [
